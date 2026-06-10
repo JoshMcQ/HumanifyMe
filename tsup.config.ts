@@ -13,4 +13,6 @@ export default defineConfig({
   splitting: false,
   clean: true,
   external: ['mammoth', 'adm-zip', 'node:sqlite'],
-  // node:sqlite must keep its protoc
+  // node:sqlite must keep its protocol prefix or Node resolves it as an npm package.
+  removeNodeProtocol: false,
+});
