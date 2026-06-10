@@ -1,0 +1,80 @@
+# Installing HumanifyMe in your agent
+
+HumanifyMe is an MCP server. Any agent that speaks MCP can use it. All
+snippets assume Node ≥ 22.5 is installed.
+
+After installing in any agent, ask the agent to "set up HumanifyMe" (it will
+walk you through provider, samples, and profile), or run `npx -y humanifyme setup`
+in a terminal.
+
+## Cowork / Claude Code (plugin)
+
+Install the `humanifyme` plugin from the marketplace, or point "Install from
+file" at `humanifyme.plugin/`.
+
+## Claude Code (manual MCP)
+
+```bash
+claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp
+```
+
+## Cursor — `~/.cursor/mcp.json`
+
+```json
+{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+    }
+  }
+}
+```
+
+## Claude Desktop — `claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+    }
+  }
+}
+```
+
+## Continue — `~/.continue/config.yaml`
+
+```yaml
+mcpServers:
+  - name: humanifyme
+    command: npx
+    args: ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+```
+
+## Cline / Windsurf — MCP settings JSON
+
+Same shape as Cursor: command `npx`, args `["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]`.
+
+## Zed — `settings.json`
+
+```json
+{
+  "context_servers": {
+    "humanifyme": {
+      "command": {
+        "path": "npx",
+        "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+      }
+    }
+  }
+}
+```
+
+## ChatGPT desktop
+
+ChatGPT desktop supports MCP via developer mode connectors; stdio support
+varies by version. Until first-class stdio config lands, run HumanifyMe via a
+local MCP bridge, or check humanifyme.com/install/chatgpt for the current
+snippet.

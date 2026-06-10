@@ -1,0 +1,12 @@
+{
+  "name": "humanifyme",
+  "displayName": "HumanifyMe",
+  "version": "0.1.0",
+  "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
+  "author": "humanifyme.com",
+  "homepage": "https://humanifyme.com",
+  "license": "MIT",
+  "mcps": ["./mcp/server.json"],
+  "skills": ["./skills/humanify", "./skills/build-voice-profile", "./skills/humanify-pr"],
+  "tags": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
+}

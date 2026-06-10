@@ -1,0 +1,6 @@
+{
+  "name": "humanifyme",
+  "command": "npx",
+  "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"],
+  "transport": "stdio"
+}
