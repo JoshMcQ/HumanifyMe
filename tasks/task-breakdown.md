@@ -37,7 +37,7 @@ Pick the lowest-numbered task whose dependencies are done. Do one task at a time
 ### T-02 — Storage: SQLite layer with migrations
 - **Objective:** A typed module that wraps SQLite for samples, profiles, cache, and audit. No other code touches the DB directly.
 - **Files:** `src/storage/index.ts`, `src/storage/db.ts`, `src/storage/migrations/001_init.sql`, `src/storage/repositories/{samples,profiles,cache,audit}.ts`, `src/storage/*.test.ts`.
-- **Implementation notes:** Use `better-sqlite3`. DB at `${HUMANIFYME_HOME || '~/.humanifyme'}/data.db`. Migrations stored as SQL files, applied at startup; tracked in a `_migrations` table. zod schemas for inputs/outputs. Repositories: `samples.list/add/remove/clear`, `profile.get/set/clear`, `cache.{get,put,evict}`, `audit.append/list/clear`.
+- **Implementation notes:** Use the built-in `node:sqlite` (`DatabaseSync`) — spec change 2026-06-10, see `specs/mcp-server-spec.md` Runtime; `better-sqlite3` was dropped to keep the npx install path free of native compilation. DB at `${HUMANIFYME_HOME || '~/.humanifyme'}/data.db`. Migrations stored as SQL files, applied at startup; tracked in a `_migrations` table. zod schemas for inputs/outputs. Repositories: `samples.list/add/remove/clear`, `profile.get/set/clear`, `cache.{get,put,evict}`, `audit.append/list/clear`.
 - **Acceptance criteria:**
   - First start creates `~/.humanifyme/data.db` with schema version 1.
   - All inputs validated with zod; invalid writes throw.
@@ -169,6 +169,4 @@ Pick the lowest-numbered task whose dependencies are done. Do one task at a time
 
 ## Notes on later milestones
 
-Tasks T-11 through T-60 are listed in `tasks/acceptance-criteria.md` with short AC. They will be expanded into the same long-form structure as the first 10 tasks once Milestone 1 is in progress. Expanding all 60 now without working code is overplanning and would invite churn.
-
-The first 10 tasks (T-01 through T-10) are sufficient to start coding and to discover the next round of detail.
+Tasks T-11 through T-60 are listed in `tasks/acceptance-criteria.md` with short AC. They will be expanded into the same long-form structure as the first 10 tasks once Milestone 1 is in progress. Expanding all 6

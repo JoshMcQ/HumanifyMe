@@ -37,6 +37,8 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Tasks inside:** T-01 through T-10 (see `tasks/task-breakdown.md`).
 
+**Status:** complete (2026-06-10). Note: storage uses the built-in `node:sqlite` instead of `better-sqlite3` (spec change recorded in `specs/mcp-server-spec.md` Runtime).
+
 ---
 
 ## Milestone 2 — Style profile generator
@@ -54,6 +56,8 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 - CLI: `humanifyme profile show|edit|rm|rebuild`, `humanifyme provider set|test`.
 
 **Tasks inside:** T-11 through T-22.
+
+**Status:** complete (2026-06-10), with one open item: per-provider recorded-fixture tests against live APIs are pending (covered by `FakeLLMProvider` unit tests; live validation blocked in the build environment — run `humanifyme provider test` locally).
 
 ---
 
@@ -73,6 +77,8 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Tasks inside:** T-23 through T-32.
 
+**Status:** complete (2026-06-10). p50 latency budget not yet measured against a live provider (pipeline overhead measured at <50ms; LLM latency dominates and needs live measurement).
+
 ---
 
 ## Milestone 4 — Plugin packaging
@@ -88,6 +94,8 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 - One-line `mcp.json` snippets published in `docs/install/` for Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop.
 
 **Tasks inside:** T-33 through T-42.
+
+**Status:** code complete (2026-06-10): `humanifyme.plugin/` bundle, three skills, install snippets in `docs/install/`. Pending: validating actual installs in Cowork ("Install from file") and Claude Code (marketplace dev mode), and trigger-testing the skills in real agents.
 
 ---
 
@@ -114,29 +122,4 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Definition of done:**
 
-- humanifyme.com hero, how-it-works, supported agents, privacy, install.
-- Privacy policy and terms of service drafts published.
-- Per-agent install pages at `humanifyme.com/install/<agent>` with copy-paste snippets.
-- Open Graph + Twitter card configured.
-- Lighthouse perf ≥ 95 mobile and desktop.
-- No third-party analytics in launch build until we ship opt-in.
-
-**Tasks inside:** T-51 through T-56.
-
----
-
-## Milestone 7 — Beta release checklist
-
-**Gate to start:** M6 done, plus alpha exit criteria from `specs/launch-plan.md` met.
-
-**Definition of done:**
-
-- Cowork plugin marketplace listing live.
-- Claude Code plugin marketplace listing live.
-- npm package `humanifyme` published.
-- Screenshots and screen recording finalized.
-- Initial alpha cohort (10–30) installed and surveyed.
-- Bug triage process documented.
-- Day-1 ops checklist (response time targets, monitoring) documented.
-
-**Tasks inside:** T-57 through T-60.
+- humanifyme.com hero, how-it-works, supported

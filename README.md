@@ -16,19 +16,46 @@ People increasingly delegate writing to AI agents — commit messages, PR descri
 
 You install HumanifyMe as a plugin in your agent. You give it 3–10 of your real writing samples via the bundled `build-voice-profile` skill. HumanifyMe generates a structured voice fingerprint and stores it locally in `~/.humanifyme/`. From then on, your agent can call the `humanify_text` tool — automatically, via bundled skills like `humanify-pr` for PR descriptions, or explicitly when you ask. The rewrite runs on your machine, calls your configured LLM provider with your key, and never sends raw samples anywhere.
 
-## Repository layout
+## Developer setup
 
-This repository is currently a **spec-driven planning workspace**. No application code lives here yet. Code lands only after the spec gate (see `tasks/milestones.md` → Milestone 0).
+```bash
+npm install        # Node >= 22.5 required (uses the built-in node:sqlite)
+npm test           # vitest suite
+npm run typecheck  # tsc --noEmit
+npm run build      # tsup -> dist/humanifyme-mcp.mjs (MCP server) + dist/humanifyme.mjs (CLI)
+```
+
+Try it locally:
+
+```bash
+npm run build
+node dist/humanifyme.mjs setup                                  # consent
+node dist/humanifyme.mjs provider set anthropic --api-key sk-…  # your key
+node dist/humanifyme.mjs sample add my-email.txt --label email  # 3+ samples
+node dist/humanifyme.mjs profile rebuild
+echo "We are delighted to leverage synergies." | node dist/humanifyme.mjs rewrite
+```
+
+Register the MCP in an agent (see `docs/install/` for every agent):
+
+```bash
+claude mcp add humanifyme -- node /path/to/repo/dist/humanifyme-mcp.mjs
+```
+
+## Repository layout
 
 ```
 /README.md                       <- you are here
 /CLAUDE.md                       <- instructions for Claude Code
 /AGENTS.md                       <- instructions for any coding agent
 /.github/copilot-instructions.md <- instructions for GitHub Copilot
+/src/                            <- the MCP server + CLI (TypeScript)
+/humanifyme.plugin/              <- plugin bundle: manifest, MCP registration, skills
 /specs/                          <- product, MVP, component, and policy specs
 /tasks/                          <- roadmap, milestones, task breakdown, AC, test plan
 /prompts/                        <- LLM prompt templates for the rewrite engine
 /docs/                           <- user stories, data model, MCP tool contract, architecture, risks, open questions
+/docs/install/                   <- per-agent install snippets
 ```
 
 ## Reading order
@@ -42,26 +69,4 @@ If you are new to the project, read in this order:
 5. `specs/privacy-security-spec.md` — non-negotiable rules.
 6. `docs/architecture.md` — how the pieces fit.
 7. `tasks/milestones.md` — what ships when.
-8. `tasks/task-breakdown.md` — what to pick up next.
-
-## Status
-
-- Milestone 0 (research & specs): complete.
-- Milestone 1+ (code): not started. Do not begin coding until the spec gate in `tasks/milestones.md` is met.
-
-## Locked product decisions
-
-- Surface: MCP server, distributed as a plugin. **Not** a Chrome extension.
-- Name: **HumanifyMe**. Domain humanifyme.com.
-- Tagline: **Make AI sound like you.**
-- LLM providers: Anthropic, OpenAI, Gemini wired at launch; Ollama as an early follow-on.
-- Storage: local-first in `~/.humanifyme/` (config + SQLite). No backend in MVP.
-- Target distribution: every MCP-compatible agent. Cowork and Claude Code plugin marketplaces are first-class at launch.
-
-## Positioning, in one line
-
-HumanifyMe is the voice layer that sits inside your agent and rewrites everything in your voice before you see it.
-
-## License
-
-TBD. See `docs/open-questions.md`.
+8. `tasks/task-breakdown.md` — what to pic
