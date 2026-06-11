@@ -3,6 +3,23 @@
   "version": "0.1.0",
   "description": "Make AI sound like you. A local-first MCP server that learns your writing voice and rewrites AI-generated drafts in it.",
   "license": "MIT",
+  "author": "Joshua McQueary",
+  "homepage": "https://humanifyme.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/joshmcqueary/humanifyme.git"
+  },
+  "keywords": [
+    "mcp",
+    "model-context-protocol",
+    "writing",
+    "voice",
+    "style",
+    "rewrite",
+    "ai-tone",
+    "claude",
+    "local-first"
+  ],
   "type": "module",
   "engines": {
     "node": ">=22.5"
