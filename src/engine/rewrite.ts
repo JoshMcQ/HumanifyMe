@@ -16,6 +16,7 @@ import { LLMProvider } from '../providers/types.js';
 import { StyleProfile, mergeFingerprint } from './styleProfile.js';
 import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
 import { computeDiff } from './diff.js';
+import { sanitizeRewrite, verifyRewrite, issuesToFeedback } from './verify.js';
 
 export interface RewriteArgs {
   draft: string;
@@ -111,7 +112,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
       throw he;
     }
 
-    const text = completion.text.trim();
+    const text = sanitizeRewrite(completion.text, redactedText);
     if (text.length === 0) {
       lengthReminder = 'Your previous attempt returned empty output. You must return the rewritten draft.';
       continue;
@@ -119,18 +120,39 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
 
     const ratio = text.length / args.draft.length;
     const outOfBand = shorter ? ratio > 0.95 : ratio < 0.7 || ratio > 1.3;
+    // Deterministic quality gate: introduced banned words, dropped numbers,
+    // lost URLs, mangled redaction placeholders.
+    const issues = verifyRewrite({
+      redactedDraft: redactedText,
+      rewrite: text,
+      wordsToAvoid: fingerprint.wordsToAvoid,
+    });
 
-    if (outOfBand && attempt === 0) {
-      // Retry once with a length reminder, per the spec's length policy.
-      lengthReminder = shorter
-        ? `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. It must be 60-80%.`
-        : `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. Stay between 70% and 130%.`;
+    if ((outOfBand || issues.length > 0) && attempt === 0) {
+      // Retry once with targeted feedback, per the spec's failure policy.
+      const feedback: string[] = [];
+      if (outOfBand) {
+        feedback.push(
+          shorter
+            ? `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. It must be 60-80%.`
+            : `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. Stay between 70% and 130%.`,
+        );
+      }
+      if (issues.length > 0) feedback.push(issuesToFeedback(issues));
+      lengthReminder = feedback.join(' ');
       result = completion;
       result.text = text;
       continue;
     }
     if (outOfBand) {
       notes.push(`Rewrite length is ${Math.round(ratio * 100)}% of the draft, outside the target band.`);
+    }
+    if (issues.length > 0) {
+      notes.push(
+        `Could not fully enforce after retry — review before sending: ${issues
+          .map((i) => `${i.kind.replace(/_/g, ' ')} (${i.detail})`)
+          .join('; ')}.`,
+      );
     }
     result = completion;
     result.text = text;
