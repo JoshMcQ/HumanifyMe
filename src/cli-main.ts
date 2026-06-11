@@ -1,6 +1,7 @@
 // Entrypoint for the `humanifyme` CLI. Talks to the same storage and engine
 // layers as the MCP — no transport in between.
 
+import './suppressExperimentalWarnings.js';
 import fs from 'node:fs';
 import { Command } from 'commander';
 import { VERSION } from './version.js';

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy — HumanifyMe</title>
+<meta name="description" content="HumanifyMe privacy policy. Local-first: your samples never leave your machine.">
+<style>
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;background:#faf9f5;color:#191817;line-height:1.7;margin:0}
+.wrap{max-width:720px;margin:0 auto;padding:60px 24px}
+h1{font-family:'Iowan Old Style','Palatino Linotype',Georgia,serif;font-size:2.2rem;margin-bottom:4px}
+h2{font-size:1.15rem;margin:34px 0 8px}
+p,li{color:#3f3c38;font-size:1rem}
+ul{padding-left:22px}
+a{color:#c96342}
+.date{color:#8a857c;font-size:.85rem}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.88em;background:#efece5;padding:1px 5px;border-radius:4px}
+nav{padding:18px 24px;border-bottom:1px solid #e7e2da}
+nav a{text-decoration:none;color:#191817;font-weight:700}
+nav a em{color:#c96342;font-style:normal}
+</style>
+</head>
+<body>
+<nav><a href="/">Humanify<em>Me</em></a></nav>
+<div class="wrap">
+<h1>Privacy policy</h1>
+<p class="date">Draft — last updated June 11, 2026</p>
+
+<p>HumanifyMe is built local-first specifically so that we don't have to ask you to trust us. This page says in plain English what the software does with data. The short version: <strong>we collect nothing, because there is nothing for us to collect.</strong></p>
+
+<h2>What we collect</h2>
+<p>Nothing. HumanifyMe has no accounts, no telemetry, no analytics, and no backend server operated by us. We cannot see your writing samples, your style profile, your drafts, or your rewrites. The software runs entirely on your computer.</p>
+
+<h2>What stays on your machine</h2>
+<ul>
+  <li>Your writing samples — stored in <code>~/.humanifyme/data.db</code>.</li>
+  <li>Your style profile — same database.</li>
+  <li>Your provider API key — in <code>~/.humanifyme/config.json</code>, with file permissions restricted to your user account.</li>
+  <li>A short audit log of recent outbound requests (metadata only — sizes and timestamps, never content).</li>
+</ul>
+
+<h2>What leaves your machine, and where it goes</h2>
+<p>Two operations send text over the network, both to the LLM provider <em>you</em> configure (Anthropic, OpenAI, Google Gemini, or a local Ollama server) and to no other destination:</p>
+<ul>
+  <li><strong>Building your profile</strong> sends your samples, after redaction.</li>
+  <li><strong>Rewriting a draft</strong> sends the draft (after redaction) plus your style profile.</li>
+</ul>
+<p>Redaction masks email addresses, phone numbers, street addresses, card numbers, API keys, and tokens before any text is sent, and restores them in your local copy afterward. If you use Ollama, nothing leaves your machine at all.</p>
+<p>Your relationship with your LLM provider is governed by their terms. We default to providers' no-training API tiers where they exist and document provider data-use policies in the project repository.</p>
+
+<h2>What we will never do</h2>
+<ul>
+  <li>Sell data. There is no data to sell, and this commitment survives any future product changes.</li>
+  <li>Train models on your writing.</li>
+  <li>Add telemetry or any new data flow without explicit, versioned, opt-in consent.</li>
+</ul>
+
+<h2>Deleting everything</h2>
+<p>Run <code>humanifyme wipe --confirm</code> (or call the <code>humanify_wipe_all</code> tool from your agent). This deletes your samples, profile, cache, and audit log irrevocably. Because nothing is stored anywhere else, that's genuinely everything.</p>
+
+<h2>Future paid features</h2>
+<p>If we later offer an optional managed service (e.g., cross-device sync), it will be opt-in, end-to-end encrypted with a key derived on your device, and covered by an updated version of this policy before launch. Local-only operation will remain available.</p>
+
+<h2>Contact</h2>
+<p><a href="mailto:support@humanifyme.com">support@humanifyme.com</a></p>
+</div>
+</body>
+</html>

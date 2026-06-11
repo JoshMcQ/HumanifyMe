@@ -1,5 +1,6 @@
 // Entrypoint for the `humanifyme-mcp` binary: MCP over stdio.
 
+import './suppressExperimentalWarnings.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { createServer } from './server.js';
 

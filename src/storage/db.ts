@@ -2,17 +2,24 @@
 // Chosen over better-sqlite3 to keep `npx -y humanifyme` free of native
 // compilation. See specs/mcp-server-spec.md Runtime.
 
-import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
+import { createRequire } from 'node:module';
+import type { DatabaseSync } from 'node:sqlite';
 import { dbPath, ensureHome } from '../paths.js';
 import { MIGRATIONS } from './migrations/index.js';
+
+// node:sqlite is loaded lazily (and via require, not a static import) so the
+// entrypoints can install their warning filter before the driver emits its
+// ExperimentalWarning -- static externals get hoisted above all bundle code.
+const require = createRequire(import.meta.url);
 
 let db: DatabaseSync | null = null;
 
 export function getDb(): DatabaseSync {
   if (db) return db;
   ensureHome();
-  db = new DatabaseSync(dbPath());
+  const { DatabaseSync: Driver } = require('node:sqlite') as typeof import('node:sqlite');
+  db = new Driver(dbPath());
   db.exec('PRAGMA journal_mode = WAL');
   applyMigrations(db);
   return db;
