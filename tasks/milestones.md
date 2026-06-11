@@ -122,4 +122,31 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Definition of done:**
 
-- humanifyme.com hero, how-it-works, supported
+- humanifyme.com hero, how-it-works, supported agents, privacy, install.
+- Privacy policy and terms of service drafts published.
+- Per-agent install pages at `humanifyme.com/install/<agent>` with copy-paste snippets.
+- Open Graph + Twitter card configured.
+- Lighthouse perf ≥ 95 mobile and desktop.
+- No third-party analytics in launch build until we ship opt-in.
+
+**Tasks inside:** T-51 through T-56.
+
+**Status:** site built 2026-06-11 (`site/`: index, privacy, terms; per-agent install handled as tabs + anchors on the install section rather than separate pages — revisit if share-links demand it). Pending: deploy to humanifyme.com (Joshua owns the domain), og.png asset, white paper HTML render, Lighthouse run on the live deploy.
+
+---
+
+## Milestone 7 — Beta release checklist
+
+**Gate to start:** M6 done, plus alpha exit criteria from `specs/launch-plan.md` met.
+
+**Definition of done:**
+
+- Cowork plugin marketplace listing live.
+- Claude Code plugin marketplace listing live.
+- npm package `humanifyme` published.
+- Screenshots and screen recording finalized.
+- Initial alpha cohort (10–30) installed and surveyed.
+- Bug triage process documented.
+- Day-1 ops checklist (response time targets, monitoring) documented.
+
+**Tasks inside:** T-57 through T-60.

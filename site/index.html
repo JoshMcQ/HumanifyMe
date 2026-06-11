@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HumanifyMe — Make AI sound like you</title>
+<meta name="description" content="HumanifyMe is a local-first MCP server that learns how you actually write and rewrites your AI agent's drafts in your voice. Your samples never leave your machine.">
+<link rel="canonical" href="https://humanifyme.com/">
+<meta property="og:title" content="HumanifyMe — Make AI sound like you">
+<meta property="og:description" content="A local-first MCP server that learns your writing voice and rewrites AI drafts in it. Works in Claude Code, Cowork, Cursor, and every MCP agent.">
+<meta property="og:url" content="https://humanifyme.com/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://humanifyme.com/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="HumanifyMe — Make AI sound like you">
+<meta name="twitter:description" content="Your agent drafts it. HumanifyMe makes it yours. Local-first, BYO key, free.">
+<style>
+:root{
+  --paper:#faf9f5;
+  --ink:#191817;
+  --ink-soft:#57534e;
+  --line:#e7e2da;
+  --clay:#c96342;
+  --clay-deep:#a84e31;
+  --card:#ffffff;
+  --code-bg:#23211e;
+  --code-ink:#e8e3da;
+  --good:#3a7d44;
+  --mono:ui-monospace,'SF Mono','Cascadia Code',Menlo,Consolas,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  --serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1060px;margin:0 auto;padding:0 24px}
+
+nav{position:sticky;top:0;background:rgba(250,249,245,.92);backdrop-filter:blur(8px);border-bottom:1px solid var(--line);z-index:10}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:60px}
+.logo{font-family:var(--serif);font-size:1.25rem;font-weight:700;text-decoration:none;letter-spacing:-.01em}
+.logo em{color:var(--clay);font-style:normal}
+.nav-links{display:flex;gap:26px;align-items:center}
+.nav-links a{text-decoration:none;font-size:.92rem;color:var(--ink-soft)}
+.nav-links a:hover{color:var(--ink)}
+.btn{display:inline-block;padding:10px 20px;border-radius:8px;font-size:.95rem;font-weight:600;text-decoration:none;border:1px solid transparent;cursor:pointer}
+.btn-primary{background:var(--ink);color:var(--paper)}
+.btn-primary:hover{background:#000}
+.btn-ghost{border-color:var(--line);color:var(--ink)}
+.btn-ghost:hover{border-color:var(--ink-soft)}
+.nav-links .btn{padding:7px 14px}
+
+.hero{padding:88px 0 56px;text-align:center}
+.hero h1{font-family:var(--serif);font-size:clamp(2.4rem,6vw,4rem);line-height:1.08;letter-spacing:-.02em;font-weight:700}
+.hero h1 em{color:var(--clay);font-style:italic}
+.hero p.sub{max-width:620px;margin:22px auto 0;font-size:1.15rem;color:var(--ink-soft)}
+.hero-ctas{margin-top:32px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+.install-line{margin:30px auto 0;display:inline-flex;align-items:center;gap:12px;background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:.92rem;padding:12px 16px;border-radius:10px}
+.install-line button{background:none;border:1px solid #4a463f;color:var(--code-ink);border-radius:6px;padding:3px 10px;font-size:.78rem;cursor:pointer;font-family:var(--sans)}
+.install-line button:hover{border-color:var(--code-ink)}
+.hero .fine{margin-top:14px;font-size:.85rem;color:var(--ink-soft)}
+
+.demo{padding:30px 0 70px}
+.demo-card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(25,24,23,.04),0 8px 28px rgba(25,24,23,.05)}
+.demo-head{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid var(--line)}
+.demo-head .title{font-size:.85rem;color:var(--ink-soft);font-family:var(--mono)}
+.toggle{display:flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.toggle button{border:none;background:none;padding:7px 16px;font-size:.85rem;cursor:pointer;color:var(--ink-soft);font-weight:600}
+.toggle button.active{background:var(--ink);color:var(--paper)}
+.demo-body{padding:26px 28px;min-height:150px}
+.demo-body p{font-size:1.05rem;max-width:760px}
+.demo-label{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:99px;margin-bottom:14px}
+.label-ai{background:#f3e8e3;color:var(--clay-deep)}
+.label-you{background:#e7efe8;color:var(--good)}
+.demo-foot{padding:12px 20px;border-top:1px solid var(--line);font-size:.82rem;color:var(--ink-soft)}
+.demo-foot code{font-family:var(--mono);font-size:.8rem}
+
+section{padding:72px 0}
+section.alt{background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.kicker{font-size:.8rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--clay)}
+h2{font-family:var(--serif);font-size:clamp(1.7rem,3.4vw,2.4rem);letter-spacing:-.01em;margin:10px 0 14px;line-height:1.15}
+.lede{max-width:640px;color:var(--ink-soft);font-size:1.06rem}
+
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:44px}
+.step{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:24px}
+section:not(.alt) .step{background:var(--card)}
+.step .num{font-family:var(--mono);color:var(--clay);font-size:.85rem;font-weight:700}
+.step h3{margin:10px 0 8px;font-size:1.08rem}
+.step p{font-size:.93rem;color:var(--ink-soft)}
+.step pre{margin-top:14px;background:var(--code-bg);color:var(--code-ink);font-family:var(--mono);font-size:.74rem;line-height:1.5;padding:12px;border-radius:8px;overflow-x:auto}
+.step pre .k{color:#e8b96b}.step pre .s{color:#a3c9a5}
+
+.agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;margin-top:40px}
+.agent{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px 14px;text-align:center;font-weight:600;font-size:.95rem}
+.agent small{display:block;font-weight:400;color:var(--ink-soft);font-size:.76rem;margin-top:3px}
+
+.priv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px;margin-top:44px}
+.priv{border:1px solid var(--line);border-radius:12px;padding:22px;background:var(--paper)}
+.priv h3{font-size:1.02rem;margin-bottom:6px}
+.priv h3::before{content:'— ';color:var(--clay)}
+.priv p{font-size:.92rem;color:var(--ink-soft)}
+.audit-demo{margin-top:36px;background:var(--code-bg);border-radius:12px;padding:20px 22px;font-family:var(--mono);font-size:.78rem;line-height:1.7;color:var(--code-ink);overflow-x:auto}
+.audit-demo .dim{color:#8a857c}
+
+.tabs{display:flex;gap:4px;flex-wrap:wrap;margin-top:38px;border-bottom:1px solid var(--line)}
+.tabs button{border:none;background:none;font-size:.92rem;font-weight:600;color:var(--ink-soft);padding:10px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px}
+.tabs button.active{color:var(--ink);border-bottom-color:var(--clay)}
+.tab-panel{display:none;padding-top:22px}
+.tab-panel.active{display:block}
+.tab-panel p{font-size:.93rem;color:var(--ink-soft);margin-bottom:12px}
+.codeblock{position:relative;background:var(--code-bg);border-radius:10px}
+.codeblock pre{padding:18px 20px;overflow-x:auto;font-family:var(--mono);font-size:.84rem;line-height:1.6;color:var(--code-ink)}
+.codeblock .copy{position:absolute;top:10px;right:10px;background:none;border:1px solid #4a463f;color:var(--code-ink);border-radius:6px;padding:3px 10px;font-size:.75rem;cursor:pointer}
+.codeblock .copy:hover{border-color:var(--code-ink)}
+
+.faq{max-width:760px;margin-top:36px}
+.faq details{border-bottom:1px solid var(--line);padding:18px 0}
+.faq summary{font-weight:600;cursor:pointer;font-size:1.02rem;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faq summary::after{content:'+';color:var(--clay);font-size:1.3rem;font-weight:400}
+.faq details[open] summary::after{content:'–'}
+.faq details p{margin-top:10px;color:var(--ink-soft);font-size:.95rem;max-width:680px}
+
+.cta-final{text-align:center;padding:90px 0}
+.cta-final h2{margin-bottom:10px}
+.cta-final p{color:var(--ink-soft);margin-bottom:28px}
+
+footer{border-top:1px solid var(--line);padding:36px 0;font-size:.85rem;color:var(--ink-soft)}
+.foot-inner{display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px}
+footer a{color:var(--ink-soft)}
+footer a:hover{color:var(--ink)}
+
+@media(max-width:760px){
+  .steps,.priv-grid{grid-template-columns:1fr}
+  .nav-links a:not(.btn){display:none}
+  .demo-body{padding:20px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-inner">
+    <a class="logo" href="/">Humanify<em>Me</em></a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#privacy">Privacy</a>
+      <a href="#faq">FAQ</a>
+      <a href="/whitepaper">White paper</a>
+      <a class="btn btn-primary" href="#install">Install</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero wrap">
+  <h1>Make AI sound<br>like <em>you.</em></h1>
+  <p class="sub">Your agent drafts the email, the PR description, the Slack reply. HumanifyMe rewrites it in your actual voice — learned from your real writing, stored only on your machine.</p>
+  <div class="hero-ctas">
+    <a class="btn btn-primary" href="#install">Install in your agent</a>
+    <a class="btn btn-ghost" href="#how">See how it works</a>
+  </div>
+  <div class="install-line">
+    <span id="npx-cmd">npx -y humanifyme setup</span>
+    <button onclick="copyText('npx-cmd', this)">Copy</button>
+  </div>
+  <p class="fine">Free during beta · bring your own API key · no account, no telemetry</p>
+</header>
+
+<div class="demo wrap">
+  <div class="demo-card">
+    <div class="demo-head">
+      <span class="title">humanify_text · contextLabel: professional</span>
+      <div class="toggle">
+        <button id="bt-before" class="active" onclick="showDemo('before')">Agent draft</button>
+        <button id="bt-after" onclick="showDemo('after')">Your voice</button>
+      </div>
+    </div>
+    <div class="demo-body">
+      <div id="demo-before">
+        <span class="demo-label label-ai">What the agent wrote</span>
+        <p>"Hey John — I finished testing the flash script changes on the lab box today. It boots clean and the logs look good, so the PR is ready for review whenever you have time. Also, I'll be out tomorrow morning for an appointment but should be back by noon."</p>
+      </div>
+      <div id="demo-after" style="display:none">
+        <span class="demo-label label-you">After HumanifyMe</span>
+        <p>"Hey John, I finished testing the flash script changes on the lab box today. It boots clean and the logs look good, so the PR is ready for review whenever you get a chance. Also just letting you know I'll be out tomorrow morning for an appointment but should be back by noon."</p>
+      </div>
+    </div>
+    <div class="demo-foot">Real output from a real profile built on 3 writing samples. The em-dash is gone, <code>"just letting you know"</code> is this user's actual phrase, and <code>"whenever you get a chance"</code> is how they say it. Small shifts. That's the point — it's the small shifts that read as a person.</div>
+  </div>
+</div>
+
+<section id="how">
+  <div class="wrap">
+    <span class="kicker">How it works</span>
+    <h2>A voice fingerprint, not a filter.</h2>
+    <p class="lede">"AI humanizers" rewrite toward a generic professional register — the opposite of sounding human. HumanifyMe builds a structured profile of how <strong>one specific person</strong> writes, and holds every rewrite to it.</p>
+    <div class="steps">
+      <div class="step">
+        <span class="num">01</span>
+        <h3>Give it your writing</h3>
+        <p>Paste 3–10 real emails or messages, point it at a folder of your writing, or import your ChatGPT / Claude history in one command. Everything is redacted (emails, phones, keys) before any model sees it.</p>
+        <pre>humanifyme import chat export.zip
+<span class="s">imported 384 samples</span></pre>
+      </div>
+      <div class="step">
+        <span class="num">02</span>
+        <h3>It learns your fingerprint</h3>
+        <p>Not an opaque embedding — a readable, editable profile: sentence rhythm, formality, your actual phrases, the words you'd never use, how you apologize, how you disagree.</p>
+        <pre>{
+  <span class="k">"contractions"</span>: <span class="s">"always"</span>,
+  <span class="k">"commonPhrases"</span>: [<span class="s">"sounds good"</span>],
+  <span class="k">"wordsToAvoid"</span>: [<span class="s">"delighted"</span>,
+    <span class="s">"leverage"</span>, <span class="s">"circling back"</span>]
+}</pre>
+      </div>
+      <div class="step">
+        <span class="num">03</span>
+        <h3>Your agent uses it</h3>
+        <p>Every MCP agent gets a <code style="font-family:var(--mono);font-size:.85em">humanify_text</code> tool and bundled skills, so it reaches for your voice automatically — on PR descriptions, emails, anything you'll send as yourself.</p>
+        <pre><span class="s">you:</span> draft a reply, then humanify it
+<span class="s">agent:</span> calling humanify_text…</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="agents">
+  <div class="wrap">
+    <span class="kicker">Works where you work</span>
+    <h2>One install. Every agent.</h2>
+    <p class="lede">HumanifyMe is an MCP server — the open protocol your agents already speak. Build your profile once; every agent on your machine writes in your voice.</p>
+    <div class="agents">
+      <div class="agent">Claude Code<small>plugin or one-liner</small></div>
+      <div class="agent">Cowork<small>plugin</small></div>
+      <div class="agent">Cursor<small>mcp.json</small></div>
+      <div class="agent">Claude Desktop<small>config</small></div>
+      <div class="agent">Windsurf<small>mcp config</small></div>
+      <div class="agent">Cline<small>mcp config</small></div>
+      <div class="agent">Continue<small>config.yaml</small></div>
+      <div class="agent">Zed<small>settings</small></div>
+    </div>
+  </div>
+</section>
+
+<section id="privacy">
+  <div class="wrap">
+    <span class="kicker">Privacy</span>
+    <h2>Your voice is yours. So is your data.</h2>
+    <p class="lede">Trust is the entire product, so the architecture does the promising — not us.</p>
+    <div class="priv-grid">
+      <div class="priv">
+        <h3>Local-first by construction</h3>
+        <p>Samples and your profile live in <span style="font-family:var(--mono);font-size:.86em">~/.humanifyme/</span> on your machine. There is no HumanifyMe server. We could not read your data if we wanted to.</p>
+      </div>
+      <div class="priv">
+        <h3>Redaction before anything leaves</h3>
+        <p>Emails, phone numbers, addresses, card numbers, API keys, and tokens are masked before any text reaches an LLM — and restored in your copy afterward.</p>
+      </div>
+      <div class="priv">
+        <h3>Your key, your provider, nothing else</h3>
+        <p>The only outbound traffic is to the LLM provider you configure — Anthropic, OpenAI, Gemini, or a local Ollama that never touches the internet at all.</p>
+      </div>
+      <div class="priv">
+        <h3>Auditable, deletable</h3>
+        <p>Run <span style="font-family:var(--mono);font-size:.86em">humanifyme audit</span> to see every outbound request — metadata only, never content. One command wipes everything, irrevocably.</p>
+      </div>
+    </div>
+    <div class="audit-demo">$ humanifyme audit
+<span class="dim">2026-06-11T00:34:02  anthropic/v1/messages  6.2KB  draft=261  profile=y  ok</span>
+<span class="dim">2026-06-11T00:29:00  anthropic/v1/messages  4.8KB  draft=0    profile=n  ok</span>
+<span class="dim">no other destinations. ever.</span></div>
+  </div>
+</section>
+
+<section class="alt" id="install">
+  <div class="wrap">
+    <span class="kicker">Install</span>
+    <h2>Two minutes, one snippet.</h2>
+    <p class="lede">Requires Node 22.5+. After installing, tell your agent "set up HumanifyMe" — it walks you through provider, samples, and your first profile.</p>
+    <div class="tabs" id="tabs">
+      <button class="active" onclick="showTab(event,'claude-code')">Claude Code</button>
+      <button onclick="showTab(event,'cursor')">Cursor</button>
+      <button onclick="showTab(event,'claude-desktop')">Claude Desktop</button>
+      <button onclick="showTab(event,'windsurf')">Windsurf / Cline</button>
+      <button onclick="showTab(event,'zed')">Zed</button>
+      <button onclick="showTab(event,'cli')">Just the CLI</button>
+    </div>
+    <div class="tab-panel active" id="tab-claude-code">
+      <p>One command in your terminal:</p>
+      <div class="codeblock"><pre id="code-claude-code">claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp</pre><button class="copy" onclick="copyText('code-claude-code', this)">Copy</button></div>
+    </div>
+    <div class="tab-panel" id="tab-cursor">
+      <p>Add to <span style="font-family:var(--mono)">~/.cursor/mcp.json</span>:</p>
+      <div class="codeblock"><pre id="code-cursor">{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+    }
+  }
+}</pre><button class="copy" onclick="copyText('code-cursor', this)">Copy</button></div>
+    </div>
+    <div class="tab-panel" id="tab-claude-desktop">
+      <p>Add to <span style="font-family:var(--mono)">claude_desktop_config.json</span>:</p>
+      <div class="codeblock"><pre id="code-claude-desktop">{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+    }
+  }
+}</pre><button class="copy" onclick="copyText('code-claude-desktop', this)">Copy</button></div>
+    </div>
+    <div class="tab-panel" id="tab-windsurf">
+      <p>Same shape in your MCP settings JSON:</p>
+      <div class="codeblock"><pre id="code-windsurf">{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+    }
+  }
+}</pre><button class="copy" onclick="copyText('code-windsurf', this)">Copy</button></div>
+    </div>
+    <div class="tab-panel" id="tab-zed">
+      <p>Add to Zed <span style="font-family:var(--mono)">settings.json</span>:</p>
+      <div class="codeblock"><pre id="code-zed">{
+  "context_servers": {
+    "humanifyme": {
+      "command": {
+        "path": "npx",
+        "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+      }
+    }
+  }
+}</pre><button class="copy" onclick="copyText('code-zed', this)">Copy</button></div>
+    </div>
+    <div class="tab-panel" id="tab-cli">
+      <p>No agent needed — the full pipeline works from your terminal:</p>
+      <div class="codeblock"><pre id="code-cli">npx -y humanifyme setup
+npx -y humanifyme provider set anthropic --api-key sk-ant-…
+npx -y humanifyme import chat claude-export.zip --commit
+npx -y humanifyme profile rebuild
+echo "your stiff AI draft" | npx -y humanifyme rewrite</pre><button class="copy" onclick="copyText('code-cli', this)">Copy</button></div>
+    </div>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap">
+    <span class="kicker">FAQ</span>
+    <h2>Fair questions.</h2>
+    <div class="faq">
+      <details>
+        <summary>Is this an "AI detector bypass"?</summary>
+        <p>No, and we don't make detector claims. HumanifyMe makes text sound like you because it's built from how you write — not from tricks aimed at fooling a classifier. Text that genuinely carries one person's voice tends to stop reading as AI to humans, which is the audience that matters.</p>
+      </details>
+      <details>
+        <summary>What do you collect about me?</summary>
+        <p>Nothing. There's no account, no telemetry, and no HumanifyMe backend. Your samples and profile stay in ~/.humanifyme/ on your machine. The only network traffic is to the LLM provider you configure, with your key.</p>
+      </details>
+      <details>
+        <summary>What does it cost?</summary>
+        <p>Free during beta. You bring your own API key, so your only cost is your provider's per-token price — typically well under a cent per rewrite. A managed plan (we handle the key) is planned later; bring-your-own-key stays free.</p>
+      </details>
+      <details>
+        <summary>How many samples does it need?</summary>
+        <p>It works from 3. It gets noticeably better with 10+, and best with a bulk import — your ChatGPT or Claude export gives it hundreds of examples of unguarded, real you in one command.</p>
+      </details>
+      <details>
+        <summary>Can I see and edit what it learned?</summary>
+        <p>Yes — that's the design. The profile is readable JSON with a plain-English summary (humanifyme profile show). Every field is editable, and edits stick: the profile is the source of truth, not the model.</p>
+      </details>
+      <details>
+        <summary>Does it work with local models?</summary>
+        <p>Yes. Point it at Ollama and nothing ever leaves your machine — not even redacted text.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<div class="cta-final wrap">
+  <h2>Stop sounding like everyone's AI.</h2>
+  <p>Two minutes to install. Three samples to start.</p>
+  <a class="btn btn-primary" href="#install">Install HumanifyMe</a>
+</div>
+
+<footer>
+  <div class="wrap foot-inner">
+    <span>© 2026 HumanifyMe · <a href="/privacy.html">Privacy</a> · <a href="/terms.html">Terms</a> · <a href="/whitepaper">White paper</a></span>
+    <span><a href="mailto:support@humanifyme.com">support@humanifyme.com</a></span>
+  </div>
+</footer>
+
+<script>
+function showDemo(which){
+  document.getElementById('demo-before').style.display = which==='before'?'block':'none';
+  document.getElementById('demo-after').style.display = which==='after'?'block':'none';
+  document.getElementById('bt-before').classList.toggle('active', which==='before');
+  document.getElementById('bt-after').classList.toggle('active', which==='after');
+}
+function showTab(ev,name){
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  ev.currentTarget.classList.add('active');
+}
+function copyText(id,btn){
+  navigator.clipboard.writeText(document.getElementById(id).innerText).then(()=>{
+    const old=btn.textContent;btn.textContent='Copied';setTimeout(()=>btn.textContent=old,1400);
+  });
+}
+</script>
+</body>
+</html>
