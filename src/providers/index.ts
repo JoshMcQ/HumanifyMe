@@ -2,12 +2,15 @@ import { readConfig } from '../config/index.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { ProviderName } from '../types.js';
 import { AnthropicProvider } from './anthropic.js';
+import { EmbeddingProvider } from './embeddings.js';
 import { GeminiProvider } from './gemini.js';
+import { LexicalEmbeddingProvider } from './lexical-embeddings.js';
 import { OllamaProvider, OpenAIProvider } from './openai.js';
 import { LLMProvider } from './types.js';
 
-export { FakeLLMProvider } from './fake.js';
+export { FakeLLMProvider, FakeEmbeddingProvider } from './fake.js';
 export type { LLMProvider, CompletionArgs, CompletionResult } from './types.js';
+export type { EmbeddingProvider } from './embeddings.js';
 
 /** Test seam: when set, getProvider returns this instead of a real provider. */
 let providerOverride: LLMProvider | null = null;
@@ -41,6 +44,25 @@ export function getProvider(name?: ProviderName): LLMProvider {
       return new OllamaProvider(c.baseUrl, c.model);
     }
   }
+}
+
+/** Test seam: when set, getEmbeddingProvider returns this instead. */
+let embeddingOverride: EmbeddingProvider | null = null;
+export function setEmbeddingProviderOverride(p: EmbeddingProvider | null): void {
+  embeddingOverride = p;
+}
+
+let lexicalEmbedder: LexicalEmbeddingProvider | null = null;
+
+/**
+ * The embedder used for retrieval. Defaults to the dependency-free lexical
+ * embedder (Q-18); opt-in local neural embedders (MiniLM/Ollama) will be
+ * selected here via config.rag.embedder once that config block lands (T-65/66).
+ */
+export function getEmbeddingProvider(): EmbeddingProvider {
+  if (embeddingOverride) return embeddingOverride;
+  if (!lexicalEmbedder) lexicalEmbedder = new LexicalEmbeddingProvider();
+  return lexicalEmbedder;
 }
 
 function missingKey(provider: string): HumanifyError {
