@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { ToolDef } from '../registerTool.js';
 import { samples } from '../../storage/index.js';
+import { embedSample } from '../../engine/voiceMemory.js';
 import { HumanifyError } from '../errors.js';
 import { ContextLabelSchema, MIN_SAMPLE_CHARS } from '../../types.js';
 
@@ -22,8 +23,9 @@ export const addSampleTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
     labels: z.array(ContextLabelSchema).min(1),
   }).strict(),
   outputSchema: z.object({ id: z.string() }),
-  handler: (input: { text: string; labels: z.infer<typeof ContextLabelSchema>[] }) => {
+  handler: async (input: { text: string; labels: z.infer<typeof ContextLabelSchema>[] }) => {
     const record = samples.add({ text: input.text, labels: input.labels, source: 'paste' });
+    await embedSample(record.id, record.text);
     return { id: record.id };
   },
 };

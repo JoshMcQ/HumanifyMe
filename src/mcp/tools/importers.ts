@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { ToolDef } from '../registerTool.js';
 import { previewChatExport, commitChatExport } from '../../importers/chatExport/index.js';
 import { importTextFiles } from '../../importers/textFiles/index.js';
+import { backfillEmbeddings } from '../../engine/voiceMemory.js';
 import { ContextLabelSchema } from '../../types.js';
 
 export const importChatExportTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
@@ -22,7 +23,7 @@ export const importChatExportTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
       .array(z.object({ text: z.string(), inferredLabel: z.string() }))
       .optional(),
   }),
-  handler: (input: { path: string; commit: boolean }) => {
+  handler: async (input: { path: string; commit: boolean }) => {
     if (!input.commit) {
       const p = previewChatExport(input.path);
       return {
@@ -33,6 +34,7 @@ export const importChatExportTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
       };
     }
     const r = commitChatExport(input.path);
+    await backfillEmbeddings();
     return { format: r.format, committed: true, imported: r.imported, skipped: r.skipped };
   },
 };
@@ -51,6 +53,8 @@ export const importTextFilesTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
     skippedTooShort: z.array(z.string()),
   }),
   handler: async (input: { path: string; label: z.infer<typeof ContextLabelSchema> }) => {
-    return importTextFiles(input.path, input.label);
+    const r = await importTextFiles(input.path, input.label);
+    await backfillEmbeddings();
+    return r;
   },
 };
