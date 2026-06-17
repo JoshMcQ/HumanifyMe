@@ -7,7 +7,7 @@ This is a load-bearing document. HumanifyMe's wedge is built on user trust. A si
 1. **Local-first by default.** Raw samples never leave the device unless the user explicitly opts into cloud sync (post-MVP, off by default).
 2. **No silent monitoring.** The MCP only acts when an agent calls one of its tools. No file watching, no clipboard listening, no agent-output observation outside of explicitly opted-in auto-humanify hooks (per `specs/mcp-server-spec.md`).
 3. **Explicit opt-in for anything new.** Adding a new permission, a new host, or a new data path requires updating this spec and the onboarding consent flow.
-4. **Send the minimum.** A rewrite request sends the draft and the style profile. Nothing else. Not page metadata, not headers from the email, not the recipient.
+4. **Send the minimum.** A rewrite request sends the draft and the style profile — plus, when retrieval is enabled, up to K redacted retrieved exemplars from the user's own past samples. Nothing else. Not page metadata, not headers from the email, not the recipient.
 5. **Right to delete.** "Delete everything" is a single, prominent button. It wipes IndexedDB, `chrome.storage.local`, the in-memory cache, and the cache file. It is irrevocable.
 6. **No selling data.** Hardcoded into the marketing site and the privacy policy.
 7. **No training on user data.** We do not, and we instruct providers not to. See provider configuration below.
@@ -32,7 +32,8 @@ This is a load-bearing document. HumanifyMe's wedge is built on user trust. A si
 
 | Data                                | Class       | Where it lives                                                | Sent to LLM?       |
 | ----------------------------------- | ----------- | ------------------------------------------------------------- | ------------------ |
-| Raw writing sample                  | Sensitive   | `~/.humanifyme/data.db` (SQLite)                              | Only during profile build, redacted. |
+| Raw writing sample                  | Sensitive   | `~/.humanifyme/data.db` (SQLite)                              | Redacted, during profile build; and (when retrieval is enabled) as redacted retrieved exemplars on rewrite. |
+| Sample embedding (vector)           | Sensitive   | `~/.humanifyme/data.db` (`sample_embeddings` table)          | No. Computed on-device; never sent. Derived from raw samples, so treated as Sensitive. Cleared by `humanify_wipe_all`. |
 | Imported chat / mail / message source archive | Sensitive | Not stored. Parsed in memory; only extracted samples persist. | No |
 | Style profile (JSON)                | Sensitive\* | `~/.humanifyme/data.db`                                       | Yes, on every rewrite. |
 | API key                             | Secret      | `~/.humanifyme/config.json` (0600), OS keychain when available | No (used to auth requests). |
@@ -60,6 +61,14 @@ After the LLM response, a `restore(text, redactionMap)` pass swaps the original 
 
 Redaction is best-effort and documented as such. If a user has a unique identifier the redactor misses, we add a pattern.
 
+## Retrieval / voice memory
+
+When retrieval-augmented voice (`rag.*`) is enabled, at rewrite time the MCP retrieves the user's most-similar past samples and injects them into the prompt as few-shot voice examples.
+
+- **Embeddings are PII-equivalent and local-only.** Sample embeddings are derived from raw samples and could leak voice markers and content; treat them as Sensitive. They are computed on-device, stored in the `sample_embeddings` table inside `~/.humanifyme/data.db` (no new files, no external vector DB), and never sent anywhere. Because they live in `data.db`, `humanify_wipe_all` (which deletes the DB) already clears them.
+- **Only redacted prose crosses the wire.** Retrieved exemplars are passed through `redact()` at send time — we never trust store-time redaction. So the only sample text sent during a rewrite is redacted, the same class of data the profile-build path already sends.
+- **No new class of leak, larger volume.** Retrieval increases the volume of redacted prose sent per rewrite (up to K exemplars) but introduces no new class of data leaving the device. The residual risk is the same accepted one that already applies to the draft itself: redaction is best-effort, and retrieved prose may contain names or details the redactor misses.
+
 ## Permissions audit (MCP model)
 
 The MCP server has no permission system in the browser sense. Instead the constraints are:
@@ -68,6 +77,7 @@ The MCP server has no permission system in the browser sense. Instead the constr
 - The only paths it reads/writes are `~/.humanifyme/` (config + SQLite) and `$EDITOR` temp files when the user runs `humanifyme profile edit`. Plus user-supplied paths passed explicitly to an importer tool (e.g., the path to a ChatGPT export `.zip`) — those are read-only and the file is not copied to our directory; only extracted samples are persisted.
 - For Phase 2 importers that use OAuth (Gmail) the MCP fetches from the third-party API directly. For the macOS Messages importer the MCP reads `~/Library/Messages/chat.db` *only after* the user has granted Full Disk Access in System Settings, and the file is opened read-only.
 - The only outbound network destinations are the configured LLM providers (Anthropic, OpenAI, Gemini, Ollama) and, for Phase 2 importers, the third-party source's official API (Gmail, Slack, X, Substack). No other destinations.
+- One additional, content-free destination exists for retrieval: the **local embedding model-weights download**. On first profile build the MCP fetches the `all-MiniLM-L6-v2` ONNX weights once to `~/.humanifyme/models/`. This request is issued from the `src/engine/providers/` layer, pinned to a specific model revision, and carries **no user content** — it is a static model-asset fetch, not an inference call. It is overridable for air-gapped installs (point at a bundled/offline weights path). Embeddings are then computed entirely on-device via transformers.js; **no embedding API call to a cloud provider occurs in the default path.**
 - The MCP does not read environment variables other than `HUMANIFYME_HOME`, `HOME`, `EDITOR`, and provider-specific keys it's been explicitly told to read.
 - The MCP does not spawn other subprocesses beyond `$EDITOR` for profile editing.
 

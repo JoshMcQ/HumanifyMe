@@ -122,3 +122,41 @@ Format: `Q-NN. Question. Blocks: <what>. Notes: <considerations>. Status: open |
 - **Blocks:** Phase 3.
 - **Notes:** Current spec says flat $12/mo with 500 rewrites cap and overage on the Power tier. An alternative: usage-tiered ($5 / 100 rewrites, $12 / 500, $29 / 2500). Recommendation: stick with flat tiers; usage-tiered is harder to communicate.
 - **Status:** open.
+
+## Retrieval-augmented voice (RAG / persistent voice memory)
+
+These were resolved on 2026-06-16 when Joshua directed the project toward RAG-based per-user voice memory. The decisions reverse the deliberate "no embeddings in MVP" stance in `specs/style-profile-spec.md` (see change note there) and are grounded in the existing `research/architecture-options.md`, which already ranks "structured profile + RAG keyed by style/semantic similarity" as the MVP foundation. These open Milestone M8 (T-61–T-66).
+
+**Why now:** the rewrite engine reads a user's samples exactly once (at profile-build time) and never again. At rewrite time it sees only an abstract fingerprint plus a few static, draft-irrelevant snippets — so for any message type not captured in the fingerprint it falls back to lightly editing the draft. Retrieval supplies the missing evidence: the user's own past messages most similar to the current draft, injected as few-shot voice targets. This same local vector store is the "memory that persists across conversations" feature.
+
+### Q-18. Embedding model — local, cloud, or which?
+
+- **Blocks:** T-61.
+- **Resolution (2026-06-16):** **Local, offline.** `all-MiniLM-L6-v2` (384-dim) via transformers.js / ONNX — pure JS, no native build, ~23 MB. Model weights cached under `~/.humanifyme/models/` on first profile build; the one-time weights fetch carries **no user content** and is disclosed in the privacy spec as a non-content destination, issued from a `src/engine/providers/`-layer module so the test-plan outbound-destination scan still passes. An offline/bundled override is supported for air-gapped installs; Ollama embeddings remain an optional power-user path (already an allowed local endpoint).
+- **Rationale:** Privacy commandment #1 ("raw samples never leave the device") requires local embedding for the default path. MiniLM is the lightest credible option and good enough for short-message retrieval.
+- **Status:** answered.
+
+### Q-19. Retrieval keying — style-embedding, semantic, or hybrid?
+
+- **Blocks:** T-64.
+- **Resolution (2026-06-16):** **Semantic similarity (MiniLM cosine) with a recency tiebreaker** for MVP. Style-distance embeddings (Wegmann StyleDistance, per `research/`) are logged as a Phase-2 upgrade (T-67, future). Short coworker/PR messages of the same genre cluster semantically well enough to surface the right exemplars now; StyleDistance models are heavier and belong in the research roadmap's Phase 2.
+- **Status:** answered.
+
+### Q-20. Cold-start — when does retrieval turn on?
+
+- **Blocks:** T-64, T-65.
+- **Resolution (2026-06-16):** Enable retrieval at **≥ 5 samples** (config key `rag.minSamples`, default 5). Below the threshold, retrieval returns `[]` and the engine falls back to today's profile-only behavior plus a `notes` hint nudging the user to import their chat history (the T-10A/T-10B importers — the path from 3 samples to hundreds). Research notes retrieval "really shines" above ~50 samples; the importer makes that trivial to reach, so the low default threshold is safe and helps new users immediately.
+- **Status:** answered.
+
+### Q-21. Near-duplicate suppression / diversity?
+
+- **Blocks:** T-64.
+- **Resolution (2026-06-16):** **Maximal Marginal Relevance** (λ ≈ 0.7) over the top candidate pool, exact/near-dup drop at cosine > 0.97, final **K = 5** exemplars (config `rag.topK`). Prevents a cluster of near-identical past messages from crowding the prompt and starving diversity.
+- **Status:** answered.
+
+### Q-22. Relationship to the existing `profile.exemplars` field?
+
+- **Blocks:** T-65.
+- **Resolution (2026-06-16):** Retrieved, **draft-relevant** exemplars become the **primary** voice signal at rewrite time, rendered in a new prompt section ("Examples of how this person actually writes — most similar to your draft") presented as targets to emulate. The structured fingerprint remains the structural style spec; the old static `profile.exemplars` remain only as the cold-start fallback. Assembly = fingerprint (structure) + retrieved exemplars (phrasing/voice, draft-relevant) + draft.
+- **Privacy condition:** embeddings are computed locally from **raw** sample text (better retrieval, nothing leaves the device), but every retrieved exemplar is passed through `redact()` **at send time** before prompt assembly — never trust store-time redaction.
+- **Status:** answered.

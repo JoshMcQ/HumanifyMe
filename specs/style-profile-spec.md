@@ -123,4 +123,6 @@ User can click "Rebuild profile from samples" which re-runs the style-analysis p
 
 - Topic or subject-matter preferences. The profile is about *how* they write, not *what* they write about. Topic memory belongs to a future "personal AI memory" product.
 - Reading-level scoring. We don't compute Flesch-Kincaid. The fingerprint encodes the same information more usefully.
-- A neural embedding. Embeddings are opaque to the user and cannot be edited. Structured JSON is the right tradeoff for MVP.
+- A neural embedding **as an editable profile field**. Embeddings are opaque to the user and cannot be edited, so they never appear in the editable profile. The structured JSON fingerprint remains the canonical, user-facing source of truth for *how* a person writes.
+
+> **Change note (2026-06-16):** An earlier version of this section stated "no neural embedding ... Structured JSON is the right tradeoff for MVP," excluding embeddings entirely. That stance is **reversed for retrieval only**: as of Milestone M8, embeddings are computed locally and stored solely as a **retrieval key** for the rewrite engine (see `specs/rewrite-engine-spec.md` → Retrieval, and `docs/open-questions.md` Q-18–Q-22). They are never surfaced as an editable profile field and do not change the fingerprint contract above. The exclusion now means "no embeddings *in the editable profile*," not "no embeddings *anywhere*."
