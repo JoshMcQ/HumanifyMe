@@ -67,10 +67,12 @@ export function styleDistance(text: string, samples: string[]): number {
   let sum = 0;
   for (let j = 0; j < dim; j++) {
     // Stable floor: when a feature has ~no spread across samples, normalize by
-    // its own magnitude so a deviation lands at order ~1 rather than blowing up
-    // and letting one feature dominate the distance.
+    // its own magnitude so a deviation lands at order ~1 rather than blowing up.
     const s = Math.max(std[j], 0.25 * Math.abs(mean[j]), 0.01);
-    const z = (t[j]! - mean[j]) / s;
+    // Winsorize each feature's z to +/-3 so a single rate feature with near-zero
+    // sample variance (e.g. the writer never uses "!") can't dominate the whole
+    // distance. Robust stylometry weights the overall profile, not one outlier.
+    const z = Math.max(-3, Math.min(3, (t[j]! - mean[j]) / s));
     sum += z * z;
   }
   return Math.sqrt(sum);
