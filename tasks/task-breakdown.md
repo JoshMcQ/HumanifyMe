@@ -167,6 +167,98 @@ Pick the lowest-numbered task whose dependencies are done. Do one task at a time
 
 ---
 
+## Milestone 8 — Retrieval-augmented voice (RAG)
+
+These tasks make the user's own past messages the primary voice signal in a rewrite, instead of only the abstract fingerprint in `profiles`. Everything is local-first: embeddings, vectors, and retrieval run on-device, persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`, and introduce no backend. Re-read `specs/rewrite-engine-spec.md` (Retrieval), `specs/privacy-security-spec.md`, `docs/data-model.md`, and `docs/open-questions.md` Q-18–Q-22 before starting.
+
+### T-61 — Local embedding module
+- **Objective:** A deterministic, offline embedding provider so samples and drafts can be turned into vectors on-device, with no network egress outside the providers layer.
+- **Files:** `src/engine/providers/embeddings.ts`, `src/engine/providers/fakeEmbedding.ts`, `src/engine/providers/embeddings.test.ts`.
+- **Implementation notes:** `embed(texts: string[]) => Promise<Float32Array[]>` using transformers.js/ONNX `all-MiniLM-L6-v2` (384-dim). Model weights cached to `${HUMANIFYME_HOME || '~/.humanifyme'}/models/`; first call downloads them, later calls load from disk. All weight fetching happens inside `src/engine/providers/` so the test-plan outbound-destination scan stays green. Support an offline/bundled override (env or config) so CI and air-gapped installs never hit the network. Provide a `FakeEmbeddingProvider` that returns deterministic vectors (e.g. hashed token features) for tests — no live network in CI. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-18.
+- **Acceptance criteria:**
+  - `embed([...])` returns one 384-dim `Float32Array` per input string.
+  - Model weights are written to and re-loaded from `~/.humanifyme/models/`; second run does not re-download.
+  - Offline/bundled override path produces embeddings with no network access.
+  - No HTTP/socket call originates outside `src/engine/providers/` (verified by the outbound-destination scan in `tasks/test-plan.md`).
+  - `FakeEmbeddingProvider.embed()` is deterministic: same input → identical vectors across runs.
+  - Line coverage for `src/engine` ≥ 90%.
+- **Tests required:** unit tests for shape/determinism, fake-provider determinism, and a cache-reuse test that asserts no second download. CI uses the fake provider only.
+- **Risk:** medium (new dependency; model/runtime footprint).
+- **Depends on:** none (M3 done).
+
+### T-62 — Migration 002 + `sample_embeddings` table + repository
+- **Objective:** Durable, schema-validated storage for sample vectors that backfills cleanly and is wiped with everything else.
+- **Files:** `src/storage/migrations/002_embeddings.sql`, `src/storage/repositories/embeddings.ts`, `src/storage/repositories/embeddings.test.ts`.
+- **Implementation notes:** Migration `002_embeddings.sql` creates `sample_embeddings` (schema v2): `sample_id` (FK → `samples.id`, `ON DELETE CASCADE`), `dim`, `model`, `vector` (BLOB of the Float32Array), `created_at`. Applies at startup via the existing `_migrations` mechanism. On first apply, idempotently backfill embeddings for all existing samples (safe to re-run; never duplicates a row). Repository methods (`upsert`, `getBySampleId`, `listAll`, `clear`) are zod-validated. `wipeAll()` must drop these rows along with the rest. See `docs/data-model.md` and `specs/privacy-security-spec.md`.
+- **Acceptance criteria:**
+  - Fresh start applies `002` and reports schema version 2.
+  - Deleting a sample cascades to its embedding row (no orphans).
+  - Backfill is idempotent: running it twice yields exactly one embedding per sample.
+  - All repository inputs/outputs are zod-validated; invalid writes throw.
+  - `humanify_wipe_all` / `wipeAll()` removes all `sample_embeddings` rows.
+- **Tests required:** unit tests for migration apply, cascade delete, idempotent backfill, zod rejection, and wipe.
+- **Risk:** medium (storage foundation; bugs cascade).
+- **Depends on:** T-61.
+
+### T-63 — Embed-on-ingest hook
+- **Objective:** Every new sample gets a vector at write time, so retrieval quality keeps up with the user's growing corpus without a manual reindex.
+- **Files:** `src/mcp/tools/samples.ts`, `src/importers/chatExport/index.ts`, `src/importers/textFiles/index.ts`, `src/engine/ingest.ts`, plus tests.
+- **Implementation notes:** On `humanify_add_sample` and on both importer commit paths, embed the RAW sample text (the embedding is computed from the unredacted text; redaction happens later at send time per T-65) and `upsert` it via the T-62 repository. Reuse the idempotent backfill from T-62 for samples that predate this hook. Never log raw sample text or vectors. Embedding failures must not silently drop the sample — write the sample, surface/queue the embedding error per `specs/privacy-security-spec.md` logging rules.
+- **Acceptance criteria:**
+  - Adding a sample via the tool produces exactly one `sample_embeddings` row for it.
+  - Both importer commit paths (`chatgpt`/`claude` and `text-file`) write embeddings for every committed sample.
+  - Re-running backfill over a corpus that mixes embedded and un-embedded samples fills only the gaps.
+  - No raw sample text appears in any log output (asserted by test).
+- **Tests required:** unit tests through the registered tool path and both importers; a log-capture test asserting no raw sample text is emitted.
+- **Risk:** medium.
+- **Depends on:** T-62, T-10A, T-10B.
+
+### T-64 — Retriever
+- **Objective:** Given a draft, select the user's most relevant, diverse past samples to condition the rewrite on.
+- **Files:** `src/engine/retrieve.ts`, `src/engine/retrieve.test.ts`.
+- **Implementation notes:** `retrieve(draft, { k, minSamples })` embeds the draft (T-61), scores candidates by semantic cosine similarity with a recency tiebreaker, applies MMR for diversity (lambda 0.7), and dedups near-duplicates (cosine > 0.97). Returns top-K=5. Below `rag.minSamples` (=5) total samples, return `[]` to signal cold-start → profile-only fallback (handled in T-65). All thresholds read from config (`rag.*`). Must be deterministic under the `FakeEmbeddingProvider` and a fixed sample fixture so tests are stable. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-19–Q-20.
+- **Acceptance criteria:**
+  - Returns at most K=5 exemplars, ordered by the cosine + recency ranking.
+  - Two samples with cosine > 0.97 never both appear (dedup verified by fixture).
+  - MMR produces a more diverse set than pure top-cosine on a fixture where the top matches are near-duplicates.
+  - Returns `[]` when total sample count < `rag.minSamples`.
+  - Deterministic: identical output across runs under the fake provider + fixed fixtures.
+- **Tests required:** unit tests for ranking order, recency tiebreaker, dedup, MMR diversity, and the cold-start empty-return threshold.
+- **Risk:** medium (retrieval quality is the point of the milestone).
+- **Depends on:** T-61, T-62.
+
+### T-65 — Wire retrieval into the rewrite pipeline
+- **Objective:** Make retrieved exemplars the primary voice signal in the rewrite prompt, with the static profile exemplars demoted to cold-start fallback.
+- **Files:** `src/engine/rewrite.ts`, `src/engine/promptBuilder.ts`, `prompts/rewrite-prompt.md`, `specs/rewrite-engine-spec.md`, plus tests.
+- **Implementation notes:** Call the T-64 retriever inside `humanify_text`. Redact retrieved exemplars at SEND time (reuse `src/privacy/redact.ts`) — embeddings are from raw text, but nothing unredacted leaves the device. Inject them into the new exemplars section of the rewrite prompt per the amended `specs/rewrite-engine-spec.md`; retrieved exemplars are the primary voice signal and `profile.exemplars` are used only on cold-start. Stay within the ~4000-token system-prompt budget: trim retrieved exemplars first (drop lowest-ranked) before trimming anything else. On cold-start (`retrieve` returns `[]`), fall back to profile-only and add a warning to the response `notes`. Preserve exactly one audit entry per rewrite (no extra entries for the retrieval/embedding step). A `FakeLLMProvider` e2e test must assert the retrieved exemplars actually appear in the prompt sent to the provider.
+- **Acceptance criteria:**
+  - With ≥ `rag.minSamples` samples, the prompt sent to the provider contains the retrieved exemplars (asserted via `FakeLLMProvider`).
+  - Retrieved exemplars are redacted at send time; no unredacted exemplar text reaches the provider.
+  - System prompt stays within the ~4000-token budget; over-budget cases trim retrieved exemplars first.
+  - Cold-start (< `rag.minSamples`) falls back to profile-only and adds a notes warning.
+  - Exactly one audit entry is written per rewrite.
+- **Tests required:** e2e rewrite test with `FakeLLMProvider` asserting exemplar injection and redaction; token-budget trim test; cold-start fallback test; audit single-entry test.
+- **Risk:** high (touches the core rewrite path and the privacy boundary).
+- **Depends on:** T-64, T-63.
+
+### T-66 — Persistent voice-memory semantics + privacy doc
+- **Objective:** Make retrieval an opt-in, persistent, wipeable "voice memory" and document it so the privacy story stays honest.
+- **Files:** `src/config/schema.ts`, `specs/privacy-security-spec.md`, `docs/data-model.md`, `prompts/critique-prompt.md` (copy gate), plus config tests.
+- **Implementation notes:** Add opt-in `rag.enabled` (plus `rag.minSamples`, `rag.topK`, `rag.mmrLambda`, `rag.dedupThreshold`) to the config schema with safe defaults; when `rag.enabled` is false the rewrite path behaves exactly as M3 (profile-only). Embeddings persist across sessions/restarts (they live in `data.db`). `humanify_wipe_all` clears them (verified end-to-end with T-62). Update `specs/privacy-security-spec.md` and the audit view so they describe embeddings (derived from raw local samples, never sent except as redacted exemplars at rewrite time) consistently. Run all new/changed product copy through the banned-words/copy gate. See `docs/open-questions.md` Q-21–Q-22.
+- **Acceptance criteria:**
+  - `rag.enabled = false` reproduces M3 behavior exactly (no retrieval, no embedding lookups in the rewrite path).
+  - Embeddings survive a process restart and are reused (no recompute) on the next rewrite.
+  - `humanify_wipe_all` removes all embeddings; a follow-up rewrite cold-starts.
+  - `specs/privacy-security-spec.md` and the audit view describe embedding storage/flow consistently with the implementation.
+  - All new copy passes the banned-words list in `CLAUDE.md` / `prompts/critique-prompt.md`.
+- **Tests required:** config round-trip + default tests; an opt-out parity test (M3 behavior); a persist-across-restart test; a wipe-then-cold-start test.
+- **Risk:** medium (privacy-facing; copy and spec must match code).
+- **Depends on:** T-65.
+
+---
+
 ## Notes on later milestones
 
-Tasks T-11 through T-60 are listed in `tasks/acceptance-criteria.md` with short AC. They will be expanded into the same long-form structure as the first 10 tasks once Milestone 1 is in progress. Expanding all 6
+Tasks T-11 through T-60 are listed in `tasks/acceptance-criteria.md` with short AC. They will be expanded into the same long-form structure as the first 10 tasks once Milestone 1 is in progress. Expanding all 60 now without working code is overplanning and would invite churn.
+
+The first 10 tasks (T-01 through T-10) are sufficient to start coding and to discover the next round of detail.

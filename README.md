@@ -69,4 +69,28 @@ If you are new to the project, read in this order:
 5. `specs/privacy-security-spec.md` — non-negotiable rules.
 6. `docs/architecture.md` — how the pieces fit.
 7. `tasks/milestones.md` — what ships when.
-8. `tasks/task-breakdown.md` — what to pic
+8. `tasks/task-breakdown.md` — what to pick up next.
+
+## Status
+
+- Milestone 0 (research & specs): complete.
+- Milestones 1–3 (MCP server, storage, redactor, profile engine, rewrite engine, CLI, importers): built and tested (2026-06-10).
+- Milestone 4 (plugin packaging): bundle in `humanifyme.plugin/`, snippets in `docs/install/`.
+- Milestones 5–7 (onboarding polish, landing page, marketplace + npm launch): in progress — see `tasks/milestones.md`.
+
+## Locked product decisions
+
+- Surface: MCP server, distributed as a plugin. **Not** a Chrome extension.
+- Name: **HumanifyMe**. Domain humanifyme.com.
+- Tagline: **Make AI sound like you.**
+- LLM providers: Anthropic, OpenAI, Gemini wired at launch; Ollama as an early follow-on.
+- Storage: local-first in `~/.humanifyme/` (config + SQLite). No backend in MVP.
+- Target distribution: every MCP-compatible agent. Cowork and Claude Code plugin marketplaces are first-class at launch.
+
+## Positioning, in one line
+
+HumanifyMe is the voice layer that sits inside your agent and rewrites everything in your voice before you see it.
+
+## License
+
+TBD. See `docs/open-questions.md`.

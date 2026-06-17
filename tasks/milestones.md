@@ -150,3 +150,24 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 - Day-1 ops checklist (response time targets, monitoring) documented.
 
 **Tasks inside:** T-57 through T-60.
+
+---
+
+## Milestone 8 — Retrieval-augmented voice (RAG)
+
+**Gate to start:** M3 done (rewrite engine exists to wire retrieval into). This milestone is local-first — embeddings, vectors, and retrieval all run on-device and persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`. NO backend is introduced, so it stays inside the MVP rules in `specs/mvp-spec.md` and `CLAUDE.md` hard rule 4.
+
+**Why this milestone exists:** The rewrite engine never feeds the user's actual past messages into a rewrite — it only conditions on the abstract style fingerprint in `profiles`. The static `profile.exemplars` are a frozen, hand-picked few. Retrieval-augmented voice fixes rewrite quality by selecting the user's own most relevant past samples per draft and making them the primary voice signal. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-18–Q-22.
+
+**Definition of done:**
+
+- Local offline embeddings via transformers.js/ONNX `all-MiniLM-L6-v2` (384-dim), weights cached in `~/.humanifyme/models/`, fetched only from the `src/engine/providers/` layer so the test-plan outbound-destination scan stays green; offline/bundled override supported (T-61).
+- Migration `002_embeddings.sql` adds the `sample_embeddings` table (schema v2), applies on startup, backfills existing samples idempotently, cascades on sample delete, and is cleared by wipe (T-62).
+- Every `humanify_add_sample` and importer path writes an embedding from the RAW sample text; no raw sample text is logged (T-63).
+- Retriever selects top-K=5 by semantic cosine with a recency tiebreaker, applies MMR diversity (lambda 0.7) and dedup (cosine > 0.97), and returns `[]` below `rag.minSamples` (=5) for profile-only cold-start fallback (T-64).
+- Retrieved exemplars are redacted at SEND time and injected as the primary voice signal in the rewrite prompt within the ~4000-token system-prompt budget; cold-start falls back to profile-only with a notes warning; exactly one audit entry per rewrite is preserved (T-65).
+- Measurable rewrite-quality improvement over profile-only on the evaluation drafts, and voice memory persists across sessions/restarts; opt-in via `rag.enabled`; `humanify_wipe_all` clears all embeddings; privacy-spec and audit view stay consistent; banned-words/copy gate green (T-66).
+
+**Tasks inside:** T-61 through T-66.
+
+**Status:** not started.

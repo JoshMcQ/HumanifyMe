@@ -219,4 +219,7 @@ Semantic versioning. Tool schemas are part of the public surface; breaking chang
 ## Out of scope for MVP
 
 - Multi-tenant: a single MCP server instance per OS user. No "switch user" concept.
-- Multiple profiles per user (work / personal). Resolves to a single `~/.huma
+- Multiple profiles per user (work / personal). Resolves to a single `~/.humanifyme/` directory; multi-profile is a v1.1 feature.
+- Cloud sync. Local-only in MVP. Future hosted variant in `specs/backend-spec.md`.
+- Streaming token-by-token rewrite output. Useful but adds complexity; defer.
+- A web dashboard at humanifyme.com. The landing page exists, but the management UI is CLI-first in MVP. See `specs/onboarding-spec.md` for what we do instead.
