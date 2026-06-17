@@ -21,6 +21,9 @@ export function getDb(): DatabaseSync {
   const { DatabaseSync: Driver } = require('node:sqlite') as typeof import('node:sqlite');
   db = new Driver(dbPath());
   db.exec('PRAGMA journal_mode = WAL');
+  // Enforce ON DELETE CASCADE (sample_embeddings -> samples). node:sqlite
+  // leaves FK enforcement off by default; it is per-connection.
+  db.exec('PRAGMA foreign_keys = ON');
   applyMigrations(db);
   return db;
 }
