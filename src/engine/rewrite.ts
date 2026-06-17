@@ -242,13 +242,25 @@ function cacheKey(
   );
 }
 
-/** Cheap signature of the voice-memory corpus for cache invalidation: embedder
- *  model + sample count + newest sample timestamp. Changes whenever samples are
- *  added or removed, without running retrieval on the cache-hit path. */
+/** Cheap signature of everything that affects retrieval, for cache invalidation:
+ *  the rag config (enabled + tunables + embedder) and the voice-memory corpus
+ *  (count + newest sample timestamp). Changes whenever samples are added/removed
+ *  or rag settings change, without running retrieval on the cache-hit path. */
 function ragSignature(): string {
+  const rag = readConfig().rag;
   const all = samples.list();
   const latest = all[0]?.createdAt ?? '';
-  return `${getEmbeddingProvider().model}|${all.length}|${latest}`;
+  return [
+    getEmbeddingProvider().model,
+    all.length,
+    latest,
+    rag.enabled,
+    rag.embedder,
+    rag.minSamples,
+    rag.topK,
+    rag.mmrLambda,
+    rag.dedupCosine,
+  ].join('|');
 }
 
 function sha256(s: string): string {

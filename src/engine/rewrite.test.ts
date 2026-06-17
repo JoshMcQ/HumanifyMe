@@ -172,6 +172,24 @@ describe('rewrite with retrieval (RAG, T-65)', () => {
     expect(fake.calls[0]!.system).not.toContain('Examples of how this person actually writes');
   });
 
+  it('toggling rag.enabled invalidates the cache (ablation correctness)', async () => {
+    seedVoiceMemory();
+    const fake = fakeWith('hey did you start the flash script or should i take it over this week');
+    const args = {
+      draft: 'have you started the flash script yet or should i pick it up',
+      profile,
+      contextLabel: 'casual' as const,
+      directives: [],
+      provider: fake,
+    };
+    await rewrite(args); // rag on (default)
+    updateConfig((c) => {
+      c.rag.enabled = false;
+    });
+    await rewrite(args); // rag off must NOT be served from the rag-on cache entry
+    expect(fake.calls).toHaveLength(2);
+  });
+
   it('cold start (no samples) adds no exemplar section', async () => {
     const fake = fakeWith(draft);
     await rewrite({ draft, profile, contextLabel: 'email', directives: [], provider: fake });
