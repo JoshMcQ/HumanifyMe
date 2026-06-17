@@ -30,6 +30,14 @@ The fingerprint is a JSON object. Treat it as authoritative.
 {{fingerprint_json}}
 ```
 
+### Examples of how this person actually writes — most similar to your draft
+
+(Included only when voice memory has enough samples. Retrieved, redacted real messages this person wrote, ranked by similarity to the draft — the STRONGEST voice signal. Match greetings, rhythm, sentence length, punctuation, and how they make a request or ask a question. Different topics, so emulate the voice, do not copy the content.)
+
+```
+{{retrieved_exemplars}}
+```
+
 Context-specific notes (apply if non-empty):
 
 ```

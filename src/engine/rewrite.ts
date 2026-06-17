@@ -11,12 +11,31 @@ import {
 import { redact } from '../privacy/redact.js';
 import { restore } from '../privacy/restore.js';
 import { HumanifyError } from '../mcp/errors.js';
-import { cache, audit } from '../storage/index.js';
+import { cache, audit, samples } from '../storage/index.js';
+import { getEmbeddingProvider } from '../providers/index.js';
 import { LLMProvider } from '../providers/types.js';
 import { StyleProfile, mergeFingerprint } from './styleProfile.js';
 import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
+import { retrieveExemplars, RAG_MIN_SAMPLES } from './retrieve.js';
 import { computeDiff } from './diff.js';
 import { sanitizeRewrite, verifyRewrite, issuesToFeedback } from './verify.js';
+
+/** Budget for retrieved exemplars in the system prompt: cap per-exemplar and
+ *  total length, trimming lowest-ranked first so the fingerprint is never cut. */
+const EXEMPLAR_MAX_CHARS = 500;
+const EXEMPLAR_TOTAL_CHARS = 2000;
+
+function budgetExemplars(redactedExemplars: string[]): string[] {
+  const out: string[] = [];
+  let total = 0;
+  for (const ex of redactedExemplars) {
+    const trimmed = ex.length > EXEMPLAR_MAX_CHARS ? ex.slice(0, EXEMPLAR_MAX_CHARS) + '…' : ex;
+    if (total + trimmed.length > EXEMPLAR_TOTAL_CHARS) break;
+    out.push(trimmed);
+    total += trimmed.length;
+  }
+  return out;
+}
 
 export interface RewriteArgs {
   draft: string;
@@ -44,8 +63,9 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
     notes.push('more_direct and less_aggressive conflict; less_aggressive won.');
   }
 
-  // Cache check.
-  const key = cacheKey(args.profile, args.contextLabel, directives, args.draft);
+  // Cache check. The rag signature invalidates the cache when the voice-memory
+  // corpus changes (a profile hash alone would not — samples live separately).
+  const key = cacheKey(args.profile, args.contextLabel, directives, args.draft, ragSignature());
   const hit = cache.get(key);
   if (hit) return hit;
 
@@ -65,6 +85,26 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
   }
   const fingerprint = mergeFingerprint(args.profile.base, variant?.overrides);
 
+  // Retrieve the user's own most-similar past messages (M8) as the primary
+  // voice signal. Redact each at SEND time — never trust store-time redaction —
+  // and budget them so the fingerprint is never crowded out. Retrieval must
+  // never block a rewrite: any error or cold start degrades to profile-only.
+  let retrievedExemplars: string[] = [];
+  try {
+    const exemplars = await retrieveExemplars(redactedText);
+    retrievedExemplars = budgetExemplars(exemplars.map((e) => redact(e.text).redactedText));
+  } catch {
+    retrievedExemplars = [];
+  }
+  if (retrievedExemplars.length === 0) {
+    const n = samples.count();
+    if (n > 0 && n < RAG_MIN_SAMPLES) {
+      notes.push(
+        `Voice memory is still small (${n} sample${n === 1 ? '' : 's'}) — rewriting from your profile. Import more of your messages for sharper voice matching.`,
+      );
+    }
+  }
+
   const user = buildRewriteUserPrompt(redactedText);
   const shorter = directives.includes('shorter');
 
@@ -77,6 +117,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
       fingerprintJson: JSON.stringify(fingerprint, null, 2),
       contextNotes: variant?.notes ?? '',
       contextExemplars: variant?.exemplars ?? [],
+      retrievedExemplars,
       directives,
       lengthReminder,
     });
@@ -182,10 +223,22 @@ function cacheKey(
   contextLabel: ContextLabel,
   directives: Directive[],
   draft: string,
+  ragSig: string,
 ): string {
   const profileHash = sha256(JSON.stringify(profile));
   const draftHash = sha256(draft);
-  return sha256(`${profileHash}|${contextLabel}|${[...directives].sort().join(',')}|${draftHash}`);
+  return sha256(
+    `${profileHash}|${contextLabel}|${[...directives].sort().join(',')}|${draftHash}|${ragSig}`,
+  );
+}
+
+/** Cheap signature of the voice-memory corpus for cache invalidation: embedder
+ *  model + sample count + newest sample timestamp. Changes whenever samples are
+ *  added or removed, without running retrieval on the cache-hit path. */
+function ragSignature(): string {
+  const all = samples.list();
+  const latest = all[0]?.createdAt ?? '';
+  return `${getEmbeddingProvider().model}|${all.length}|${latest}`;
 }
 
 function sha256(s: string): string {
