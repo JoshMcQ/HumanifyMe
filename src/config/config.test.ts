@@ -44,6 +44,43 @@ describe('config layer', () => {
     expect(() => writeConfig({ ...DEFAULT_CONFIG, rateLimitPerDay: -1 })).toThrow();
   });
 
+  it('default config has a rag block with the documented defaults', () => {
+    const rag = readConfig().rag;
+    expect(rag).toEqual({
+      enabled: true,
+      embedder: 'lexical',
+      minSamples: 5,
+      topK: 5,
+      mmrLambda: 0.7,
+      dedupCosine: 0.97,
+    });
+  });
+
+  it('a config written before rag existed still reads and gets rag defaults', () => {
+    readConfig();
+    const raw = JSON.parse(fs.readFileSync(path.join(home, 'config.json'), 'utf8'));
+    delete raw.rag; // simulate a pre-M8 config on disk
+    fs.writeFileSync(path.join(home, 'config.json'), JSON.stringify(raw));
+    const cfg = readConfig();
+    expect(cfg.rag.embedder).toBe('lexical');
+    expect(cfg.rag.enabled).toBe(true);
+  });
+
+  it('rag.enabled round-trips', () => {
+    updateConfig((c) => {
+      c.rag.enabled = false;
+    });
+    expect(readConfig().rag.enabled).toBe(false);
+  });
+
+  it('rejects an out-of-range rag value', () => {
+    readConfig();
+    const raw = JSON.parse(fs.readFileSync(path.join(home, 'config.json'), 'utf8'));
+    raw.rag = { ...raw.rag, mmrLambda: 2 };
+    fs.writeFileSync(path.join(home, 'config.json'), JSON.stringify(raw));
+    expect(() => readConfig()).toThrow(/failed validation/);
+  });
+
   const itPosix = process.platform === 'win32' ? it.skip : it;
   itPosix('file perms are 0600 after write on POSIX', () => {
     readConfig();

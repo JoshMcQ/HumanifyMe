@@ -13,10 +13,11 @@ import { restore } from '../privacy/restore.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { cache, audit, samples } from '../storage/index.js';
 import { getEmbeddingProvider } from '../providers/index.js';
+import { readConfig } from '../config/index.js';
 import { LLMProvider } from '../providers/types.js';
 import { StyleProfile, mergeFingerprint } from './styleProfile.js';
 import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
-import { retrieveExemplars, RAG_MIN_SAMPLES } from './retrieve.js';
+import { retrieveExemplars } from './retrieve.js';
 import { computeDiff } from './diff.js';
 import { sanitizeRewrite, verifyRewrite, issuesToFeedback } from './verify.js';
 
@@ -89,19 +90,28 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
   // voice signal. Redact each at SEND time — never trust store-time redaction —
   // and budget them so the fingerprint is never crowded out. Retrieval must
   // never block a rewrite: any error or cold start degrades to profile-only.
+  // Honors the rag.* config block (opt-out + tunables).
+  const rag = readConfig().rag;
   let retrievedExemplars: string[] = [];
-  try {
-    const exemplars = await retrieveExemplars(redactedText);
-    retrievedExemplars = budgetExemplars(exemplars.map((e) => redact(e.text).redactedText));
-  } catch {
-    retrievedExemplars = [];
-  }
-  if (retrievedExemplars.length === 0) {
-    const n = samples.count();
-    if (n > 0 && n < RAG_MIN_SAMPLES) {
-      notes.push(
-        `Voice memory is still small (${n} sample${n === 1 ? '' : 's'}) — rewriting from your profile. Import more of your messages for sharper voice matching.`,
-      );
+  if (rag.enabled) {
+    try {
+      const exemplars = await retrieveExemplars(redactedText, {
+        topK: rag.topK,
+        minSamples: rag.minSamples,
+        mmrLambda: rag.mmrLambda,
+        dedupCosine: rag.dedupCosine,
+      });
+      retrievedExemplars = budgetExemplars(exemplars.map((e) => redact(e.text).redactedText));
+    } catch {
+      retrievedExemplars = [];
+    }
+    if (retrievedExemplars.length === 0) {
+      const n = samples.count();
+      if (n > 0 && n < rag.minSamples) {
+        notes.push(
+          `Voice memory is still small (${n} sample${n === 1 ? '' : 's'}) — rewriting from your profile. Import more of your messages for sharper voice matching.`,
+        );
+      }
     }
   }
 

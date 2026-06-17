@@ -1,9 +1,10 @@
 // T-61: deterministic embedding provider used to drive retrieval tests without
 // touching the network or loading the ONNX model. Mirrors FakeLLMProvider.
 
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeEach, describe, expect, test } from 'vitest';
 import { FakeEmbeddingProvider } from './fake.js';
 import { getEmbeddingProvider, setEmbeddingProviderOverride } from './index.js';
+import { freshHome, cleanupHome } from '../testUtils.js';
 import type { EmbeddingProvider } from './embeddings.js';
 
 function dot(a: Float32Array, b: Float32Array): number {
@@ -57,7 +58,13 @@ describe('FakeEmbeddingProvider', () => {
 });
 
 describe('getEmbeddingProvider', () => {
-  afterEach(() => setEmbeddingProviderOverride(null));
+  beforeEach(() => {
+    freshHome();
+  });
+  afterEach(() => {
+    setEmbeddingProviderOverride(null);
+    cleanupHome();
+  });
 
   test('defaults to the dependency-free lexical provider', () => {
     expect(getEmbeddingProvider().model).toBe('lexical-v1');

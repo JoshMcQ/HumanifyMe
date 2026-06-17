@@ -2,7 +2,7 @@
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { freshHome, cleanupHome } from '../testUtils.js';
-import { samples, embeddings, getDb } from './index.js';
+import { samples, embeddings, getDb, wipeAll } from './index.js';
 
 const sampleInput = { text: 'x'.repeat(150), labels: ['email'] as ['email'], source: 'paste' as const };
 
@@ -65,6 +65,14 @@ describe('embeddings repository', () => {
     expect(embeddings.count()).toBe(1);
     samples.remove(s.id);
     expect(embeddings.get(s.id)).toBeNull();
+    expect(embeddings.count()).toBe(0);
+  });
+
+  it('humanify_wipe_all clears all embeddings (privacy)', () => {
+    const s = samples.add(sampleInput);
+    embeddings.put({ sampleId: s.id, model: 'fake-embed', vector: new Float32Array([1, 2, 3]) });
+    expect(embeddings.count()).toBe(1);
+    wipeAll();
     expect(embeddings.count()).toBe(0);
   });
 });

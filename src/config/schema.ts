@@ -7,6 +7,21 @@ export const ProviderConfigSchema = z.object({
   ollama: z.object({ baseUrl: z.string().url(), model: z.string() }).strict().optional(),
 }).strict();
 
+// Retrieval-augmented voice (M8). Defaults make this opt-out: on by default,
+// dependency-free lexical embedder. `.default({})` lets configs written before
+// M8 (no `rag` key) still parse and inherit these defaults.
+export const RagConfigSchema = z
+  .object({
+    enabled: z.boolean().default(true),
+    embedder: z.enum(['lexical', 'minilm', 'ollama']).default('lexical'),
+    minSamples: z.number().int().nonnegative().default(5),
+    topK: z.number().int().positive().default(5),
+    mmrLambda: z.number().min(0).max(1).default(0.7),
+    dedupCosine: z.number().min(0).max(1).default(0.97),
+  })
+  .strict()
+  .default({});
+
 export const ConfigSchema = z.object({
   version: z.literal(1),
   consentAcceptedAt: z.string().datetime({ offset: true }).optional(),
@@ -18,6 +33,7 @@ export const ConfigSchema = z.object({
   autoHumanifyAgents: z.array(z.string()),
   errorReporting: z.boolean(),
   telemetry: z.boolean(),
+  rag: RagConfigSchema,
 }).strict();
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -32,4 +48,5 @@ export const DEFAULT_CONFIG: Config = {
   autoHumanifyAgents: [],
   errorReporting: false,
   telemetry: false,
+  rag: { enabled: true, embedder: 'lexical', minSamples: 5, topK: 5, mmrLambda: 0.7, dedupCosine: 0.97 },
 };

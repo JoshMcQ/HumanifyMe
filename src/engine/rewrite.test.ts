@@ -5,6 +5,7 @@ import { makeProfile } from './fixtures.js';
 import { FakeLLMProvider } from '../providers/fake.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { cache, samples, audit } from '../storage/index.js';
+import { updateConfig } from '../config/index.js';
 import { mergeFingerprint } from './styleProfile.js';
 
 beforeEach(freshHome);
@@ -153,6 +154,22 @@ describe('rewrite with retrieval (RAG, T-65)', () => {
     expect(fake.calls[0]!.system).toContain('Examples of how this person actually writes');
     expect(fake.calls[0]!.system).toContain('flash script');
     expect(audit.list()).toHaveLength(1);
+  });
+
+  it('rag.enabled=false skips retrieval entirely even with samples', async () => {
+    seedVoiceMemory();
+    updateConfig((c) => {
+      c.rag.enabled = false;
+    });
+    const fake = fakeWith('hey did you start the flash script or should i take it over this week');
+    await rewrite({
+      draft: 'have you started the flash script yet or should i pick it up',
+      profile,
+      contextLabel: 'casual',
+      directives: [],
+      provider: fake,
+    });
+    expect(fake.calls[0]!.system).not.toContain('Examples of how this person actually writes');
   });
 
   it('cold start (no samples) adds no exemplar section', async () => {

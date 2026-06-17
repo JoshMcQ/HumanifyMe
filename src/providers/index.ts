@@ -5,6 +5,8 @@ import { AnthropicProvider } from './anthropic.js';
 import { EmbeddingProvider } from './embeddings.js';
 import { GeminiProvider } from './gemini.js';
 import { LexicalEmbeddingProvider } from './lexical-embeddings.js';
+import { MiniLmEmbeddingProvider } from './minilm-embeddings.js';
+import { OllamaEmbeddingProvider } from './ollama-embeddings.js';
 import { OllamaProvider, OpenAIProvider } from './openai.js';
 import { LLMProvider } from './types.js';
 
@@ -53,16 +55,38 @@ export function setEmbeddingProviderOverride(p: EmbeddingProvider | null): void 
 }
 
 let lexicalEmbedder: LexicalEmbeddingProvider | null = null;
+let miniLmEmbedder: EmbeddingProvider | null = null;
 
 /**
- * The embedder used for retrieval. Defaults to the dependency-free lexical
- * embedder (Q-18); opt-in local neural embedders (MiniLM/Ollama) will be
- * selected here via config.rag.embedder once that config block lands (T-65/66).
+ * The embedder used for retrieval, selected by config.rag.embedder. Defaults to
+ * the dependency-free lexical embedder (Q-18). The neural options (MiniLM via
+ * transformers.js, Ollama) are local-only and opt-in; they are never required
+ * for the default path.
  */
 export function getEmbeddingProvider(): EmbeddingProvider {
   if (embeddingOverride) return embeddingOverride;
-  if (!lexicalEmbedder) lexicalEmbedder = new LexicalEmbeddingProvider();
-  return lexicalEmbedder;
+  const config = readConfig();
+  switch (config.rag.embedder) {
+    case 'ollama': {
+      const c = config.providers.ollama;
+      if (!c?.baseUrl) {
+        throw new HumanifyError(
+          'MISSING_API_KEY',
+          'rag.embedder is "ollama" but no Ollama baseUrl is configured. Run "humanifyme provider set ollama --base-url <url>".',
+        );
+      }
+      return new OllamaEmbeddingProvider(c.baseUrl);
+    }
+    case 'minilm': {
+      if (!miniLmEmbedder) miniLmEmbedder = new MiniLmEmbeddingProvider();
+      return miniLmEmbedder;
+    }
+    case 'lexical':
+    default: {
+      if (!lexicalEmbedder) lexicalEmbedder = new LexicalEmbeddingProvider();
+      return lexicalEmbedder;
+    }
+  }
 }
 
 function missingKey(provider: string): HumanifyError {
