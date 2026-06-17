@@ -170,4 +170,4 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Tasks inside:** T-61 through T-66.
 
-**Status:** not started.
+**Status:** complete (2026-06-16). Local voice-memory retrieval wired end to end: `EmbeddingProvider` abstraction with a dependency-free lexical default (opt-in MiniLM/Ollama), `sample_embeddings` table (schema v2, wiped with the DB), embed-on-ingest + idempotent backfill, MMR retriever, retrieval injected into the rewrite as the primary voice signal (redacted at send time, token-budgeted, cold-start fallback), and a `rag.*` config block (opt-out + tunables). Full suite green throughout (134 tests). Remaining before launch readiness: eval harness proving the quality gain (in progress), then Joshua's open-source decision gates publish.
