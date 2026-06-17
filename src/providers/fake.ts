@@ -1,6 +1,7 @@
 // Deterministic providers for tests. Never touch the network.
 
 import { EmbeddingProvider } from './embeddings.js';
+import { fnv1a } from './hash.js';
 import { CompletionArgs, CompletionResult, LLMProvider } from './types.js';
 
 export class FakeLLMProvider implements LLMProvider {
@@ -82,14 +83,4 @@ export class FakeEmbeddingProvider implements EmbeddingProvider {
     }
     return v;
   }
-}
-
-/** FNV-1a 32-bit hash → unsigned. Stable across runs and platforms. */
-function fnv1a(s: string): number {
-  let h = 0x811c9dc5;
-  for (let i = 0; i < s.length; i++) {
-    h ^= s.charCodeAt(i);
-    h = Math.imul(h, 0x01000193);
-  }
-  return h >>> 0;
 }
