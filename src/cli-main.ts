@@ -14,6 +14,7 @@ import { rewrite } from './engine/rewrite.js';
 import { renderProfileMarkdown } from './engine/profileMarkdown.js';
 import { previewChatExport, commitChatExport } from './importers/chatExport/index.js';
 import { importTextFiles } from './importers/textFiles/index.js';
+import { backfillEmbeddings, embedSample } from './engine/voiceMemory.js';
 import { ContextLabelSchema, DirectiveSchema, PROVIDERS, CONTEXT_LABELS } from './types.js';
 
 const program = new Command();
@@ -26,10 +27,11 @@ sample
   .command('add <file>')
   .description('Add a writing sample from a file')
   .requiredOption('--label <labels>', `comma-separated labels (${CONTEXT_LABELS.join('|')})`)
-  .action((file: string, opts: { label: string }) => {
+  .action(async (file: string, opts: { label: string }) => {
     const text = fs.readFileSync(file, 'utf8');
     const labels = opts.label.split(',').map((l) => ContextLabelSchema.parse(l.trim()));
     const record = samples.add({ text, labels, source: 'paste' });
+    await embedSample(record.id, record.text);
     console.log(`added sample ${record.id} (${record.charCount} chars, labels: ${labels.join(', ')})`);
   });
 
@@ -192,7 +194,7 @@ importCmd
   .command('chat <path>')
   .description('Import from a ChatGPT/Claude export (.zip, conversations.json, or directory)')
   .option('--commit', 'commit instead of preview', false)
-  .action((p: string, opts: { commit: boolean }) => {
+  .action(async (p: string, opts: { commit: boolean }) => {
     if (!opts.commit) {
       const preview = previewChatExport(p);
       console.log(`format: ${preview.format}; extractable samples: ${preview.totalExtracted}\n`);
@@ -202,6 +204,7 @@ importCmd
       console.log('run again with --commit to import.');
     } else {
       const r = commitChatExport(p);
+      await backfillEmbeddings();
       console.log(`imported ${r.imported} samples from ${r.format} export (${r.skipped} skipped).`);
     }
   });
@@ -212,6 +215,7 @@ importCmd
   .requiredOption('--label <label>', `default label (${CONTEXT_LABELS.join('|')})`)
   .action(async (p: string, opts: { label: string }) => {
     const r = await importTextFiles(p, ContextLabelSchema.parse(opts.label));
+    await backfillEmbeddings();
     console.log(`imported ${r.imported} samples from ${r.filesProcessed} files.`);
     if (r.skippedTooShort.length) {
       console.log(`skipped (too short): ${r.skippedTooShort.join(', ')}`);
