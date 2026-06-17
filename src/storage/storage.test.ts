@@ -12,11 +12,11 @@ beforeEach(() => {
 afterEach(cleanupHome);
 
 describe('db init', () => {
-  it('first start creates data.db with schema v1', () => {
+  it('first start creates data.db with schema v2', () => {
     getDb();
     expect(fs.existsSync(path.join(home, 'data.db'))).toBe(true);
     const row = getDb().prepare('SELECT MAX(version) AS v FROM _migrations').get() as { v: number };
-    expect(row.v).toBe(1);
+    expect(row.v).toBe(2);
   });
 });
 

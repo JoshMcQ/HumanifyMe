@@ -46,6 +46,21 @@ CREATE TABLE audit_log (
 );
 `;
 
+// v2 (M8): local embeddings of samples, used as the retrieval key for the
+// rewrite engine. One row per sample; ON DELETE CASCADE keeps it in lockstep
+// with samples. Vectors are Float32Array bytes; `model` invalidates on change.
+const MIGRATION_002 = `
+CREATE TABLE sample_embeddings (
+  sample_id   TEXT PRIMARY KEY REFERENCES samples(id) ON DELETE CASCADE,
+  model       TEXT NOT NULL,
+  dim         INTEGER NOT NULL,
+  vector      BLOB NOT NULL,
+  created_at  TEXT NOT NULL
+);
+CREATE INDEX sample_embeddings_model ON sample_embeddings(model);
+`;
+
 export const MIGRATIONS: Migration[] = [
   { version: 1, name: '001_init', sql: MIGRATION_001 },
+  { version: 2, name: '002_embeddings', sql: MIGRATION_002 },
 ];

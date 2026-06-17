@@ -8,6 +8,8 @@ export { samples } from './repositories/samples.js';
 export { profiles } from './repositories/profiles.js';
 export { cache } from './repositories/cache.js';
 export { audit } from './repositories/audit.js';
+export { embeddings } from './repositories/embeddings.js';
+export type { EmbeddingRecord } from './repositories/embeddings.js';
 export { getDb, closeDb } from './db.js';
 
 /**
