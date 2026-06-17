@@ -4,7 +4,7 @@ import { rewrite } from './rewrite.js';
 import { makeProfile } from './fixtures.js';
 import { FakeLLMProvider } from '../providers/fake.js';
 import { HumanifyError } from '../mcp/errors.js';
-import { cache } from '../storage/index.js';
+import { cache, samples, audit } from '../storage/index.js';
 import { mergeFingerprint } from './styleProfile.js';
 
 beforeEach(freshHome);
@@ -118,6 +118,59 @@ describe('rewrite pipeline', () => {
     expect(cache.count()).toBe(1);
     await rewrite(args);
     expect(fake.calls).toHaveLength(1); // second call served from cache
+  });
+});
+
+describe('rewrite with retrieval (RAG, T-65)', () => {
+  const FLASH =
+    'hey david have you been working on the flash script at all, just checking if you had it covered or if i should pick it up this week';
+  const LUNCH =
+    'can we grab lunch on saturday afternoon, i was thinking we could try that new taco place downtown near the office if you are free at noon';
+  const DEPLOY =
+    'the deployment failed again last night, looks like the database migration timed out, going to retry it this morning and watch the logs';
+  const REPORT =
+    'thanks for sending over the report, i read through it and it looks solid, just a couple small typos on page three otherwise good to go';
+  const NOTES =
+    'i took some notes during the standup this morning about the roadmap and the priorities for next quarter so we can all stay aligned okay';
+
+  function seedVoiceMemory(): void {
+    [FLASH, LUNCH, DEPLOY, REPORT, NOTES].forEach((text) =>
+      samples.add({ text, labels: ['casual'], source: 'paste' }),
+    );
+  }
+
+  it('injects retrieved exemplars into the system prompt and keeps one audit entry', async () => {
+    seedVoiceMemory();
+    const fake = fakeWith('hey did you start the flash script or should i take it over this week');
+    await rewrite({
+      draft: 'have you started the flash script yet or should i pick it up',
+      profile,
+      contextLabel: 'casual',
+      directives: [],
+      provider: fake,
+    });
+    expect(fake.calls).toHaveLength(1);
+    expect(fake.calls[0]!.system).toContain('Examples of how this person actually writes');
+    expect(fake.calls[0]!.system).toContain('flash script');
+    expect(audit.list()).toHaveLength(1);
+  });
+
+  it('cold start (no samples) adds no exemplar section', async () => {
+    const fake = fakeWith(draft);
+    await rewrite({ draft, profile, contextLabel: 'email', directives: [], provider: fake });
+    expect(fake.calls[0]!.system).not.toContain('Examples of how this person actually writes');
+  });
+
+  it('below-threshold voice memory falls back to profile-only with a note', async () => {
+    samples.add({ text: FLASH, labels: ['casual'], source: 'paste' }); // 1 < 5
+    const out = await rewrite({
+      draft: 'have you started the flash script yet or should i pick it up',
+      profile,
+      contextLabel: 'casual',
+      directives: [],
+      provider: fakeWith('did you start the flash script or should i grab it this week sometime'),
+    });
+    expect(out.notes ?? '').toMatch(/voice memory/i);
   });
 });
 

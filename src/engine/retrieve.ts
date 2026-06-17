@@ -26,7 +26,9 @@ export interface RetrieveOptions {
   dedupCosine?: number;
 }
 
-const DEFAULTS = { topK: 5, minSamples: 5, mmrLambda: 0.7, dedupCosine: 0.97 };
+export const RAG_DEFAULTS = { topK: 5, minSamples: 5, mmrLambda: 0.7, dedupCosine: 0.97 };
+/** Below this many samples, retrieval returns [] and the engine stays profile-only. */
+export const RAG_MIN_SAMPLES = RAG_DEFAULTS.minSamples;
 
 interface Candidate {
   id: string;
@@ -40,7 +42,7 @@ export async function retrieveExemplars(
   draft: string,
   opts: RetrieveOptions = {},
 ): Promise<RetrievedExemplar[]> {
-  const { topK, minSamples, mmrLambda, dedupCosine } = { ...DEFAULTS, ...opts };
+  const { topK, minSamples, mmrLambda, dedupCosine } = { ...RAG_DEFAULTS, ...opts };
 
   // Cold start: not enough voice to retrieve from.
   if (samples.count() < minSamples) return [];

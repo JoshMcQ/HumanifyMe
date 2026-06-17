@@ -17,12 +17,27 @@ export function buildRewriteSystemPrompt(args: {
   fingerprintJson: string;
   contextNotes: string;
   contextExemplars: string[];
+  /** Redacted real messages this person wrote, retrieved as most similar to the
+   *  draft (M8). The primary voice signal when present. */
+  retrievedExemplars?: string[];
   directives: Directive[];
   lengthReminder?: string;
 }): string {
   const directiveLines = args.directives
     .map((d) => `- \`${d}\`: ${DIRECTIVE_DESCRIPTIONS[d]}`)
     .join('\n');
+
+  const retrieved = args.retrievedExemplars ?? [];
+  const retrievedSection =
+    retrieved.length > 0
+      ? `### Examples of how this person actually writes — most similar to your draft
+
+These are real messages this person wrote, retrieved because they resemble your draft. They are the STRONGEST signal for voice — match their greetings, rhythm, sentence length, punctuation, and especially how they make a request or ask a question. They are about other topics, so do NOT copy their content; emulate their voice.
+
+${retrieved.map((e) => `- ${e}`).join('\n')}
+
+`
+      : '';
 
   return `You rewrite drafts so they read as if a specific person wrote them. You do not edit for "clarity" or "professionalism" in the abstract. You match the voice fingerprint below, exactly.
 
@@ -44,7 +59,7 @@ The fingerprint is a JSON object. Treat it as authoritative.
 
 ${args.fingerprintJson}
 
-Context-specific notes (apply if non-empty):
+${retrievedSection}Context-specific notes (apply if non-empty):
 
 ${args.contextNotes || '(none)'}
 
