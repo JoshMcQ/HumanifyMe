@@ -76,6 +76,64 @@ describe('verifyRewrite', () => {
   });
 });
 
+describe('verifyRewrite — casing/register adherence', () => {
+  it('flags re-introduced sentence-case for an all-lowercase writer', () => {
+    const issues = verifyRewrite({
+      redactedDraft: 'please send the deck. i need it for the meeting.',
+      rewrite: 'Hey, can you send the deck? I need it for the meeting tomorrow.',
+      wordsToAvoid: [],
+      capitalization: { sentenceCase: false, allLowercase: true },
+    });
+    expect(issues).toContainEqual({ kind: 'casing', detail: 'lowercase' });
+  });
+
+  it('flags a flattened all-lowercase rewrite for a sentence-case writer', () => {
+    const issues = verifyRewrite({
+      redactedDraft: 'Please send the deck. I need it for the meeting.',
+      rewrite: 'hey, can you send the deck? i need it for the meeting tomorrow.',
+      wordsToAvoid: [],
+      capitalization: { sentenceCase: true, allLowercase: false },
+    });
+    expect(issues).toContainEqual({ kind: 'casing', detail: 'sentence_case' });
+  });
+
+  it('tolerates a single proper-noun/acronym capital for a lowercase writer', () => {
+    const issues = verifyRewrite({
+      redactedDraft: 'did sarah reply yet',
+      rewrite: 'hey — did you hear back? Sarah said she would check today.',
+      wordsToAvoid: [],
+      capitalization: { sentenceCase: false, allLowercase: true },
+    });
+    expect(issues.find((i) => i.kind === 'casing')).toBeUndefined();
+  });
+
+  it('passes when casing already matches the writer (lowercase)', () => {
+    const issues = verifyRewrite({
+      redactedDraft: 'send the deck',
+      rewrite: 'hey can you resend the deck? i need it for the meeting. thanks',
+      wordsToAvoid: [],
+      capitalization: { sentenceCase: false, allLowercase: true },
+    });
+    expect(issues.find((i) => i.kind === 'casing')).toBeUndefined();
+  });
+
+  it('is a no-op when no capitalization info is supplied (back-compat)', () => {
+    const issues = verifyRewrite({
+      redactedDraft: 'send the deck',
+      rewrite: 'Hey. Can you resend the deck? I need it.',
+      wordsToAvoid: [],
+    });
+    expect(issues.find((i) => i.kind === 'casing')).toBeUndefined();
+  });
+
+  it('renders targeted casing feedback for each direction', () => {
+    expect(issuesToFeedback([{ kind: 'casing', detail: 'lowercase' }])).toMatch(/lowercase/i);
+    expect(issuesToFeedback([{ kind: 'casing', detail: 'sentence_case' }])).toMatch(
+      /capital|sentence/i,
+    );
+  });
+});
+
 describe('rewrite pipeline with verification', () => {
   beforeEach(freshHome);
   afterEach(cleanupHome);
@@ -117,6 +175,26 @@ describe('rewrite pipeline with verification', () => {
     expect(fake.calls).toHaveLength(2);
     expect(out.notes).toMatch(/review before sending/);
     expect(out.notes).toMatch(/2\.3|6\/14/);
+  });
+
+  it('retries when an all-lowercase writer gets sentence-cased output, with casing feedback', async () => {
+    const fake = new FakeLLMProvider();
+    fake.cannedResponses = [
+      // Attempt 0: model "corrected" the casual writer to sentence case (numbers/URL kept).
+      `Quick update on the rollout. Version 2.3 ships on 6/14. Migration notes are at https://example.com/notes for details.`,
+      // Attempt 1: matches the writer's all-lowercase register.
+      `quick update — version 2.3 ships on 6/14, migration notes at https://example.com/notes if you want details.`,
+    ];
+    const out = await rewrite({
+      draft,
+      profile, // makeProfile() — an all-lowercase writer
+      contextLabel: 'professional',
+      directives: [],
+      provider: fake,
+    });
+    expect(fake.calls).toHaveLength(2);
+    expect(fake.calls[1]!.system).toMatch(/lowercase/i);
+    expect(out.notes ?? '').toBe('');
   });
 
   it('sanitizes whitespace without a retry', async () => {

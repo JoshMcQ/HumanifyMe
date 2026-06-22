@@ -16,7 +16,18 @@ export function renderProfileMarkdown(profile: StyleProfile | null): string {
   lines.push(`You write ${b.sentenceLength.average} sentences with ${b.sentenceLength.variance} variance. Formality ${b.formality}/5, directness ${b.directness}/5. Humor: ${b.humor}. Profanity: ${b.profanity}. Contractions: ${b.contractions}. Oxford comma: ${b.oxfordComma ? 'yes' : 'no'}.`);
   lines.push('');
   lines.push(`Punctuation: em-dash ${b.punctuationHabits.emDash}, semicolons ${b.punctuationHabits.semicolon}, ellipses ${b.punctuationHabits.ellipsis}, exclamation points ${b.punctuationHabits.exclamation}, parentheses ${b.punctuationHabits.parentheses}.`);
-  if (b.capitalization.allLowercase) lines.push('\nYou write in all lowercase.');
+  const cap = b.capitalization;
+  if (cap.allLowercase) {
+    lines.push('\nYou write in all lowercase.');
+  } else if (cap.sentenceCase) {
+    const titleNote =
+      cap.titleCase === 'always'
+        ? ' (and Title Case where it fits, like headings)'
+        : cap.titleCase === 'sometimes'
+          ? ' (with the occasional Title Case)'
+          : '';
+    lines.push(`\nYou use normal sentence capitalization${titleNote}.`);
+  }
   if (b.commonPhrases.length) lines.push(`\nPhrases you actually use: ${b.commonPhrases.map((p) => `"${p}"`).join(', ')}.`);
   if (b.wordsToAvoid.length) lines.push(`\nWords you never use: ${b.wordsToAvoid.join(', ')}.`);
   if (b.greetings.length) lines.push(`\nGreetings: ${b.greetings.join(' / ')}. Signoffs: ${b.signoffs.join(' / ')}.`);

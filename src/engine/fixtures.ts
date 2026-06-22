@@ -21,7 +21,7 @@ export function makeProfile(overrides: Partial<StyleProfile> = {}): StyleProfile
         exclamation: 'sometimes',
         parentheses: 'sometimes',
       },
-      capitalization: { sentenceCase: true, titleCase: 'never', allLowercase: false },
+      capitalization: { sentenceCase: false, titleCase: 'never', allLowercase: true },
       commonPhrases: ['long story short', 'to be fair'],
       wordsToAvoid: ['leverage', 'delighted', 'seamless'],
       greetings: ['hey'],

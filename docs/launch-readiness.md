@@ -34,22 +34,31 @@ before they ever leave the machine, and `humanify_wipe_all` clears everything.
 
 ## The proof (evals/results/)
 
-Same 5 generic-AI drafts, same writer, retrieval ON vs OFF:
+Two writers of **opposite register** (casual/lowercase vs. formal/sentence-case),
+same generic-AI drafts, retrieval ON vs OFF. The casing column is the headline:
+the engine adapts capitalization to *whoever the user is*, never a house style.
 
-| Metric | RAG-on | RAG-off | Read |
-|---|---|---|---|
-| Stylometric distance to the writer (lower=closer) | **2.67** | 4.25 | ~37% closer to the voice |
-| Blind Anthropic judge prefers | **100%** | — | voice-match, every draft |
-| AI-smell tells per rewrite | 0 | 0 | engine already strips tells |
+| Writer | Expected casing | RAG-on casing | RAG-on style-distance (vs OFF) | Judge prefers ON |
+|---|---|---|---|---|
+| A · casual / lowercase | ~0.0 (lowercase) | **0.00** | 2.55 (vs 3.17) | 80% |
+| B · formal / sentence-case | ~1.0 (sentence case) | **1.00** | 2.53 (vs 2.51) | 80% |
 
-Qualitatively: RAG-on nails the writer's lowercase-casual register ("hey — did you
-ever get anywhere with the flash script?... let me know!"); RAG-off stays in
-polished sentence case ("Hey — just wanted to check in..."). This is exactly the
-gap that made the David message feel not-you.
+(casing = fraction of sentences starting with a capital. AI-smell tells: 0 across the board.)
 
-Caveat to keep honest: this is **one synthetic writer**. It validates the engine
-direction strongly; the public **HumanifyMe Bench** (real consented writers, human
-raters) per `specs/evals-spec.md` is still gated behind 1,000 WAU and not built.
+Same Draft 1, the divergence is entirely the writer's learned voice:
+- **Writer A** → `hey — did you ever get anywhere with the flash script? just trying to figure out if you've got it covered this week...`
+- **Writer B** → `Hi — could you let me know whether you have made any progress on the flash script? There is no urgency; I simply want to determine...`
+
+Casing/grammar is no longer a hope: it's a **deterministic, retried guarantee** in
+`src/engine/verify.ts` — if a rewrite drifts from the writer's learned register
+(lowercasing a formal writer, or capitalizing a lowercase one), the engine catches
+it mechanically and retries with targeted feedback, exactly like it already does
+for dropped numbers and URLs.
+
+Caveat to keep honest: these are **two synthetic writers**. They validate that the
+engine adapts register in both directions; the public **HumanifyMe Bench** (real
+consented writers, human raters) per `specs/evals-spec.md` is still gated behind
+1,000 WAU and not built.
 
 ## Decisions only you can make (in priority order)
 

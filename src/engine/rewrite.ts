@@ -172,11 +172,16 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
     const ratio = text.length / args.draft.length;
     const outOfBand = shorter ? ratio > 0.95 : ratio < 0.7 || ratio > 1.3;
     // Deterministic quality gate: introduced banned words, dropped numbers,
-    // lost URLs, mangled redaction placeholders.
+    // lost URLs, mangled redaction placeholders, and casing that drifts from the
+    // writer's learned register (lowercase vs. sentence case).
     const issues = verifyRewrite({
       redactedDraft: redactedText,
       rewrite: text,
       wordsToAvoid: fingerprint.wordsToAvoid,
+      capitalization: {
+        sentenceCase: fingerprint.capitalization.sentenceCase,
+        allLowercase: fingerprint.capitalization.allLowercase,
+      },
     });
 
     if ((outOfBand || issues.length > 0) && attempt === 0) {
