@@ -94,6 +94,21 @@ Embeddings are computed from **raw** sample text locally (so similarity reflects
 
 See `docs/open-questions.md` Q-18–Q-22 (open retrieval decisions) and `docs/data-model.md` (migration 002, table `sample_embeddings`).
 
+## Output verification (deterministic quality gate)
+
+After the model returns, the engine runs a set of **deterministic** checks against the (redacted) draft and the fingerprint. These are mechanical guarantees, not prompt hopes: if any fire on the first attempt, the engine retries once with targeted feedback; if they still fire after the retry, the rewrite is returned with a `notes` warning rather than silently shipped. Implemented in `src/engine/verify.ts`.
+
+Checks:
+
+- **Banned words** — flag any word in `fingerprint.wordsToAvoid` the model *introduced* (a banned word already in the draft is a meaning question, not a violation).
+- **Numbers** — every digit-bearing token in the draft must survive verbatim (dates, prices, versions, issue numbers).
+- **URLs** — must survive byte-for-byte.
+- **Redaction placeholders** — `[EMAIL_1]` etc. must survive so `restore()` can reinsert real values.
+- **Casing / register adherence** — the rewrite must match the writer's *learned* capitalization, never a hardcoded default. Casing is a learned fingerprint dimension (`capitalization.{sentenceCase, titleCase, allLowercase}`), so the engine must not normalize toward any house style:
+  - If `allLowercase` is true, the rewrite must not re-introduce sentence-case capitalization.
+  - If the writer uses normal sentence case (`allLowercase` false and `sentenceCase` true), the rewrite must not be flattened to all-lowercase.
+  - Measured by the **sentence-initial capitalization rate**, requiring a clear majority *and* at least two offending sentence-starts before flagging, so a single proper-noun or acronym start is never a false positive. Grammar/formality beyond casing (contractions, punctuation) remains fingerprint-driven in the prompt; only casing is mechanically gated because only casing is unambiguously checkable.
+
 ## Length policy
 
 - If `shorter` directive: target 60–80% of draft length. Reject and retry once if >95%.

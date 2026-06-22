@@ -9,8 +9,14 @@
 //                        profile violations, mangled placeholders).
 
 export interface VerifyIssue {
-  kind: 'banned_word' | 'missing_number' | 'missing_url' | 'missing_placeholder';
+  kind: 'banned_word' | 'missing_number' | 'missing_url' | 'missing_placeholder' | 'casing';
   detail: string;
+}
+
+/** The learned capitalization register, from the voice fingerprint. */
+export interface CapitalizationRegister {
+  sentenceCase: boolean;
+  allLowercase: boolean;
 }
 
 /**
@@ -40,6 +46,9 @@ export function verifyRewrite(args: {
   redactedDraft: string;
   rewrite: string;
   wordsToAvoid: string[];
+  /** The writer's learned capitalization register. When provided, the rewrite's
+   *  casing is checked against it — never against a hardcoded house style. */
+  capitalization?: CapitalizationRegister;
 }): VerifyIssue[] {
   const issues: VerifyIssue[] = [];
   const draftLower = args.redactedDraft.toLowerCase();
@@ -84,7 +93,41 @@ export function verifyRewrite(args: {
     }
   }
 
+  // 5. Casing / register adherence. Capitalization is a *learned* fingerprint
+  //    dimension, so the rewrite must match the writer — not normalize toward a
+  //    house style. We measure sentence-initial capitalization and require a
+  //    clear majority AND at least two offending sentence-starts before flagging,
+  //    so a single proper-noun or acronym start is never a false positive.
+  if (args.capitalization) {
+    const { upper, lower } = sentenceStartCases(args.rewrite);
+    if (args.capitalization.allLowercase) {
+      if (upper >= 2 && upper > lower) issues.push({ kind: 'casing', detail: 'lowercase' });
+    } else if (args.capitalization.sentenceCase) {
+      if (lower >= 2 && lower > upper) issues.push({ kind: 'casing', detail: 'sentence_case' });
+    }
+  }
+
   return issues;
+}
+
+/** Counts how each sentence in `text` starts: upper- vs lower-case first letter.
+ *  Redaction placeholders ([EMAIL_1], …) are stripped first so their bracketed
+ *  capitals never count as a casing choice. Sentences with no alphabetic start
+ *  (numbers, symbols) are skipped. */
+function sentenceStartCases(text: string): { upper: number; lower: number } {
+  const sentences = text
+    .split(/(?:[.!?]+\s+|\n+)/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+  let upper = 0;
+  let lower = 0;
+  for (const s of sentences) {
+    const m = s.replace(PLACEHOLDER_RE, ' ').match(/[A-Za-z]/);
+    if (!m) continue;
+    if (m[0] >= 'A' && m[0] <= 'Z') upper++;
+    else lower++;
+  }
+  return { upper, lower };
 }
 
 /** Renders issues as targeted retry feedback for the model. */
@@ -107,6 +150,16 @@ export function issuesToFeedback(issues: VerifyIssue[]): string {
   }
   if (placeholders.length) {
     parts.push(`Your previous attempt dropped the placeholder(s) ${placeholders.join(', ')}. They must appear verbatim in the output.`);
+  }
+  if (issues.some((i) => i.kind === 'casing' && i.detail === 'lowercase')) {
+    parts.push(
+      'Your previous attempt capitalized the start of sentences — this person writes in all lowercase. Match their casing exactly: do not capitalize sentence beginnings.',
+    );
+  }
+  if (issues.some((i) => i.kind === 'casing' && i.detail === 'sentence_case')) {
+    parts.push(
+      'Your previous attempt was written in all lowercase — this person uses normal sentence capitalization. Capitalize the start of each sentence and proper nouns as they would.',
+    );
   }
   return parts.join(' ');
 }
