@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HumanifyMe — Alpha survey</title>
+<meta name="description" content="Five quick questions for HumanifyMe alpha users. Helps us prove (and improve) how well it matches your voice.">
+<link rel="canonical" href="https://humanifyme.com/alpha-survey.html">
+<meta name="robots" content="noindex">
+<style>
+:root{
+  --paper:#faf9f5;--ink:#191817;--ink-soft:#57534e;--line:#e7e2da;
+  --clay:#c96342;--card:#fff;--good:#3a7d44;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,Roboto,sans-serif;
+  --serif:'Iowan Old Style','Palatino Linotype',Georgia,serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6}
+a{color:inherit}
+.wrap{max-width:660px;margin:0 auto;padding:0 24px}
+nav{border-bottom:1px solid var(--line)}
+.nav-inner{display:flex;align-items:center;height:60px}
+.logo{font-family:var(--serif);font-size:1.25rem;font-weight:700;text-decoration:none}
+.logo em{color:var(--clay);font-style:normal}
+.hero{padding:48px 0 8px;text-align:center}
+.hero h1{font-family:var(--serif);font-size:clamp(1.8rem,5vw,2.5rem);letter-spacing:-.02em}
+.hero p{margin:14px auto 0;color:var(--ink-soft);max-width:520px}
+.q{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:20px;margin:18px 0}
+.q h2{font-size:1.02rem;font-weight:600;margin-bottom:13px}
+.q .n{color:var(--clay);font-family:var(--serif)}
+.opts{display:flex;gap:10px;flex-wrap:wrap}
+.opts button,.scale button{font-family:inherit;font-size:.95rem;cursor:pointer;background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:9px 15px;color:var(--ink)}
+.opts button.sel,.scale button.sel{border-color:var(--ink);background:var(--ink);color:var(--paper)}
+.scale{display:flex;gap:6px;flex-wrap:wrap}
+.scale button{width:40px;padding:9px 0;text-align:center}
+input[type=number],select,textarea{width:100%;font-family:inherit;font-size:.98rem;color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:9px;padding:11px 12px}
+.btn{display:inline-block;padding:11px 22px;border-radius:9px;font-weight:600;border:1px solid transparent;cursor:pointer;font-size:1rem;font-family:inherit;background:var(--ink);color:var(--paper)}
+.btn[disabled]{opacity:.45;cursor:not-allowed}
+.center{text-align:center}
+.muted{color:var(--ink-soft);font-size:.85rem}
+.hidden{display:none}
+.done{text-align:center;padding:50px 0}
+.done h2{font-family:var(--serif);font-size:1.8rem}
+footer{border-top:1px solid var(--line);padding:24px 0;color:var(--ink-soft);font-size:.85rem;margin-top:30px}
+</style>
+</head>
+<body>
+<nav><div class="wrap nav-inner"><a class="logo" href="/">Humanify<em>Me</em></a></div></nav>
+
+<header class="hero wrap">
+  <h1>How did it go?</h1>
+  <p>Five quick questions for alpha users. This is how we prove HumanifyMe works — and find where it doesn't. Thank you for testing it.</p>
+</header>
+
+<main class="wrap" id="form">
+  <div class="q">
+    <h2><span class="n">1.</span> Did the first rewrite sound like you?</h2>
+    <div class="opts" data-q="q1">
+      <button data-v="y">Yes</button>
+      <button data-v="kinda">Kinda</button>
+      <button data-v="n">No</button>
+    </div>
+  </div>
+
+  <div class="q">
+    <h2><span class="n">2.</span> How many writing samples did you import?</h2>
+    <input type="number" id="q2" min="0" max="100000" placeholder="e.g. 12">
+  </div>
+
+  <div class="q">
+    <h2><span class="n">3.</span> Which context do you use most?</h2>
+    <select id="q3">
+      <option value="">choose one…</option>
+      <option>email</option><option>casual</option><option>professional</option>
+      <option>text</option><option>linkedin</option><option>direct</option>
+      <option>polite</option><option>annoyed</option><option>sales</option>
+    </select>
+  </div>
+
+  <div class="q">
+    <h2><span class="n">4.</span> How likely are you to recommend HumanifyMe to a friend? <span class="muted">(1–10)</span></h2>
+    <div class="scale" data-q="q4" id="q4"></div>
+  </div>
+
+  <div class="q">
+    <h2><span class="n">5.</span> Anything that didn't sound like you?</h2>
+    <textarea id="q5" rows="3" placeholder="optional — the more specific, the more it helps"></textarea>
+  </div>
+
+  <div class="center" style="padding:8px 0 50px">
+    <button class="btn" id="submit" disabled>Send it</button>
+    <p class="muted" style="margin-top:10px">Q1 and your recommend score feed the <a href="/proof.html">live numbers</a> (counts only). The rest helps us directly.</p>
+  </div>
+</main>
+
+<div class="wrap done hidden" id="done">
+  <h2>Got it — thank you.</h2>
+  <p class="muted">That genuinely helps. <a href="/proof.html">See the live numbers →</a></p>
+</div>
+
+<footer><div class="wrap"><span>© 2026 HumanifyMe · <a href="/privacy.html">Privacy</a></span></div></footer>
+
+<script>
+var API='/api/feedback';
+var state={q1:null,q4:null};
+
+// build 1..10 scale
+var scale=document.getElementById('q4');
+for(var i=1;i<=10;i++){(function(n){var b=document.createElement('button');b.textContent=n;
+  b.addEventListener('click',function(){state.q4=n;sel('q4',b);check();});scale.appendChild(b);})(i);}
+
+function sel(group,btn){
+  Array.prototype.forEach.call(document.querySelectorAll('[data-q="'+group+'"] button'),function(x){x.classList.remove('sel');});
+  btn.classList.add('sel');
+}
+Array.prototype.forEach.call(document.querySelectorAll('[data-q="q1"] button'),function(b){
+  b.addEventListener('click',function(){state.q1=b.getAttribute('data-v');sel('q1',b);check();});
+});
+function check(){document.getElementById('submit').disabled=!(state.q1&&state.q4);}
+
+document.getElementById('submit').addEventListener('click',function(){
+  var samples=parseInt(document.getElementById('q2').value,10);
+  var body={
+    source:'survey',
+    soundsLikeMe:state.q1,
+    recommend:state.q4,
+    samples:Number.isFinite(samples)?samples:null,
+    context:document.getElementById('q3').value||null,
+    text:document.getElementById('q5').value.trim().slice(0,2000)||null
+  };
+  fetch(API,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)}).catch(function(){});
+  document.getElementById('form').classList.add('hidden');
+  document.getElementById('done').classList.remove('hidden');
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+</script>
+</body>
+</html>
