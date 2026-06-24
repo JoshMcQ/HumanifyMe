@@ -5,7 +5,7 @@ import './suppressExperimentalWarnings.js';
 import fs from 'node:fs';
 import { Command } from 'commander';
 import { VERSION } from './version.js';
-import { samples, audit, wipeAll, profiles } from './storage/index.js';
+import { samples, audit, wipeAll, profiles, feedback } from './storage/index.js';
 import { readConfig, updateConfig } from './config/index.js';
 import { acceptConsent, consentStatus } from './mcp/consent.js';
 import { getProvider } from './providers/index.js';
@@ -244,6 +244,37 @@ program
         `${e.timestamp}  ${e.provider}${e.route}  ${e.payloadBytes}B  draft=${e.draftLength}  profile=${e.profileIncluded ? 'y' : 'n'}  ${e.success ? 'ok' : `FAIL(${e.errorCode})`}`,
       );
     }
+  });
+
+program
+  .command('metrics')
+  .description('Show how well HumanifyMe is matching your voice (local, counts only)')
+  .option('--since <iso>', 'only count feedback on or after this ISO timestamp')
+  .action((opts: { since?: string }) => {
+    const m = feedback.metrics(opts.since ? { since: opts.since } : {});
+    if (m.total === 0) {
+      console.log('no feedback yet. rewrite something and answer "did this sound like you?"');
+      return;
+    }
+    const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
+    console.log(`\nHumanifyMe — your voice-match metrics${opts.since ? ` (since ${opts.since})` : ''}`);
+    console.log('─'.repeat(52));
+    console.log(`rewrites:        ${m.total}  (${m.recorded} rated)`);
+    console.log(`sounds like me:  yes ${m.soundsLikeMe.y} · kinda ${m.soundsLikeMe.kinda} · no ${m.soundsLikeMe.n}`);
+    console.log(`accept / edit / reject:  ${pct(m.acceptRate)} / ${pct(m.editRate)} / ${pct(m.rejectRate)}`);
+    console.log(`latency:         p50 ${m.latencyP50}ms · p95 ${m.latencyP95}ms`);
+    const rows = (label: string, by: Record<string, { total: number; accept: number; edit: number; reject: number }>) => {
+      const keys = Object.keys(by).sort();
+      if (keys.length === 0) return;
+      console.log(`\nby ${label}:`);
+      for (const k of keys) {
+        const c = by[k]!;
+        console.log(`  ${k.padEnd(14)} ${c.total} rewrites  (a${c.accept}/e${c.edit}/r${c.reject})`);
+      }
+    };
+    rows('context', m.byContext);
+    rows('provider', m.byProvider);
+    console.log('');
   });
 
 program
