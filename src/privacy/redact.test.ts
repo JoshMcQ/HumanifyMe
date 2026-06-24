@@ -17,6 +17,9 @@ const FAKE_JWT = [
   'eyJzdWIiOiIxMjM0NTY3ODkwIn0',
   'dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U',
 ].join('.');
+// Bearer prefix kept separate from its token so the `Bearer <token>` shape never
+// appears verbatim (same reason as the keys above — defeats secret scanners).
+const FAKE_BEARER = 'Bearer ' + 'abcdef1234' + '56789012345678';
 
 describe('redactor', () => {
   it.each([
@@ -28,7 +31,7 @@ describe('redactor', () => {
     ['openai-style key', `use ${FAKE_OPENAI_KEY} here`, '[API_KEY_1]'],
     ['github token', `token ${FAKE_GITHUB_PAT} ok`, '[API_KEY_1]'],
     ['google key', `key ${FAKE_GOOGLE_KEY} set`, '[API_KEY_1]'],
-    ['bearer', 'auth Bearer <test-fixture-removed> done', '[API_KEY_1]'],
+    ['bearer', `auth ${FAKE_BEARER} done`, '[API_KEY_1]'],
     ['aws key', `id ${FAKE_AWS_KEY} used`, '[AWS_KEY_1]'],
     ['jwt', `jwt ${FAKE_JWT} end`, '[TOKEN_1]'],
     ['address', 'I live at 123 Main Street, Apt 4B in town', '[ADDRESS_1]'],
@@ -59,7 +62,7 @@ describe('redactor', () => {
     const texts = [
       'hi sarah, email me at josh@example.com or call 555-867-5309. card is 4111 1111 1111 1111.',
       'two addrs: a@b.com then c@d.org, and a@b.com again',
-      `token Bearer <test-fixture-removed> plus ${FAKE_AWS_KEY}`,
+      `token ${FAKE_BEARER} plus ${FAKE_AWS_KEY}`,
     ];
     for (const t of texts) {
       const { redactedText, map } = redact(t);
