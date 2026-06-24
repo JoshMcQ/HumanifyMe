@@ -41,6 +41,8 @@ This is a load-bearing document. HumanifyMe's wedge is built on user trust. A si
 | Draft to rewrite                    | Sensitive   | Memory only, not persisted                                    | Yes, redacted.     |
 | Rewrite output                      | Sensitive   | Memory only, optional 24h cache in SQLite                     | N/A                |
 | Telemetry events                    | Aggregate   | Local only by default; remote only if opted-in                | No                 |
+| Feedback signal (per rewrite)       | Aggregate   | `~/.humanifyme/data.db` (`feedback` table): accept/edit/reject + context/provider/latency. Optional short local-only `reason`. Edited text is NEVER stored. Cleared by `humanify_wipe_all`. | No |
+| Anonymous shared aggregate (opt-in) | Aggregate   | OFF by default. When on, `src/network/` ships **counts only** (rates, by-context, by-provider, sounds-like-me, latency) keyed by an opaque one-time id to `humanifyme.com/api/feedback`, ≤ once/24h. No draft, rewrite, edited text, or reason — ever. | No |
 | Error reports (opt-in)              | Aggregate   | Sent to error tracker if opted-in                             | No                 |
 
 \*The style profile is derived from raw samples and could leak voice markers; treat as sensitive.

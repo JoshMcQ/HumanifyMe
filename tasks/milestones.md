@@ -171,3 +171,39 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 **Tasks inside:** T-61 through T-66.
 
 **Status:** complete (2026-06-16). Local voice-memory retrieval wired end to end: `EmbeddingProvider` abstraction with a dependency-free lexical default (opt-in MiniLM/Ollama), `sample_embeddings` table (schema v2, wiped with the DB), embed-on-ingest + idempotent backfill, MMR retriever, retrieval injected into the rewrite as the primary voice signal (redacted at send time, token-budgeted, cold-start fallback), and a `rag.*` config block (opt-out + tunables). Full suite green throughout (134 tests). Remaining before launch readiness: eval harness proving the quality gain (in progress), then Joshua's open-source decision gates publish.
+
+---
+
+## Milestone 9 — Validation + public feedback infrastructure
+
+**Gate to start:** M8 done (a rewrite engine worth measuring). Honors the privacy
+spec: local data stays local; the only new outbound path is opt-in (default OFF) and
+ships aggregate **counts only**, never content.
+
+**Why this milestone exists:** the engine was proven on synthetic writers but had no
+way to learn from, or show, real-world results. M9 adds the feedback loop ("did this
+sound like you?"), a local metrics surface, and an opt-in anonymous aggregate that
+feeds a public proof page — so quality is measured continuously and provable.
+
+**Definition of done:**
+
+- Every rewrite returns a `feedbackToken`; `humanify_record_feedback` records an
+  accept/edit/reject signal into a `feedback` table (counts/dimensions only; edited
+  text never persisted). Skills + CLI close with "did this sound like you?".
+- `humanify_metrics` (MCP + CLI) reports accept/edit/reject rates, sounds-like-me,
+  by-context, by-provider, and p50/p95 latency — locally, counts only.
+- Opt-in (`shareAnonymousFeedback`, default false) ships a counts-only aggregate via
+  the MIT-licensed `src/network/` at most once/24h; the outbound-destination scan is
+  a real test allowlisting only providers + network.
+- A Cloudflare Worker (`cf-worker/`) accepts mcp/try-it/survey events into D1 with a
+  KV rate limit, and serves a precomputed counts-only `/api/stats` (cron every 10m).
+- Public proof page (`site/proof.html`), Try-It feedback widget (`site/try-it.html`),
+  and alpha survey (`site/alpha-survey.html`) all feed one unified number.
+
+**Tasks inside:** STEP 1 (feedback signal) → STEP 8 (docs + PR), one commit each.
+
+**Status:** complete (2026-06-24). Built on branch `m9-validation`, one TDD commit per
+step; full suite green throughout (~196 tests + worker suite). License split landed
+(MIT for privacy/network/verify; rest proprietary). See `DECISIONS.md` for the
+autonomously-resolved ambiguities (static HTML vs Astro, outbound-scan location,
+feedback model, worker test strategy).
