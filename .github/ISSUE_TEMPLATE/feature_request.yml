@@ -1,0 +1,59 @@
+name: Feature request
+description: Propose a change or addition to HumanifyMe
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        HumanifyMe is spec-driven and privacy-first. Proposals that fit the existing
+        model move fastest. Before filing, it is worth skimming `specs/product-spec.md`
+        (what HumanifyMe is and is not) and `specs/privacy-security-spec.md`.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What can't you do today? Who feels this and when?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: What should HumanifyMe do instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Rewrite engine / verification
+        - Voice profile / fingerprint
+        - Retrieval (RAG voice memory)
+        - Privacy / redaction
+        - Importers
+        - CLI / onboarding
+        - Plugin packaging / agent integration
+        - Metrics / feedback
+        - Docs / specs
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: privacy
+    attributes:
+      label: Privacy impact
+      description: >
+        Does this change what data is stored or what leaves the machine? If it adds
+        any outbound destination, new file path, or new persisted field, say so — those
+        require a spec update (see `specs/privacy-security-spec.md`).
+    validations:
+      required: false
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: This does not require a backend in the MVP (Milestones 1–5 are MCP-only).
+        - label: This does not require fine-tuning a model.
+        - label: This is an MCP/CLI capability, not a browser-extension feature.
