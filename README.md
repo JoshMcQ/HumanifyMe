@@ -15,7 +15,7 @@ People hand more of their writing to AI agents every day: commit messages, PR de
 
 The starting assumption is checkable, and a large study tested it. Wang et al. (2025) ran tens of thousands of generations across frontier models and hundreds of real authors and found that few-shot prompting does not convincingly imitate ordinary writers in informal genres: authorship-verification accuracy on blog-style text stays low, structured genres like news and email do far better, and more exemplars give diminishing returns [13]. The plain reading is that dropping a few samples into a prompt and asking a model to "write like me" hits a ceiling on casual voice. HumanifyMe's response to that ceiling is a persistent, retrievable corpus of the user's own writing plus a paraphrase-then-restyle rewrite, rather than a longer prompt.
 
-The transport underneath is MCP (Model Context Protocol). That is the wire it speaks, so any MCP-compatible agent can call it. You install it as a plugin and never think about the protocol again.
+Two words get used here and they are not the same thing. MCP (Model Context Protocol) is the protocol HumanifyMe speaks: the standard an agent uses to call a tool like `humanify_text`. A plugin is how you install it: a small bundle that registers that MCP server plus a few skills in your agent in one step. So the plugin is the package you add, and MCP is what the server inside it talks. You install the plugin once and never deal with either word again.
 
 ## System architecture
 
@@ -40,7 +40,7 @@ flowchart LR
 
 ### As a plugin (start here)
 
-HumanifyMe ships as a plugin bundle in `humanifyme.plugin/`: manifest, MCP registration, and the skills that drive it (`build-voice-profile`, `humanify-pr`, and more). Add it from your agent's plugin or marketplace flow. Per-agent snippets live in [`docs/install/`](docs/install/) for Claude Code, Cowork, Cursor, Continue, Cline, Windsurf, Zed, and others.
+HumanifyMe is published as the `humanifyme` package on npm and bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `plugin.json` manifest, the MCP server it registers (run via `npx -y humanifyme`), and three skills that teach the agent when to reach for it (`humanify`, `build-voice-profile`, `humanify-pr`). In Claude Code or Cowork, add it through the plugin or marketplace flow; the bundle handles MCP registration for you. Copy-paste setup for every other agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
 
 Once installed:
 
@@ -135,7 +135,7 @@ The dimensions, in short:
 | `howTheyAskQuestions` / `howTheyDisagree` / `howTheyApologize` / `howTheyGiveInstructions` | short freeform descriptions | carried as authoritative |
 | `exemplars` | 3 to 10 verbatim post-redaction snippets | ground the voice |
 
-Every base dimension can be context-specialized across nine labels (`casual`, `professional`, `annoyed`, `polite`, `direct`, `sales`, `email`, `text`, `linkedin`). At rewrite time the engine deep-merges base with the requested context. The profile is not a single voice on purpose: cross-discourse authorship verification work shows the same person verifiably writes differently across registers, so a single-vector model of their voice would average those away [5]. Note that em-dash habit is a fingerprint dimension steered through the prompt, not a verified rule. Only `wordsToAvoid` and casing are deterministically enforced.
+Every base dimension can be context-specialized across nine labels (`casual`, `professional`, `annoyed`, `polite`, `direct`, `sales`, `email`, `text`, `linkedin`). At rewrite time the engine deep-merges base with the requested context. The profile is not a single voice on purpose: cross-discourse authorship verification work shows the same person verifiably writes differently across registers, so a single-vector model of their voice would average those away [5]. Most of these dimensions are steered through the prompt; only `wordsToAvoid` and the capitalization register are checked and enforced after generation.
 
 ## Your voice memory (the brain)
 
@@ -158,23 +158,21 @@ One honest limitation: the MVP keys retrieval on a general-purpose embedder, not
 
 ## Does it actually work?
 
-We ran a four-register evaluation: a casual lowercase writer (A), a formal sentence-case writer (B), a terse technical writer (C), and a warm enthusiastic writer (D), five drafts each, retrieval on versus off, plus a blind judge. That is 20 rewrite pairs. The full method, raw numbers, and reproduction steps are in [`docs/proof/README.md`](docs/proof/README.md). Run date 2026-06-24.
-
-The evaluation is an ensemble on purpose. No single metric tracks human judgment well for personalized writing, and the empirical case for combining several is direct: ensembles dominate any single judge, and the standard style-accuracy / content-preservation / fluency rubric is the frame the task split maps onto [16][17]. Below, every figure is one input, and the disagreements between them are reported rather than smoothed over.
-
-### Register adapts to the writer
-
-![Register adaptation: writers A and C land at casing 0.00, writers B and D at 1.00, each matching its own register](docs/proof/figures/register-adaptation.png)
-
-Every writer gets register right. The two lowercase writers (A, C) land at casing 0.00, the two sentence-case writers (B, D) at 1.00. This is enforced by the deterministic verify gate plus the learned per-writer register, not by retrieval. Retrieval on and retrieval off both hit the target. The figure proves the product adapts register to whoever the user is; it does not prove retrieval does the adapting, and we do not claim it does.
+We ran a four-register evaluation: four writers with distinct voices (casual lowercase, formal sentence-case, terse technical, warm enthusiastic), five generic-AI drafts each, rewritten with retrieval on and off. That is 20 rewrite pairs. The full method, raw numbers, and reproduction steps are in [`docs/proof/README.md`](docs/proof/README.md). Run date 2026-06-24. No single number settles personalized writing, so we report several deterministic measures and where they disagree [16][17].
 
 ### Rewrites land on the right author
 
 ![Nearest-author confusion matrix: 85 percent of rewrites are stylometrically closest to their own writer](docs/proof/figures/register-confusion-matrix.png)
 
-Take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to. A correct rewrite lands closest to its own writer. 17 of 20 (85 percent) classify back to the correct author. The misses are honest: two of writer C's rewrites (terse, lowercase) land closer to writer A (casual, lowercase), and one of writer D's lands on A. A and C are both casual lowercase voices, so some blur between them is expected. This is not a rigged perfect diagonal. The stylometric attribution feature families used here are the classic cheap-and-interpretable ones, used as a fast pre-screen and never as the verdict [1][3].
+This is the load-bearing result, and it is not about casing. Take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to, across word choice, sentence rhythm, punctuation, and function-word habits. A rewrite that caught the voice lands closest to its own writer. 17 of 20 (85 percent) do. The three misses are writer C's terse-lowercase rewrites landing on writer A's casual-lowercase voice twice, and one of writer D's landing on A; A and C share a lowercase casual register, so overlap there is expected. The attribution uses classic interpretable stylometric features as a fast screen, not as a verdict [1][3].
 
-### Where retrieval helps: stylometric distance
+### It also holds the writer's register
+
+![Register adaptation: lowercase writers land at casing 0.00, sentence-case writers at 1.00](docs/proof/figures/register-adaptation.png)
+
+A smaller, fully deterministic check: does a rewrite keep the writer's capitalization habit? The two lowercase writers stay at 0.00, the two sentence-case writers at 1.00, enforced by the verify gate plus the learned register rather than by retrieval. Casing is the easiest dimension to see and to verify, which is why it earns a figure, but it is the floor of a voice, not its substance. The attribution result above is the one that speaks to substance.
+
+### Retrieval pulls the rewrite closer
 
 ![Stylometric distance, retrieval ON vs OFF, per writer](docs/proof/figures/stylometric-distance.png)
 
@@ -189,25 +187,20 @@ Retrieval pulls the rewrite closer to the real writer for three of the four writ
 
 We report writer B even though retrieval hurt the distance score there this run. The metric is noisy, and we are not rounding a loss into a win.
 
-### The blind judge
+### Privacy: the guarantee is architectural
 
-![Blind judge prefers the retrieval-ON output for all four writers](docs/proof/figures/judge-preference.png)
+The privacy assurance is not a recall percentage. It is that the engine runs on your machine and the privacy-critical code is MIT, so you can read exactly what leaves (see Privacy methodology below). Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret. On the golden fixture set in `src/privacy/redact.test.ts` it masks all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) with no false positives on 20 plain paragraphs, deterministically, but it is best-effort by design and documented as such.
 
-With position bias cancelled, a separate judge model was shown the retrieval-on and retrieval-off outputs and asked which sounds more like the real person. It preferred the retrieval-grounded output for all four writers this run (100 percent of judged pairs), and 100 percent on two earlier runs. The deterministic distance metric is mixed for one writer, but the blind judge picks the retrieval-grounded output every time here.
+![Redaction on the test fixtures: all seven planted secret classes masked, no false positives on 20 plain paragraphs](docs/proof/figures/redaction-coverage.png)
 
-### Redaction coverage
+### What we do not claim
 
-![Redaction coverage: 100 percent recall across 7 secret classes, 0 false positives on 20 plain paragraphs](docs/proof/figures/redaction-coverage.png)
+- We do not count an LLM judging another LLM's output as proof. We ran that check (a model picking which rewrite sounds more like the writer) and it favored the retrieval-grounded one every time, but a model rating a model is a weak proxy. Human evaluation is the honest test, and it is the one we trust.
+- We do not claim retrieval helps every writer; it hurt writer B's distance this run.
+- We do not claim the engine already does style-pure retrieval. It does not, for the reason given above.
+- We do not treat redaction recall as a privacy guarantee. The guarantee is architectural.
 
-Before any text leaves your machine, the redactor strips secrets. It is deterministic, not a model, so it gives the same answer every time. From the golden test set in `src/privacy/redact.test.ts`: 7 secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs), 100 percent recall on every planted secret, and 0 false positives across 20 plain paragraphs.
-
-### What we are not claiming
-
-- We are not claiming retrieval improves casing. The verify gate and learned register do that.
-- We are not claiming retrieval lowers stylometric distance for every writer. It did not for writer B this run.
-- We are not claiming a single fixed win rate. This run's judge preference was 100 percent; we keep reporting every run, not the best one.
-
-Across four registers, retrieval-grounded rewrites classify back to the correct author 85 percent of the time, pull closer to the real voice on distance for most writers, and win a blind "sounds like this person" judgment. That is the claim, and no more.
+The claim is narrow: across four registers, retrieval-grounded rewrites are stylometrically attributable to the correct author 85 percent of the time and move closer to the real voice for most writers. That is it.
 
 ## What HumanifyMe will not do: detection bypass
 
@@ -217,13 +210,13 @@ We do track AI-tell density as a sanity floor, not a target. Generic model prose
 
 ## The research it is based on
 
-HumanifyMe started from a literature pass, not a hunch. The prior-art survey, the state-of-the-art review, and the evaluation design live in the repo: [`docs/research/prior-work.md`](docs/research/prior-work.md), [`docs/research/state-of-the-art.md`](docs/research/state-of-the-art.md), and [`docs/research/evaluation.md`](docs/research/evaluation.md). Each maps a line of research to a concrete design choice and is explicit about where the science stops and our opinion starts. The deterministic verify gate and the negative-profile field, in particular, are design bets against named open failure modes, not validated published results.
+The design choices here are grounded in prior work rather than guesses. The prior-art survey, the state-of-the-art review, and the evaluation design live in the repo: [`docs/research/prior-work.md`](docs/research/prior-work.md), [`docs/research/state-of-the-art.md`](docs/research/state-of-the-art.md), and [`docs/research/evaluation.md`](docs/research/evaluation.md). Each maps a line of research to a concrete design choice and is explicit about where the science stops and our opinion starts. The deterministic verify gate and the negative-profile field, in particular, are design bets against named open failure modes, not validated published results.
 
-## Built with Claude Code
+## Why I built it
 
-HumanifyMe was designed and built mostly with Claude Code, Anthropic's agentic coding tool, with a human directing product and architecture decisions: the pivot to plugin-first, the privacy model, the verify gate, the evaluation. The agent did the bulk of the implementation against specs and acceptance criteria that the human wrote and reviewed.
+I wanted AI to write messages for me and it never quite could. I would have something typed up, ask it to just tighten the wording, and get back a completely different message in a voice that was not mine. So I started prompting my way around it, and that turned into this.
 
-We mention this on purpose. A tool that makes AI-generated writing sound like a specific person was, fittingly, built by an agent working under a person's direction. That is the same loop the product runs: the agent does the work, the human stays in the voice and the calls.
+Most of the code was written with Claude Code, Anthropic's agentic coding tool, against specs and acceptance criteria I wrote and reviewed. The product and architecture calls are mine: plugin-first distribution, keeping everything local, the verify gate, and how it gets evaluated.
 
 ## Privacy methodology
 

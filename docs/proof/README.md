@@ -2,7 +2,7 @@
 
 This page is for skeptics. It shows the method, the raw numbers from a real run, and exactly where each number comes from so you can check it yourself. Where the data does not support a claim, we say so.
 
-Run date: 2026-06-24. Four writers, five drafts each, retrieval on and off, plus a blind judge. That is 20 rewrite pairs and 20 judged pairs.
+Run date: 2026-06-24. Four writers, five drafts each, retrieval on and off. That is 20 rewrite pairs.
 
 ## The method
 
@@ -23,27 +23,25 @@ The script that runs all of this is `evals/harness/runAblation.ts`. The scorers 
 
 ## What the numbers say
 
-### Register adapts to the writer
-
-![Register adaptation: writers A and C land at casing 0.00, writers B and D at 1.00, each matching its own register](figures/register-adaptation.png)
-
-Every writer gets register right. The two lowercase writers (A, C) land at 0.00. The two sentence-case writers (B, D) land at 1.00.
-
-Read this honestly: register fidelity is enforced by the deterministic verify gate plus the learned per-writer register, not by retrieval. Retrieval on and retrieval off both hit the target. So this figure proves the product adapts register to whoever the user is. It does not prove retrieval is what does the adapting, and we do not claim it does.
-
 ### Rewrites land on the right author
 
 ![Nearest-author confusion matrix: 85 percent of rewrites are stylometrically closest to their own writer](figures/register-confusion-matrix.png)
 
-Harder question: take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to. A correct rewrite lands closest to its own writer.
+This is the result that matters, and it is not about casing. Take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to, across word choice, sentence rhythm, punctuation, and function-word habits. A rewrite that caught the voice lands closest to its own writer.
 
-17 of 20 rewrites (85 percent) classify back to the correct author. The misses are honest and tell you the metric is real: two of writer C's rewrites land closer to writer A, and one of D's lands closer to A. A and C are both casual lowercase voices, so some blur between them is expected. This is not a rigged perfect diagonal.
+17 of 20 rewrites (85 percent) classify back to the correct author. The three misses: two of writer C's rewrites (terse, lowercase) land closer to writer A (casual, lowercase), and one of writer D's lands on A. A and C share a lowercase casual register, so overlap there is expected rather than surprising. We show the off-diagonal cells, not only the diagonal.
 
-### Where retrieval helps: stylometric distance
+### It also holds register
+
+![Register adaptation: lowercase writers land at 0.00, sentence-case writers at 1.00](figures/register-adaptation.png)
+
+A smaller, fully deterministic check: does a rewrite keep the writer's capitalization habit? The two lowercase writers (A, C) stay at 0.00, the two sentence-case writers (B, D) at 1.00. This is enforced by the verify gate plus the learned register, not by retrieval; on and off both hit the target. Casing is the easiest dimension to see and to verify, which is why it gets a figure, but it is the floor of a voice, not its substance.
+
+### Retrieval pulls the rewrite closer
 
 ![Stylometric distance, retrieval ON vs OFF, per writer](figures/stylometric-distance.png)
 
-Retrieval pulls the rewrite closer to the real writer for three of the four writers this run:
+Lower distance means closer to the real writer. Retrieval helped three of the four writers this run.
 
 | Writer | Distance ON | Distance OFF | Retrieval helps? |
 | --- | --- | --- | --- |
@@ -54,31 +52,30 @@ Retrieval pulls the rewrite closer to the real writer for three of the four writ
 
 We report writer B even though retrieval hurt the distance score there this run. The metric is noisy and we are not rounding a loss into a win.
 
-### The blind judge
+### The LLM judge, and why it is not our headline
 
-![Blind judge prefers the retrieval-ON output for all four writers](figures/judge-preference.png)
+![An LLM judge preferred the retrieval-grounded output for all four writers](figures/judge-preference.png)
 
-With position bias cancelled, the blind judge preferred the retrieval-grounded output for all four writers this run, 100 percent of judged pairs. Two earlier runs (an older two-writer setup) also came in at 100 percent.
+We also ran a blind LLM judge: a separate model shown the on and off outputs, asked which sounds more like the real person, with slot order alternated to cancel position bias. It preferred the retrieval-grounded output for all four writers this run, and on two earlier runs.
 
-So the deterministic distance metric is mixed for one writer, but the blind judge, asked which output sounds more like the real person, picks the retrieval-grounded one every time here.
+We include this for completeness and we do not lean on it. A model judging another model's output is a weak proxy for human preference: it can carry the same blind spots, and "sounds like a real person" is exactly the call models are least reliable at. The deterministic attribution at the top is the load-bearing evidence. Human evaluation is the honest next step, and it is the one we will trust.
 
-### What we are NOT claiming
+### What we are not claiming
 
+- We are not claiming the LLM judge is proof. It is a weak signal, reported, not relied on.
 - We are not claiming retrieval improves casing. The verify gate and learned register do that.
 - We are not claiming retrieval lowers stylometric distance for every writer. It did not for writer B this run.
-- We are not claiming a single fixed win rate. This run's judge preference was 100 percent; we keep reporting every run, not the best one.
+- We are not claiming style-pure retrieval. The MVP keys on a general embedder, which entangles topic with style.
 
-What we are claiming: across four registers, retrieval-grounded rewrites classify back to the correct author 85 percent of the time, pull closer to the real voice on distance for most writers, and win a blind "sounds like this person" judgment.
+What we are claiming, narrowly: across four registers, retrieval-grounded rewrites are stylometrically attributable to the correct author 85 percent of the time and move closer to the real voice for most writers.
 
-## Privacy proof: redaction
+## Privacy: the guarantee is architectural
 
-Before any text leaves your machine, the redactor strips secrets. This is deterministic, not a model, so it gives the same answer every time. From the golden test set in `src/privacy/redact.test.ts`:
+The privacy assurance is not the recall number below. It is that everything runs on your machine and the privacy-critical code (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) is MIT, so you can read exactly what leaves and confirm it yourself. That is the part worth trusting.
 
-- 7 classes of secret tested (emails, phones, addresses, cards, API keys, AWS keys, JWTs).
-- 100 percent recall: every planted secret was caught.
-- 0 false positives across 20 plain paragraphs: no ordinary text was wrongly redacted.
+Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret, and the spec says so. On the golden fixture set in `src/privacy/redact.test.ts` it is deterministic and clean: all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) masked, 0 false positives across 20 plain paragraphs. Useful, but a floor, not a guarantee.
 
-![Redaction coverage: 100 percent recall across 7 secret classes, 0 false positives on 20 plain paragraphs](figures/redaction-coverage.png)
+![Redaction on the test fixtures: all seven secret classes masked, 0 false positives on 20 plain paragraphs](figures/redaction-coverage.png)
 
 ## Reproduce it yourself
 
@@ -86,4 +83,4 @@ Before any text leaves your machine, the redactor strips secrets. This is determ
 - Figures: regenerated by `evals/notebooks/proof.ipynb` from that JSON. Run the notebook and the PNGs in `figures/` rebuild.
 - Full run: `evals/harness/runAblation.ts` drives the ablation. It makes real Anthropic calls, so your numbers will land near these but not exactly on them.
 
-Each judged number above is 5 pairs per writer (20 pairs total). Still a small sample. We are growing the writer set and the per-writer pair count, and we will update this page when we do.
+Each writer contributes 5 drafts (20 rewrite pairs total). Still a small sample. We are growing the writer set and the per-writer count, and we will update this page when we do.
