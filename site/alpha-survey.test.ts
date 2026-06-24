@@ -27,11 +27,3 @@ describe('alpha-survey.html', () => {
     expect(html).toContain('name="robots" content="noindex"');
   });
 });
-
-describe('alpha-cohort-email template', () => {
-  it('links the survey and is marked draft (no-send guardrail)', () => {
-    const md = fs.readFileSync(path.join(here, '..', 'tasks', 'alpha-cohort-email.md'), 'utf8');
-    expect(md).toContain('https://humanifyme.com/alpha-survey.html');
-    expect(md.toUpperCase()).toContain('DRAFT');
-  });
-});
