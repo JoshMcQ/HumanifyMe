@@ -225,6 +225,8 @@ HumanifyMe was designed and built mostly with Claude Code, Anthropic's agentic c
 
 We mention this on purpose. A tool that makes AI-generated writing sound like a specific person was, fittingly, built by an agent working under a person's direction. That is the same loop the product runs: the agent does the work, the human stays in the voice and the calls.
 
+The person AI mentioned here is me. I wanted AI to write messages for me but it was never able to do so. This was extremely frustrating because I'll have a message typed up, and I'll ask it to just refine, but then it'll return a totally rewritten new answer. So I got to prompting. 
+
 ## Privacy methodology
 
 HumanifyMe is local-first and redacts before it sends. The modules that substantiate the privacy claims (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) are MIT-licensed so you can audit them.
