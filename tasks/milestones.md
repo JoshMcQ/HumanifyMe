@@ -137,7 +137,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ## Milestone 7 — Beta release checklist
 
-**Gate to start:** M6 done, plus alpha exit criteria from `specs/launch-plan.md` met.
+**Gate to start:** M6 done, plus the alpha exit criteria (tracked in the maintainers' internal launch plan) met.
 
 **Definition of done:**
 

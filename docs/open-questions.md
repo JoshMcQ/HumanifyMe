@@ -125,7 +125,7 @@ Format: `Q-NN. Question. Blocks: <what>. Notes: <considerations>. Status: open |
 
 ## Retrieval-augmented voice (RAG / persistent voice memory)
 
-These were resolved on 2026-06-16 when Joshua directed the project toward RAG-based per-user voice memory. The decisions reverse the deliberate "no embeddings in MVP" stance in `specs/style-profile-spec.md` (see change note there) and are grounded in the existing `research/architecture-options.md`, which already ranks "structured profile + RAG keyed by style/semantic similarity" as the MVP foundation. These open Milestone M8 (T-61–T-66).
+These were resolved on 2026-06-16 when Joshua directed the project toward RAG-based per-user voice memory. The decisions reverse the deliberate "no embeddings in MVP" stance in `specs/style-profile-spec.md` (see change note there) and are grounded in the prior architecture analysis, which already ranks "structured profile + RAG keyed by style/semantic similarity" as the MVP foundation. These open Milestone M8 (T-61–T-66).
 
 **Why now:** the rewrite engine reads a user's samples exactly once (at profile-build time) and never again. At rewrite time it sees only an abstract fingerprint plus a few static, draft-irrelevant snippets — so for any message type not captured in the fingerprint it falls back to lightly editing the draft. Retrieval supplies the missing evidence: the user's own past messages most similar to the current draft, injected as few-shot voice targets. This same local vector store is the "memory that persists across conversations" feature.
 
@@ -142,7 +142,7 @@ These were resolved on 2026-06-16 when Joshua directed the project toward RAG-ba
 ### Q-19. Retrieval keying — style-embedding, semantic, or hybrid?
 
 - **Blocks:** T-64.
-- **Resolution (2026-06-16):** **Semantic similarity (MiniLM cosine) with a recency tiebreaker** for MVP. Style-distance embeddings (Wegmann StyleDistance, per `research/`) are logged as a Phase-2 upgrade (T-67, future). Short coworker/PR messages of the same genre cluster semantically well enough to surface the right exemplars now; StyleDistance models are heavier and belong in the research roadmap's Phase 2.
+- **Resolution (2026-06-16):** **Semantic similarity (MiniLM cosine) with a recency tiebreaker** for MVP. Style-distance embeddings (Wegmann StyleDistance, per prior style-representation research) are logged as a Phase-2 upgrade (T-67, future). Short coworker/PR messages of the same genre cluster semantically well enough to surface the right exemplars now; StyleDistance models are heavier and belong in the research roadmap's Phase 2.
 - **Status:** answered.
 
 ### Q-20. Cold-start — when does retrieval turn on?

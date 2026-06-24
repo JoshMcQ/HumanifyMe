@@ -28,7 +28,7 @@ A voice engine — packaged primarily as an MCP server — that:
 2. Ingests writing samples flexibly — manual paste at minimum, plus local-only bulk importers (ChatGPT / Claude data export at MVP; Gmail Sent / Slack export / macOS Messages / X archive / Substack post-MVP). See `specs/sample-ingestion-spec.md`.
 3. Installs as a plugin in any MCP-compatible agent — Cowork, Claude Code, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop — with one click. The MCP server exposes `humanify_text` so the agent can rewrite its own draft output mid-workflow.
 4. Bundles skills that teach the agent when to reach for `humanify_text` automatically (PR descriptions, commit messages, drafted emails, Slack messages).
-5. Has a consumer surface at humanifyme.com: a "paste and humanify" page that lets anyone try the engine in 30 seconds without installing anything. Post-MVP this grows into a browser extension, a macOS menu-bar app, and mobile share-sheet extensions — all sitting on top of the same engine. See `tasks/roadmap.md` Phase 2 Track A.
+5. Has a consumer surface at humanifyme.com: a "paste and humanify" page that lets anyone try the engine in 30 seconds without installing anything. Post-MVP this grows into a browser extension, a macOS menu-bar app, and mobile share-sheet extensions — all sitting on top of the same engine (Phase 2).
 6. Stores everything locally in `~/.humanifyme/` (for the MCP) or in a single Cloudflare Worker behind a strict per-IP rate limit (for the web paste tool, which holds no persistent state). Samples never leave the device in the MCP path.
 
 ## What HumanifyMe is not
@@ -36,7 +36,7 @@ A voice engine — packaged primarily as an MCP server — that:
 - Not Grammarly. We do not correct grammar.
 - Not a tone normalizer. We do not push toward "professional."
 - Not an AI-detection bypass tool, marketed as such.
-- Not *primarily* a Chrome extension. (The MCP is the canonical product; a browser extension is one of several consumer surfaces that sit on top of the engine in Phase 2. See roadmap.)
+- Not *primarily* a Chrome extension. (The MCP is the canonical product; a browser extension is one of several consumer surfaces that sit on top of the engine in Phase 2.)
 - Not a writing assistant that suggests continuations.
 - Not a memory tool. We do not retain conversation history across sessions in MVP.
 - Not a team collaboration tool in MVP. Profiles are personal and local.

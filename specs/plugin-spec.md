@@ -138,4 +138,4 @@ Each marketplace has its own listing form. Inputs we prepare once and reuse:
 - Privacy attestations (none of these change across marketplaces): no telemetry, samples never leave device, opt-in everything.
 - Support contact: support@humanifyme.com.
 
-These live under `marketing/listings/` once we get to Milestone 6.
+The marketplace listing copy is maintained separately by the maintainers and finalized at Milestone 6.
