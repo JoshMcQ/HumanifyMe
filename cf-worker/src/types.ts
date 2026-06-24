@@ -51,5 +51,7 @@ export interface Stats {
   by_context: Record<string, SignalCounts>;
   by_provider: Record<string, SignalCounts>;
   by_week: Record<string, number>;
+  latency_p50: number;
+  latency_p95: number;
   updated_at: string;
 }
