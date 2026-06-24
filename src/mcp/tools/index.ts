@@ -11,10 +11,12 @@ import {
   deleteProfileTool,
 } from './profile.js';
 import { humanifyTextTool } from './rewrite.js';
+import { recordFeedbackTool } from './feedback.js';
 import { importChatExportTool, importTextFilesTool } from './importers.js';
 
 export const ALL_TOOLS: ToolDef<z.ZodTypeAny, z.ZodTypeAny>[] = [
   humanifyTextTool,
+  recordFeedbackTool,
   addSampleTool,
   listSamplesTool,
   deleteSampleTool,

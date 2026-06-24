@@ -12,10 +12,12 @@ beforeEach(() => {
 afterEach(cleanupHome);
 
 describe('migration 002', () => {
-  it('brings the schema to v2', () => {
+  it('applies the v2 embeddings migration', () => {
     getDb();
-    const row = getDb().prepare('SELECT MAX(version) AS v FROM _migrations').get() as { v: number };
-    expect(row.v).toBe(2);
+    const row = getDb()
+      .prepare('SELECT COUNT(*) AS n FROM _migrations WHERE version = 2')
+      .get() as { n: number };
+    expect(row.n).toBe(1);
   });
 });
 

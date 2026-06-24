@@ -12,11 +12,11 @@ beforeEach(() => {
 afterEach(cleanupHome);
 
 describe('db init', () => {
-  it('first start creates data.db with schema v2', () => {
+  it('first start creates data.db with schema v3', () => {
     getDb();
     expect(fs.existsSync(path.join(home, 'data.db'))).toBe(true);
     const row = getDb().prepare('SELECT MAX(version) AS v FROM _migrations').get() as { v: number };
-    expect(row.v).toBe(2);
+    expect(row.v).toBe(3);
   });
 });
 
@@ -77,6 +77,7 @@ describe('cache repository', () => {
     providerLatencyMs: 1,
     tokens: { input: 1, output: 1 },
     redactionApplied: false,
+    feedbackToken: 'b3b8c0de-0000-4000-8000-000000000000',
   };
 
   it('put/get round-trip and miss', () => {

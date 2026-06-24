@@ -60,7 +60,31 @@ CREATE TABLE sample_embeddings (
 CREATE INDEX sample_embeddings_model ON sample_embeddings(model);
 `;
 
+// v3 (M9): per-rewrite feedback signal, the basis of the validation metrics.
+// One row per rewrite the user saw (created pending, signal NULL); the signal is
+// filled in when they answer "did this sound like you?". context_label/provider/
+// latency are denormalized from the audit row so metrics need no join, and so the
+// cloud aggregate (counts only) can be computed without touching any content.
+// reason is local-only meta-feedback and is NEVER shipped. Raw drafts/edits are
+// never stored here.
+const MIGRATION_003 = `
+CREATE TABLE feedback (
+  token          TEXT PRIMARY KEY,
+  audit_id       INTEGER,
+  context_label  TEXT,
+  provider       TEXT,
+  latency_ms     INTEGER,
+  signal         TEXT,
+  reason         TEXT,
+  created_at     TEXT NOT NULL,
+  recorded_at    TEXT
+);
+CREATE INDEX feedback_created_at ON feedback(created_at);
+CREATE INDEX feedback_signal ON feedback(signal);
+`;
+
 export const MIGRATIONS: Migration[] = [
   { version: 1, name: '001_init', sql: MIGRATION_001 },
   { version: 2, name: '002_embeddings', sql: MIGRATION_002 },
+  { version: 3, name: '003_feedback', sql: MIGRATION_003 },
 ];

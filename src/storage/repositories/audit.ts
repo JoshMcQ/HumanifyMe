@@ -15,10 +15,11 @@ const AppendSchema = z.object({
 export type AuditAppendInput = z.input<typeof AppendSchema>;
 
 export const audit = {
-  append(input: AuditAppendInput): void {
+  /** Appends an audit row and returns its id (for joining feedback to the call). */
+  append(input: AuditAppendInput): number {
     const valid = AppendSchema.parse(input);
     const db = getDb();
-    db.prepare(
+    const info = db.prepare(
       `INSERT INTO audit_log (timestamp, provider, route, payload_bytes, draft_length, profile_included, success, error_code)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
     ).run(
@@ -37,6 +38,7 @@ export const audit = {
          SELECT id FROM audit_log ORDER BY id DESC LIMIT -1 OFFSET ?
        )`,
     ).run(AUDIT_CAP);
+    return Number(info.lastInsertRowid);
   },
 
   list(limit = AUDIT_CAP): AuditEntry[] {
