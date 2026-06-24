@@ -52,7 +52,19 @@ Inside a Claude Code or Cowork chat, the `build-voice-profile` skill drives this
 - "Building your voice profile…" (`humanify_build_profile`).
 - Render a 3-bullet plain-English summary from `humanify://profile.md`.
 - Demo rewrite: a deliberately AI-flavored paragraph relevant to the user's chosen labels. One `humanify_text` call. Show before/after.
-- Survey: "Does this sound like you?" Y/Kinda/N stored locally (opt-in to share aggregate).
+- Survey: "Does this sound like you?" Y/Kinda/N stored locally via `humanify_record_feedback` (maps to accept/edit/reject). This seeds `humanify_metrics`.
+
+### Step 5 — Share anonymous results? (optional, default OFF)
+
+- One question, opt-in: "Help others see HumanifyMe actually works? If you turn this
+  on, it sends **counts only** — how often rewrites sounded like you, by
+  context/provider, and latency. No drafts, no rewrites, no text of any kind. Ever.
+  At most once a day. Turn it off anytime: `humanifyme share off`."
+- Sets `shareAnonymousFeedback` (default `false`). When on, the MCP ships an anonymous
+  aggregate via `src/network/` (see `specs/privacy-security-spec.md` data
+  classification). Declining is a first-class choice and changes nothing else.
+- The CLI `humanifyme setup` implements this as its Step 5; `humanifyme share on|off`
+  toggles it later.
 
 ## After onboarding
 

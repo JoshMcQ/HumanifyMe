@@ -77,6 +77,8 @@ If you are new to the project, read in this order:
 - Milestones 1–3 (MCP server, storage, redactor, profile engine, rewrite engine, CLI, importers): built and tested (2026-06-10).
 - Milestone 4 (plugin packaging): bundle in `humanifyme.plugin/`, snippets in `docs/install/`.
 - Milestones 5–7 (onboarding polish, landing page, marketplace + npm launch): in progress — see `tasks/milestones.md`.
+- Milestone 8 (retrieval-augmented voice / RAG): complete (2026-06-16); two-register eval proves voice + casing adapt to the user.
+- Milestone 9 (validation + public feedback infra): complete (2026-06-24). Per-rewrite "did this sound like you?" feedback → local `humanify_metrics`; opt-in (default OFF) anonymous counts-only sharing via `src/network/`; a Cloudflare Worker (`cf-worker/`) intake + public `/api/stats`; the live proof page (`site/proof.html`), Try-It widget, and alpha survey.
 
 ## Locked product decisions
 
@@ -93,4 +95,6 @@ HumanifyMe is the voice layer that sits inside your agent and rewrites everythin
 
 ## License
 
-TBD. See `docs/open-questions.md`.
+Source-available. Most of the repo is proprietary; the parts that substantiate the
+privacy claims — `src/privacy/`, `src/network/`, and `src/engine/verify.ts` — are MIT
+(see `LICENSE`, `LICENSE-MIT.txt`, and the `SPDX-License-Identifier: MIT` headers).
