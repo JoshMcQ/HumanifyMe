@@ -7,7 +7,7 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22.5-green.svg)](https://nodejs.org)
 [![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D77655.svg)](https://claude.com/claude-code)
 
-HumanifyMe is an MCP server that learns how one specific person writes and rewrites an AI agent's output in that person's voice before a human reads it. It installs as a plugin in Claude Code, Cowork, Cursor, and other MCP-compatible agents. It is not "write better." It is "stop sounding like AI."
+HumanifyMe learns how one specific person writes and rewrites an AI agent's output in that person's voice before a human reads it. You install it as a plugin in Claude Code, Cowork, Cursor, and other AI agents. It is not "write better." It is "stop sounding like AI."
 
 ## The problem, and the evidence behind it
 
@@ -217,8 +217,6 @@ The design choices here are grounded in prior work rather than guesses. The prio
 I wanted AI to write messages for me and it never quite could. I would have something typed up, ask it to just tighten the wording, and get back a completely different message in a voice that was not mine. So I started prompting my way around it, and that turned into this.
 
 Most of the code was written with Claude Code, Anthropic's agentic coding tool, against specs and acceptance criteria I wrote and reviewed. The product and architecture calls are mine: plugin-first distribution, keeping everything local, the verify gate, and how it gets evaluated.
-
-The person AI mentioned here is me. I wanted AI to write messages for me but it was never able to do so. This was extremely frustrating because I'll have a message typed up, and I'll ask it to just refine, but then it'll return a totally rewritten new answer. So I got to prompting. 
 
 ## Privacy methodology
 
