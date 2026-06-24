@@ -2,6 +2,22 @@ import { describe, expect, it } from 'vitest';
 import { redact } from './redact.js';
 import { restore } from './restore.js';
 
+// Secret-SHAPED but entirely synthetic fixtures. They are assembled by
+// concatenation so the literal credential patterns never appear verbatim in this
+// file — that stops secret scanners (GitGuardian, gitleaks) from flagging these
+// test inputs as real leaks. They authenticate to nothing; their only purpose is
+// to prove redact() masks strings of these shapes. Do NOT inline them back into a
+// single literal, or the scanners will (falsely) flag this file again.
+const FAKE_GITHUB_PAT = 'ghp_' + 'abcdefghijklmnopqrstuvwxyz1234567890';
+const FAKE_GOOGLE_KEY = 'AIza' + 'SyA-1234567890abcdefghijklmnopqrstu';
+const FAKE_OPENAI_KEY = 'sk-' + 'abcdefghijklmnopqrstuvwxyz123456';
+const FAKE_AWS_KEY = 'AKIA' + 'IOSFODNN7EXAMPLE';
+const FAKE_JWT = [
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9',
+  'eyJzdWIiOiIxMjM0NTY3ODkwIn0',
+  'dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U',
+].join('.');
+
 describe('redactor', () => {
   it.each([
     ['email', 'reach me at josh@example.com today', '[EMAIL_1]'],
@@ -9,16 +25,12 @@ describe('redactor', () => {
     ['phone (parens)', 'call (415) 555-2671 now', '[PHONE_1]'],
     ['phone (E.164)', 'call +14155552671 now', '[PHONE_1]'],
     ['card (Luhn-valid)', 'card 4111 1111 1111 1111 expires', '[CARD_1]'],
-    ['openai-style key', 'use sk-abcdefghijklmnopqrstuvwxyz123456 here', '[API_KEY_1]'],
-    ['github token', 'token ghp_abcdefghijklmnopqrstuvwxyz1234567890 ok', '[API_KEY_1]'],
-    ['google key', 'key AIzaSyA-1234567890abcdefghijklmnopqrstu set', '[API_KEY_1]'],
+    ['openai-style key', `use ${FAKE_OPENAI_KEY} here`, '[API_KEY_1]'],
+    ['github token', `token ${FAKE_GITHUB_PAT} ok`, '[API_KEY_1]'],
+    ['google key', `key ${FAKE_GOOGLE_KEY} set`, '[API_KEY_1]'],
     ['bearer', 'auth Bearer abcdef123456789012345678 done', '[API_KEY_1]'],
-    ['aws key', 'id AKIAIOSFODNN7EXAMPLE used', '[AWS_KEY_1]'],
-    [
-      'jwt',
-      'jwt eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U end',
-      '[TOKEN_1]',
-    ],
+    ['aws key', `id ${FAKE_AWS_KEY} used`, '[AWS_KEY_1]'],
+    ['jwt', `jwt ${FAKE_JWT} end`, '[TOKEN_1]'],
     ['address', 'I live at 123 Main Street, Apt 4B in town', '[ADDRESS_1]'],
   ])('masks %s', (_name, input, placeholder) => {
     const { redactedText, applied } = redact(input);
@@ -47,7 +59,7 @@ describe('redactor', () => {
     const texts = [
       'hi sarah, email me at josh@example.com or call 555-867-5309. card is 4111 1111 1111 1111.',
       'two addrs: a@b.com then c@d.org, and a@b.com again',
-      'token Bearer abc123def456ghi789jkl012 plus AKIAIOSFODNN7EXAMPLE',
+      `token Bearer abc123def456ghi789jkl012 plus ${FAKE_AWS_KEY}`,
     ];
     for (const t of texts) {
       const { redactedText, map } = redact(t);
