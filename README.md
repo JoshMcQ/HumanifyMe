@@ -218,6 +218,8 @@ I wanted AI to write messages for me and it never quite could. I would have some
 
 Most of the code was written with Claude Code, Anthropic's agentic coding tool, against specs and acceptance criteria I wrote and reviewed. The product and architecture calls are mine: plugin-first distribution, keeping everything local, the verify gate, and how it gets evaluated.
 
+The person AI mentioned here is me. I wanted AI to write messages for me but it was never able to do so. This was extremely frustrating because I'll have a message typed up, and I'll ask it to just refine, but then it'll return a totally rewritten new answer. So I got to prompting. 
+
 ## Privacy methodology
 
 HumanifyMe is local-first and redacts before it sends. The modules that substantiate the privacy claims (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) are MIT-licensed so you can audit them.
