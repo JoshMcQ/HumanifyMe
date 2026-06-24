@@ -4,7 +4,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 0 — Research and specs
+## Milestone 0, Research and specs
 
 **Gate to start:** none. This is the starting milestone.
 
@@ -20,7 +20,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 1 — MCP server scaffold + storage + sample tools
+## Milestone 1, MCP server scaffold + storage + sample tools
 
 **Gate to start:** Milestone 0 done.
 
@@ -41,7 +41,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 2 — Style profile generator
+## Milestone 2, Style profile generator
 
 **Gate to start:** M1 done.
 
@@ -57,11 +57,11 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Tasks inside:** T-11 through T-22.
 
-**Status:** complete (2026-06-10), with one open item: per-provider recorded-fixture tests against live APIs are pending (covered by `FakeLLMProvider` unit tests; live validation blocked in the build environment — run `humanifyme provider test` locally).
+**Status:** complete (2026-06-10), with one open item: per-provider recorded-fixture tests against live APIs are pending (covered by `FakeLLMProvider` unit tests; live validation blocked in the build environment, run `humanifyme provider test` locally).
 
 ---
 
-## Milestone 3 — Rewrite engine
+## Milestone 3, Rewrite engine
 
 **Gate to start:** M2 done.
 
@@ -81,7 +81,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 4 — Plugin packaging
+## Milestone 4, Plugin packaging
 
 **Gate to start:** M3 done.
 
@@ -99,7 +99,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 5 — Onboarding, CLI polish, audit, multi-provider QA
+## Milestone 5, Onboarding, CLI polish, audit, multi-provider QA
 
 **Gate to start:** M4 done.
 
@@ -116,7 +116,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 6 — Landing page
+## Milestone 6, Landing page
 
 **Gate to start:** M5 done.
 
@@ -131,11 +131,11 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 **Tasks inside:** T-51 through T-56.
 
-**Status:** site built 2026-06-11 (`site/`: index, privacy, terms; per-agent install handled as tabs + anchors on the install section rather than separate pages — revisit if share-links demand it). Pending: deploy to humanifyme.com (Joshua owns the domain), og.png asset, white paper HTML render, Lighthouse run on the live deploy.
+**Status:** site built 2026-06-11 (`site/`: index, privacy, terms; per-agent install handled as tabs + anchors on the install section rather than separate pages, revisit if share-links demand it). Pending: deploy to humanifyme.com (Joshua owns the domain), og.png asset, white paper HTML render, Lighthouse run on the live deploy.
 
 ---
 
-## Milestone 7 — Beta release checklist
+## Milestone 7, Beta release checklist
 
 **Gate to start:** M6 done, plus the alpha exit criteria (tracked in the maintainers' internal launch plan) met.
 
@@ -145,7 +145,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 - Claude Code plugin marketplace listing live.
 - npm package `humanifyme` published.
 - Screenshots and screen recording finalized.
-- Initial alpha cohort (10–30) installed and surveyed.
+- Initial alpha cohort (10 to 30) installed and surveyed.
 - Bug triage process documented.
 - Day-1 ops checklist (response time targets, monitoring) documented.
 
@@ -153,11 +153,11 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 8 — Retrieval-augmented voice (RAG)
+## Milestone 8, Retrieval-augmented voice (RAG)
 
-**Gate to start:** M3 done (rewrite engine exists to wire retrieval into). This milestone is local-first — embeddings, vectors, and retrieval all run on-device and persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`. NO backend is introduced, so it stays inside the MVP rules in `specs/mvp-spec.md` and `CLAUDE.md` hard rule 4.
+**Gate to start:** M3 done (rewrite engine exists to wire retrieval into). This milestone is local-first, embeddings, vectors, and retrieval all run on-device and persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`. NO backend is introduced, so it stays inside the MVP rules in `specs/mvp-spec.md` and `CLAUDE.md` hard rule 4.
 
-**Why this milestone exists:** The rewrite engine never feeds the user's actual past messages into a rewrite — it only conditions on the abstract style fingerprint in `profiles`. The static `profile.exemplars` are a frozen, hand-picked few. Retrieval-augmented voice fixes rewrite quality by selecting the user's own most relevant past samples per draft and making them the primary voice signal. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-18–Q-22.
+**Why this milestone exists:** The rewrite engine never feeds the user's actual past messages into a rewrite, it only conditions on the abstract style fingerprint in `profiles`. The static `profile.exemplars` are a frozen, hand-picked few. Retrieval-augmented voice fixes rewrite quality by selecting the user's own most relevant past samples per draft and making them the primary voice signal. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-18, Q-22.
 
 **Definition of done:**
 
@@ -174,7 +174,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ---
 
-## Milestone 9 — Validation + public feedback infrastructure
+## Milestone 9, Validation + public feedback infrastructure
 
 **Gate to start:** M8 done (a rewrite engine worth measuring). Honors the privacy
 spec: local data stays local; the only new outbound path is opt-in (default OFF) and
@@ -183,7 +183,7 @@ ships aggregate **counts only**, never content.
 **Why this milestone exists:** the engine was proven on synthetic writers but had no
 way to learn from, or show, real-world results. M9 adds the feedback loop ("did this
 sound like you?"), a local metrics surface, and an opt-in anonymous aggregate that
-feeds a public proof page — so quality is measured continuously and provable.
+feeds a public proof page, so quality is measured continuously and provable.
 
 **Definition of done:**
 
@@ -191,7 +191,7 @@ feeds a public proof page — so quality is measured continuously and provable.
   accept/edit/reject signal into a `feedback` table (counts/dimensions only; edited
   text never persisted). Skills + CLI close with "did this sound like you?".
 - `humanify_metrics` (MCP + CLI) reports accept/edit/reject rates, sounds-like-me,
-  by-context, by-provider, and p50/p95 latency — locally, counts only.
+  by-context, by-provider, and p50/p95 latency, locally, counts only.
 - Opt-in (`shareAnonymousFeedback`, default false) ships a counts-only aggregate via
   the MIT-licensed `src/network/` at most once/24h; the outbound-destination scan is
   a real test allowlisting only providers + network.

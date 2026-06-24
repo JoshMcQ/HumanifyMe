@@ -2,7 +2,7 @@
 
 ## Test pyramid
 
-- **Unit (Vitest):** pure functions — redactor, fingerprint merge, prompt builders, schema validators, diff. Target ≥ 90% line coverage in `src/engine/`, `src/privacy/`, `src/storage/`.
+- **Unit (Vitest):** pure functions, redactor, fingerprint merge, prompt builders, schema validators, diff. Target ≥ 90% line coverage in `src/engine/`, `src/privacy/`, `src/storage/`.
 - **Integration (Vitest):** message router, MCP tool handlers against the `FakeLLMProvider`. Target full coverage of the tool contract in `docs/api-contract.md`.
 - **End-to-end (Vitest + MCP SDK client):** spin up `humanifyme-mcp` as a subprocess, connect with the SDK's `Client`, exercise the tool catalog.
 - **Manual QA:** plugin install on Cowork and Claude Code, install-snippet test on Cursor, before every release.
@@ -64,10 +64,10 @@
 
 ## Test data
 
-- `tests/fixtures/samples/*.txt` — anonymized writing samples for prompt-building tests.
-- `tests/fixtures/profiles/*.json` — fixture `StyleProfile` blobs.
-- `tests/fixtures/llm/{anthropic,openai,gemini}/*.json` — recorded provider responses (one per failure mode, one per success).
-- `tests/fixtures/plugins/{cowork,claude-code}/manifest.expected.json` — manifests the build should produce.
+- `tests/fixtures/samples/*.txt`, anonymized writing samples for prompt-building tests.
+- `tests/fixtures/profiles/*.json`, fixture `StyleProfile` blobs.
+- `tests/fixtures/llm/{anthropic,openai,gemini}/*.json`, recorded provider responses (one per failure mode, one per success).
+- `tests/fixtures/plugins/{cowork,claude-code}/manifest.expected.json`, manifests the build should produce.
 
 ## Coverage gating
 

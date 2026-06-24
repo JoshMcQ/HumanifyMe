@@ -7,10 +7,10 @@ You are working on **HumanifyMe**, an MCP server (Node.js, TypeScript) that lear
 1. **Do not start coding without checking the spec gate.** Before writing or modifying any application code, confirm that `tasks/milestones.md` shows Milestone 0 (specs) as complete and that the task you are about to work on exists in `tasks/task-breakdown.md` with explicit acceptance criteria. If it does not, stop and update the spec or task file first.
 2. **One task at a time.** Pick a single task from `tasks/task-breakdown.md`, complete it end-to-end (code + tests + AC verification), then stop and report. Do not chain multiple tasks without checking in.
 3. **Respect the privacy model in `specs/privacy-security-spec.md`.** Raw user writing samples are local-first. The MCP server only reads/writes `~/.humanifyme/` and only sends data to the configured LLM provider. Never add code that sends raw samples elsewhere, logs raw samples, or persists samples outside `~/.humanifyme/data.db`.
-4. **Do not introduce a backend in MVP.** Milestones 1–5 are MCP-only. A backend appears in Milestone 6+ only and only if `specs/backend-spec.md` justifies it.
+4. **Do not introduce a backend in MVP.** Milestones 1 to 5 are MCP-only. A backend appears in Milestone 6+ only and only if `specs/backend-spec.md` justifies it.
 5. **Do not fine-tune models.** MVP uses prompt engineering + structured style profiles only. If you think fine-tuning is needed, write the case in `docs/open-questions.md` rather than implementing it.
 6. **Do not silently monitor.** The MCP server only acts when an agent calls one of its tools. No file watching, no clipboard listening, no agent-output observation outside opted-in auto-humanify hooks.
-7. **This is NOT a Chrome extension.** Joshua pivoted from the original extension spec to MCP-only on 2026-06-03. If you find yourself writing `chrome.runtime`, `MutationObserver`, content scripts, or site adapters, stop — you're in the wrong project mental model. Re-read `specs/mcp-server-spec.md` and `specs/plugin-spec.md`.
+7. **This is NOT a Chrome extension.** Joshua pivoted from the original extension spec to MCP-only on 2026-06-03. If you find yourself writing `chrome.runtime`, `MutationObserver`, content scripts, or site adapters, stop, you're in the wrong project mental model. Re-read `specs/mcp-server-spec.md` and `specs/plugin-spec.md`.
 
 ## Workflow for every task
 

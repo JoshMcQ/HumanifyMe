@@ -14,7 +14,7 @@ description: Set up HumanifyMe by teaching it how the user writes. Use when the 
    stay on their machine; only redacted text goes to their own provider. Ask them
    to run `humanifyme setup` in a terminal (the CLI records consent).
 2. **Collect samples.** The profile needs at least 3 samples of at least 100
-   characters; 5–10 is better. Two paths, can be combined:
+   characters; 5 to 10 is better. Two paths, can be combined:
    - **Bulk (best results):** if the user has a ChatGPT or Claude data export,
      call `humanify_import_chat_export` with `commit: false`, show the preview,
      then re-call with `commit: true` once they approve. For a folder of their

@@ -1,12 +1,12 @@
 # Acceptance Criteria
 
-Long-form AC for tasks T-01 through T-10 live in `tasks/task-breakdown.md`. This file holds the shorter AC for tasks T-11 onward (Milestones 2–7) so we have a complete map of what "done" looks like without prematurely expanding implementation notes for tasks the agent will not touch for weeks.
+Long-form AC for tasks T-01 through T-10 live in `tasks/task-breakdown.md`. This file holds the shorter AC for tasks T-11 onward (Milestones 2 to 7) so we have a complete map of what "done" looks like without prematurely expanding implementation notes for tasks the agent will not touch for weeks.
 
 When picking up any of these tasks, the agent must first expand it into the full T-NN template (objective, files, implementation notes, AC, tests, risk, dependencies) in `tasks/task-breakdown.md` and then begin work.
 
 ---
 
-## Milestone 2 — Style profile generator
+## Milestone 2, Style profile generator
 
 - **T-11** Provider abstraction (`LLMProvider` interface + `FakeLLMProvider`). AC: interface compiles; FakeLLMProvider deterministic; pure functions; covered by unit tests.
 - **T-12** Anthropic provider implementation. AC: successful call returns `{ text, inputTokens, outputTokens, latencyMs }`; 401/429/5xx map to spec error codes; CI uses recorded fixtures, not live API.
@@ -21,7 +21,7 @@ When picking up any of these tasks, the agent must first expand it into the full
 - **T-21** Resource `humanify://profile` (raw JSON). AC: returns current profile JSON or 404 if none.
 - **T-22** CLI: `profile show|edit|rm|rebuild`, `provider set|test`. AC: `edit` opens `$EDITOR` on a temp file, validates on save, persists or aborts cleanly.
 
-## Milestone 3 — Rewrite engine
+## Milestone 3, Rewrite engine
 
 - **T-23** Rewrite-prompt builder. AC: builds system+user prompt with merged fingerprint + directives + redacted draft. Total < 7,000 tokens.
 - **T-24** Rewrite pipeline. AC: full pipeline per `specs/rewrite-engine-spec.md`. Returns `RewriteResponse`.
@@ -34,7 +34,7 @@ When picking up any of these tasks, the agent must first expand it into the full
 - **T-31** `humanify_text` tool. AC: end-to-end from agent to provider to response.
 - **T-32** Per-draft length cap + per-day rate limit. AC: 8,000 char cap enforced; > N rewrites/day surfaces a warning (configurable, default 200).
 
-## Milestone 4 — Plugin packaging
+## Milestone 4, Plugin packaging
 
 - **T-33** Build script that packages `humanifyme.plugin/` from the source tree. AC: produces a directory matching `specs/plugin-spec.md`.
 - **T-34** `plugin.json` manifest. AC: passes validation in both Cowork and Claude Code dev loaders.
@@ -47,7 +47,7 @@ When picking up any of these tasks, the agent must first expand it into the full
 - **T-41** Install snippets for Cursor / Continue / Cline / Windsurf / Zed / ChatGPT desktop in `docs/install/`. AC: each snippet validated manually on the agent.
 - **T-42** Plugin bundle size budget. AC: bundle < 5 MB unpacked.
 
-## Milestone 5 — Onboarding, audit, multi-provider QA
+## Milestone 5, Onboarding, audit, multi-provider QA
 
 - **T-43** `humanifyme setup` full flow (consent → provider → samples → build → demo rewrite → survey). AC: completes in < 3 minutes on a clean machine.
 - **T-44** `humanify_audit_list` tool + `humanifyme audit` CLI. AC: returns/prints last 20 entries by metadata only.
@@ -58,7 +58,7 @@ When picking up any of these tasks, the agent must first expand it into the full
 - **T-49** Ollama provider stub (preview). AC: `humanify_set_provider --provider ollama --base-url ...` configures; `humanify_test_key` returns valid if reachable.
 - **T-50** Alpha cohort install kit (loom + README). AC: kit shared with first 10 alpha users.
 
-## Milestone 6 — Landing page
+## Milestone 6, Landing page
 
 - **T-51** Site scaffold (Astro static, deployed to Cloudflare Pages). AC: humanifyme.com resolves; SSL valid.
 - **T-52** Hero, how-it-works, supported-agents grid, privacy, install CTAs. AC: copy reviewed against the banned-words list.
@@ -67,9 +67,9 @@ When picking up any of these tasks, the agent must first expand it into the full
 - **T-55** Privacy policy + ToS. AC: plain-English drafts that match `specs/privacy-security-spec.md`.
 - **T-56** Performance + analytics-free build. AC: Lighthouse perf ≥ 95 mobile and desktop; zero third-party network requests.
 
-## Milestone 7 — Beta release checklist
+## Milestone 7, Beta release checklist
 
 - **T-57** Submit Cowork marketplace listing. AC: listing approved; install button live.
 - **T-58** Submit Claude Code marketplace listing. AC: same.
 - **T-59** Publish `humanifyme` and `humanifyme-mcp` to npm. AC: `npx -y humanifyme-mcp@latest` runs on Mac, Linux, Windows.
-- **T-60** Alpha cohort recruitment + tracking. AC: 10–30 alpha users installed and surveyed.
+- **T-60** Alpha cohort recruitment + tracking. AC: 10 to 30 alpha users installed and surveyed.

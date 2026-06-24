@@ -20,7 +20,7 @@ All three converge on the same four steps below.
 
 ## The four-step flow
 
-### Step 1 — Consent (10 seconds)
+### Step 1, Consent (10 seconds)
 
 - One sentence: "HumanifyMe rewrites AI drafts so they sound like you, not like AI. Everything stays on your machine."
 - Two confirmations:
@@ -28,9 +28,9 @@ All three converge on the same four steps below.
   - "I understand my writing samples stay on my device unless I explicitly enable a future sync feature."
 - Can't continue until both confirmed. (In the agent slash-command UI: two tool calls with `confirm: true`. In the CLI: two `[y/N]` prompts.)
 
-### Step 2 — Provider + API key (60 seconds)
+### Step 2, Provider + API key (60 seconds)
 
-- "We don't manage AI for you in MVP. You bring your own key — it's cheaper and your data goes to the provider of your choice."
+- "We don't manage AI for you in MVP. You bring your own key, it's cheaper and your data goes to the provider of your choice."
 - Provider picker: Anthropic, OpenAI, Gemini, Ollama (local).
 - Key input.
 - "Test" call via `humanify_test_key`. Result rendered inline.
@@ -38,7 +38,7 @@ All three converge on the same four steps below.
 
 For Ollama: no API key needed; just confirm `http://localhost:11434` is reachable and a model is pulled.
 
-### Step 3 — First samples (90 seconds)
+### Step 3, First samples (90 seconds)
 
 - "Paste 3 things you've written recently. An email you sent, a Slack message, a tweet, a LinkedIn post, anything."
 - Three samples requested in sequence via `humanify_add_sample`.
@@ -47,17 +47,17 @@ For Ollama: no API key needed; just confirm `http://localhost:11434` is reachabl
 
 Inside a Claude Code or Cowork chat, the `build-voice-profile` skill drives this conversationally: the agent asks for sample 1, calls `humanify_add_sample`, asks for sample 2, etc.
 
-### Step 4 — Build profile + first rewrite (30 seconds + LLM latency)
+### Step 4, Build profile + first rewrite (30 seconds + LLM latency)
 
 - "Building your voice profile…" (`humanify_build_profile`).
 - Render a 3-bullet plain-English summary from `humanify://profile.md`.
 - Demo rewrite: a deliberately AI-flavored paragraph relevant to the user's chosen labels. One `humanify_text` call. Show before/after.
 - Survey: "Does this sound like you?" Y/Kinda/N stored locally via `humanify_record_feedback` (maps to accept/edit/reject). This seeds `humanify_metrics`.
 
-### Step 5 — Share anonymous results? (optional, default OFF)
+### Step 5, Share anonymous results? (optional, default OFF)
 
 - One question, opt-in: "Help others see HumanifyMe actually works? If you turn this
-  on, it sends **counts only** — how often rewrites sounded like you, by
+  on, it sends **counts only**, how often rewrites sounded like you, by
   context/provider, and latency. No drafts, no rewrites, no text of any kind. Ever.
   At most once a day. Turn it off anytime: `humanifyme share off`."
 - Sets `shareAnonymousFeedback` (default `false`). When on, the MCP ships an anonymous

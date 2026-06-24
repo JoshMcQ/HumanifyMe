@@ -4,13 +4,13 @@ Worked examples that show, end-to-end, what the prompts are meant to produce. Us
 
 ---
 
-## Example 1 — Style analysis (terse, dry voice)
+## Example 1, Style analysis (terse, dry voice)
 
 ### Input samples (labels in brackets, redacted)
 
 ```
 [email, professional]
-quick heads up — I'm out next week. catch up the 12th if that works.
+quick heads up, I'm out next week. catch up the 12th if that works.
 
 [email, polite]
 thanks for the intro. I'd love to chat. Tuesday 3pm or Thursday morning your way?
@@ -47,13 +47,13 @@ to be clear: we agreed on Tuesday. I rearranged a flight for this. let's keep it
     "commonPhrases": ["to be clear", "quick heads up", "on it"],
     "wordsToAvoid": ["delighted", "leverage", "utilize", "tapestry", "essentially"],
     "greetings": ["hey", "morning,"],
-    "signoffs": ["thanks", "—J"],
+    "signoffs": ["thanks", ", J"],
     "howTheyAskQuestions": "Short, single-sentence asks. Often offers two specific options instead of an open invitation.",
     "howTheyDisagree": "States the prior agreement, then restates the ask. No hedging.",
     "howTheyApologize": "Brief and matter-of-fact. No multi-sentence preambles.",
     "howTheyGiveInstructions": "Imperatives. Bulleted only when the list has 3+ items.",
     "exemplars": [
-      "quick heads up — I'm out next week.",
+      "quick heads up, I'm out next week.",
       "to be clear: we agreed on Tuesday.",
       "they shipped. that was the bar."
     ]
@@ -61,7 +61,7 @@ to be clear: we agreed on Tuesday. I rearranged a flight for this. let's keep it
   "contexts": {
     "annoyed": {
       "overrides": { "directness": 5, "formality": 2 },
-      "notes": "Leads with 'to be clear:' or 'just so we're aligned —'. Restates the commitment.",
+      "notes": "Leads with 'to be clear:' or 'just so we're aligned, '. Restates the commitment.",
       "exemplars": ["to be clear: we agreed on Tuesday."]
     }
   },
@@ -71,7 +71,7 @@ to be clear: we agreed on Tuesday. I rearranged a flight for this. let's keep it
 
 ---
 
-## Example 2 — Rewrite (warmer + more_like_me)
+## Example 2, Rewrite (warmer + more_like_me)
 
 ### Voice fingerprint
 
@@ -99,26 +99,26 @@ Joshua
 ```
 hey Sarah,
 
-following up on the partnership chat — I think there's a real fit, and I'd like to keep going.
+following up on the partnership chat, I think there's a real fit, and I'd like to keep going.
 
 call next week? Tuesday or Thursday afternoon work for me.
 
 thanks,
-—J
+, J
 ```
 
 ### Why this is the expected output
 
-- Lowercase greeting, lowercase body, lowercase signoff — matches `allLowercase: true`.
-- Two options offered for scheduling — matches `howTheyAskQuestions`.
-- Em-dash present — matches `punctuationHabits.emDash: frequent`.
-- "hope this message finds you well" cut — flagged in `wordsToAvoid` family.
-- `—J` signoff — present in `signoffs`.
+- Lowercase greeting, lowercase body, lowercase signoff, matches `allLowercase: true`.
+- Two options offered for scheduling, matches `howTheyAskQuestions`.
+- Em-dash present, matches `punctuationHabits.emDash: frequent`.
+- "hope this message finds you well" cut, flagged in `wordsToAvoid` family.
+- `, J` signoff, present in `signoffs`.
 - ~50% shorter without losing the ask or names.
 
 ---
 
-## Example 3 — Rewrite that goes wrong (regression case)
+## Example 3, Rewrite that goes wrong (regression case)
 
 ### Bad rewrite (do not ship)
 
@@ -135,17 +135,17 @@ Joshua
 
 ### Why this is wrong
 
-- "delighted," "thrilled," "leverage," "synergies" — all in `wordsToAvoid`.
-- Title-case greeting + exclamation — violates `allLowercase` and `exclamation: rare`.
-- Sentences are uniform medium length — violates `sentenceLength.variance: high`.
-- No em-dash — violates `punctuationHabits.emDash: frequent`.
-- "Best, Joshua" — not in `signoffs`. The signoff for this user is `thanks` or `—J`.
+- "delighted," "thrilled," "leverage," "synergies", all in `wordsToAvoid`.
+- Title-case greeting + exclamation, violates `allLowercase` and `exclamation: rare`.
+- Sentences are uniform medium length, violates `sentenceLength.variance: high`.
+- No em-dash, violates `punctuationHabits.emDash: frequent`.
+- "Best, Joshua", not in `signoffs`. The signoff for this user is `thanks` or `, J`.
 
 This is the kind of output the critique prompt would flag with `aiSmells` populated. CI must include a regression test that the rewrite of Example 2's input doesn't drift back toward this register.
 
 ---
 
-## Example 4 — Rewrite of a LinkedIn post (direct, brief)
+## Example 4, Rewrite of a LinkedIn post (direct, brief)
 
 ### Input draft (AI-generated)
 
@@ -161,7 +161,7 @@ the best engineers I've hired had no degree, no internship, and a github they'd 
 they shipped. that was the bar.
 ```
 
-Why: matches the LinkedIn exemplar in the fingerprint. Cuts the "today's competitive talent market" opener. Cuts the rhetorical question (this user does not end LinkedIn posts on questions in the samples). Drops length to ~25% of original — but that's acceptable here because no length directive was selected and the fingerprint shows this user writes very short LinkedIn posts. The pipeline should permit this if the `linkedin` context exemplar is similarly short.
+Why: matches the LinkedIn exemplar in the fingerprint. Cuts the "today's competitive talent market" opener. Cuts the rhetorical question (this user does not end LinkedIn posts on questions in the samples). Drops length to ~25% of original, but that's acceptable here because no length directive was selected and the fingerprint shows this user writes very short LinkedIn posts. The pipeline should permit this if the `linkedin` context exemplar is similarly short.
 
 ---
 

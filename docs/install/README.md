@@ -18,7 +18,7 @@ file" at `humanifyme.plugin/`.
 claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp
 ```
 
-## Cursor — `~/.cursor/mcp.json`
+## Cursor, `~/.cursor/mcp.json`
 
 ```json
 {
@@ -31,7 +31,7 @@ claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp
 }
 ```
 
-## Claude Desktop — `claude_desktop_config.json`
+## Claude Desktop, `claude_desktop_config.json`
 
 ```json
 {
@@ -44,7 +44,7 @@ claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp
 }
 ```
 
-## Continue — `~/.continue/config.yaml`
+## Continue, `~/.continue/config.yaml`
 
 ```yaml
 mcpServers:
@@ -53,11 +53,11 @@ mcpServers:
     args: ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
 ```
 
-## Cline / Windsurf — MCP settings JSON
+## Cline / Windsurf, MCP settings JSON
 
 Same shape as Cursor: command `npx`, args `["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]`.
 
-## Zed — `settings.json`
+## Zed, `settings.json`
 
 ```json
 {

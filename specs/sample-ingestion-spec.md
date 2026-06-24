@@ -2,7 +2,7 @@
 
 ## Why this document exists
 
-Five manually pasted samples is not enough to build a profile that survives the "does it sound like me?" test for the average user. Robust context variants (how you write annoyed vs. polite, in email vs. on LinkedIn, to a friend vs. to your boss) need 20–50 samples *per context*. Nobody manually pastes 250 things. So bulk ingestion of the user's actual writing history is the unlock that takes voice fidelity from "kind of close" to "yes that's me."
+Five manually pasted samples is not enough to build a profile that survives the "does it sound like me?" test for the average user. Robust context variants (how you write annoyed vs. polite, in email vs. on LinkedIn, to a friend vs. to your boss) need 20 to 50 samples *per context*. Nobody manually pastes 250 things. So bulk ingestion of the user's actual writing history is the unlock that takes voice fidelity from "kind of close" to "yes that's me."
 
 The design challenge: bulk ingest without violating the local-first privacy commitment.
 
@@ -17,7 +17,7 @@ The design challenge: bulk ingest without violating the local-first privacy comm
 
 ## Importers, by phase
 
-### MVP — local file uploads only (no OAuth, no permissions, no servers)
+### MVP, local file uploads only (no OAuth, no permissions, no servers)
 
 #### `humanify_import_chat_export`
 
@@ -47,7 +47,7 @@ Generic importer for a list of text files.
 
 Already supported via `humanify_add_sample`; called out here for completeness.
 
-### Phase 2 — OAuth-based importers (post-MVP, pre-monetization)
+### Phase 2, OAuth-based importers (post-MVP, pre-monetization)
 
 #### `humanify_import_gmail_sent`
 
@@ -76,7 +76,7 @@ Privacy notes: the OAuth token is stored in `~/.humanifyme/` (0600). The fetch h
 
 Same shape as the chat-export importer. Cheap once the archive parser exists.
 
-### Phase 3 — Active learning (the second engine)
+### Phase 3, Active learning (the second engine)
 
 #### Accept/reject signal collection
 
@@ -118,16 +118,16 @@ Each tool is a separate task with its own AC; T-IDs slot into `tasks/task-breakd
 | User type                            | MVP path                                   | Realistic sample count |
 | ------------------------------------ | ------------------------------------------ | ---------------------- |
 | Manual paste, no import              | 5 samples                                  | 5                      |
-| ChatGPT exporter                     | ChatGPT export (1 yr of use)               | 300–2000               |
-| Heavy emailer + Gmail importer       | Gmail Sent last 500                        | 300–500                |
-| macOS power user                     | Messages DB + email                        | 1000–10,000            |
-| Writer with Obsidian / Substack      | text-files importer                        | 100–1000               |
+| ChatGPT exporter                     | ChatGPT export (1 yr of use)               | 300 to 2000               |
+| Heavy emailer + Gmail importer       | Gmail Sent last 500                        | 300 to 500                |
+| macOS power user                     | Messages DB + email                        | 1000 to 10,000            |
+| Writer with Obsidian / Substack      | text-files importer                        | 100 to 1000               |
 
 The profile generator caps at 200 samples per build pass; more than that yields diminishing returns and inflates LLM cost. The full sample store remains in SQLite for future re-builds and active-learning passes.
 
 ## Spec impact on other documents
 
-- `specs/mvp-spec.md` — adds `humanify_import_chat_export` and `humanify_import_text_files` to the MVP tool list. These were missing from the prior version.
-- `specs/privacy-security-spec.md` — `Permissions audit` section now lists `keytar` (already there) and OS-level Full Disk Access on macOS (Phase 2). OAuth tokens added to the data classification table.
-- `docs/data-model.md` — `samples` table gains an optional `source` column (`paste|chatgpt|claude|gmail|slack|messages|text-file|active-learning`) so we can show breakdowns in the audit view.
-- `tasks/task-breakdown.md` — two new tasks at the end of M1 for the MVP-tier importers.
+- `specs/mvp-spec.md`, adds `humanify_import_chat_export` and `humanify_import_text_files` to the MVP tool list. These were missing from the prior version.
+- `specs/privacy-security-spec.md`, `Permissions audit` section now lists `keytar` (already there) and OS-level Full Disk Access on macOS (Phase 2). OAuth tokens added to the data classification table.
+- `docs/data-model.md`, `samples` table gains an optional `source` column (`paste|chatgpt|claude|gmail|slack|messages|text-file|active-learning`) so we can show breakdowns in the audit view.
+- `tasks/task-breakdown.md`, two new tasks at the end of M1 for the MVP-tier importers.

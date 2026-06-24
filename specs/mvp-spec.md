@@ -2,7 +2,7 @@
 
 ## Goal of the MVP
 
-Ship an MCP server, installable as a Cowork plugin and a Claude Code plugin, that lets one user, in under three minutes, add 3–10 writing samples via tool calls or CLI, build a voice profile, and have any MCP-compatible agent humanify a draft via `humanify_text`. Validate that "this sounds like me" is achievable without a backend, without an account, and without sending raw samples off-device.
+Ship an MCP server, installable as a Cowork plugin and a Claude Code plugin, that lets one user, in under three minutes, add 3 to 10 writing samples via tool calls or CLI, build a voice profile, and have any MCP-compatible agent humanify a draft via `humanify_text`. Validate that "this sounds like me" is achievable without a backend, without an account, and without sending raw samples off-device.
 
 ## In scope for MVP
 
@@ -18,15 +18,15 @@ Ship an MCP server, installable as a Cowork plugin and a Claude Code plugin, tha
    - Minimum to generate a profile: 3 samples total, with at least 2 distinct labels covered.
 
 2a. **Bulk sample ingestion (MVP-tier importers).**
-   - `humanify_import_chat_export` — accepts a path to a ChatGPT or Claude data-export archive, parses locally, extracts only user-authored turns, infers context labels, redacts, ingests. No OAuth, no server. See `specs/sample-ingestion-spec.md`.
-   - `humanify_import_text_files` — accepts a glob/directory plus a default label; ingests `.txt`, `.md`, `.docx` as samples.
+   - `humanify_import_chat_export`, accepts a path to a ChatGPT or Claude data-export archive, parses locally, extracts only user-authored turns, infers context labels, redacts, ingests. No OAuth, no server. See `specs/sample-ingestion-spec.md`.
+   - `humanify_import_text_files`, accepts a glob/directory plus a default label; ingests `.txt`, `.md`, `.docx` as samples.
    - These two unlock the "actually sounds like me" outcome for anyone with a year of ChatGPT/Claude usage or a folder of writing.
    - All other importers (Gmail sent, Slack export, macOS Messages, X archive, Substack export) are Phase 2 per `specs/sample-ingestion-spec.md`.
 
 3. **Voice profile generation.**
    - `humanify_build_profile` tool calls the configured provider with `prompts/style-analysis-prompt.md`.
    - Returns structured JSON conforming to the `StyleProfile` schema in `specs/style-profile-spec.md`.
-   - Persisted to SQLite. Raw samples are not re-sent on subsequent rewrites — only the profile is.
+   - Persisted to SQLite. Raw samples are not re-sent on subsequent rewrites, only the profile is.
    - Resource `humanify://profile.md` exposes a plain-English summary the agent (and user) can read.
 
 4. **Profile view and edit.**
@@ -69,7 +69,7 @@ Ship an MCP server, installable as a Cowork plugin and a Claude Code plugin, tha
 11. **Consumer "paste and humanify" on humanifyme.com.**
     - Two CTAs on the landing page: *Install the plugin* (technical/agent users) and *Try it now* (everyone else).
     - The Try-It page accepts 3 quick sample snippets + a draft, generates a one-off rewrite, and shows before/after.
-    - No account. Profile and samples are not persisted on our side — they live in the user's browser session only.
+    - No account. Profile and samples are not persisted on our side, they live in the user's browser session only.
     - A single Cloudflare Worker fronts our LLM provider key with a strict per-IP daily quota (default 3 rewrites/day) and a draft length cap. This is the only server-side component in MVP and is deliberately the smallest possible (no DB, no auth, no logging of content).
     - After the user runs their free quota, the page nudges to install the plugin for unlimited rewrites.
 

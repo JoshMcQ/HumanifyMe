@@ -5,7 +5,7 @@
   "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
   "author": "humanifyme.com",
   "homepage": "https://humanifyme.com",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "mcps": ["./mcp/server.json"],
   "skills": ["./skills/humanify", "./skills/build-voice-profile", "./skills/humanify-pr"],
   "tags": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]

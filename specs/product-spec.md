@@ -2,7 +2,7 @@
 
 ## One-line description
 
-HumanifyMe is an MCP server that learns how you actually write and rewrites your AI agent's output in your authentic voice — installed as a plugin in Cowork, Claude Code, Cursor, and every other MCP-compatible agent.
+HumanifyMe is an MCP server that learns how you actually write and rewrites your AI agent's output in your authentic voice, installed as a plugin in Cowork, Claude Code, Cursor, and every other MCP-compatible agent.
 
 ## The problem
 
@@ -14,7 +14,7 @@ People increasingly delegate writing to AI agents. A developer asks Claude Code 
 - Personal replies sounding like someone else.
 - Internal Slack messages that read as press releases.
 
-The existing "fix" — Grammarly, Wordtune, "AI humanizer" SaaS, browser sidebars — normalizes text toward a generic professional register. That makes the problem worse: it strips out the personal markers that would make the writing sound human in the first place.
+The existing "fix", Grammarly, Wordtune, "AI humanizer" SaaS, browser sidebars, normalizes text toward a generic professional register. That makes the problem worse: it strips out the personal markers that would make the writing sound human in the first place.
 
 ## The insight
 
@@ -22,13 +22,13 @@ People do not want their writing to be better in the abstract. They want it to b
 
 ## What HumanifyMe is
 
-A voice engine — packaged primarily as an MCP server — that:
+A voice engine, packaged primarily as an MCP server, that:
 
 1. Builds a structured, private profile of how one specific user writes, across explicit contexts (casual, professional, annoyed, polite, direct, sales, email, text/message, LinkedIn, commit, pr, slack).
-2. Ingests writing samples flexibly — manual paste at minimum, plus local-only bulk importers (ChatGPT / Claude data export at MVP; Gmail Sent / Slack export / macOS Messages / X archive / Substack post-MVP). See `specs/sample-ingestion-spec.md`.
-3. Installs as a plugin in any MCP-compatible agent — Cowork, Claude Code, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop — with one click. The MCP server exposes `humanify_text` so the agent can rewrite its own draft output mid-workflow.
+2. Ingests writing samples flexibly, manual paste at minimum, plus local-only bulk importers (ChatGPT / Claude data export at MVP; Gmail Sent / Slack export / macOS Messages / X archive / Substack post-MVP). See `specs/sample-ingestion-spec.md`.
+3. Installs as a plugin in any MCP-compatible agent, Cowork, Claude Code, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop, with one click. The MCP server exposes `humanify_text` so the agent can rewrite its own draft output mid-workflow.
 4. Bundles skills that teach the agent when to reach for `humanify_text` automatically (PR descriptions, commit messages, drafted emails, Slack messages).
-5. Has a consumer surface at humanifyme.com: a "paste and humanify" page that lets anyone try the engine in 30 seconds without installing anything. Post-MVP this grows into a browser extension, a macOS menu-bar app, and mobile share-sheet extensions — all sitting on top of the same engine (Phase 2).
+5. Has a consumer surface at humanifyme.com: a "paste and humanify" page that lets anyone try the engine in 30 seconds without installing anything. Post-MVP this grows into a browser extension, a macOS menu-bar app, and mobile share-sheet extensions, all sitting on top of the same engine (Phase 2).
 6. Stores everything locally in `~/.humanifyme/` (for the MCP) or in a single Cloudflare Worker behind a strict per-IP rate limit (for the web paste tool, which holds no persistent state). Samples never leave the device in the MCP path.
 
 ## What HumanifyMe is not

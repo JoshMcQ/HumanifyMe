@@ -53,10 +53,10 @@ If the project has reached the trigger and we are now building a server, **recom
 Phase 1 backend (post-MVP, opinionated minimum):
 
 - Authentication: passwordless email magic link, no social.
-- `POST /v1/profiles` — store a `StyleProfile`.
-- `GET /v1/profiles/me` — fetch it.
-- `POST /v1/rewrite` — server-managed LLM rewrite for users who didn't BYO key. Returns same shape as the local engine.
-- `POST /v1/samples` — store *redacted* samples only, behind an explicit "sync samples to cloud" opt-in. Default off.
+- `POST /v1/profiles`, store a `StyleProfile`.
+- `GET /v1/profiles/me`, fetch it.
+- `POST /v1/rewrite`, server-managed LLM rewrite for users who didn't BYO key. Returns same shape as the local engine.
+- `POST /v1/samples`, store *redacted* samples only, behind an explicit "sync samples to cloud" opt-in. Default off.
 - Stripe webhook for subscription state.
 - Optional: a hosted MCP-over-HTTP endpoint for agents that don't spawn local subprocesses. The local stdio MCP remains the canonical surface.
 
@@ -68,7 +68,7 @@ Phase 1 explicitly excludes: teams, admin, sharing, audit logs, SSO, fine-tuning
 - Postgres (Neon or Supabase).
 - Stripe.
 - Cloudflare in front.
-- Logs to a managed provider with PII filtering — and we treat raw samples as PII even after redaction.
+- Logs to a managed provider with PII filtering, and we treat raw samples as PII even after redaction.
 
 ## Non-goals (forever, not phased)
 

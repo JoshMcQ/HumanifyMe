@@ -133,16 +133,16 @@ plugin/                 // built by `npm run build:plugin`
 ## Threading and lifecycle
 
 - The MCP server runs as a single Node process per host-agent session. The host spawns it on startup and kills it on shutdown.
-- `better-sqlite3` is synchronous — fine for a single-process server with at most a handful of concurrent tool calls.
+- `better-sqlite3` is synchronous, fine for a single-process server with at most a handful of concurrent tool calls.
 - The CLI process is short-lived. It opens the DB, does its work, closes.
 - Multiple CLI invocations + a running MCP server coexist; SQLite handles the locking. Don't issue long write transactions.
 
 ## What we did not pick
 
 - **A Chrome extension** (pivoted away on 2026-06-03; see open-questions Q-01 history).
-- **A backend** (rejected for MVP — see `specs/backend-spec.md`).
-- **A local model bundled inside the MCP** (rejected — Ollama covers the use case via the provider abstraction).
-- **An HTTP-mode MCP from day one** (deferred — stdio first, hosted variant later for browser-only agents).
+- **A backend** (rejected for MVP, see `specs/backend-spec.md`).
+- **A local model bundled inside the MCP** (rejected, Ollama covers the use case via the provider abstraction).
+- **An HTTP-mode MCP from day one** (deferred, stdio first, hosted variant later for browser-only agents).
 
 ## Performance budgets
 

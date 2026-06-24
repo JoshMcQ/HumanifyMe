@@ -4,7 +4,7 @@ HumanifyMe is delivered primarily as an MCP server. This document defines the se
 
 ## What it is
 
-A local Model Context Protocol server (Node.js, TypeScript) that an MCP-compatible agent — Cowork, Claude Code, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop, and anything else that speaks MCP — spawns as a subprocess and talks to over stdio. The server exposes a small set of tools the agent can call when it wants its own output rewritten in the user's voice.
+A local Model Context Protocol server (Node.js, TypeScript) that an MCP-compatible agent, Cowork, Claude Code, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop, and anything else that speaks MCP, spawns as a subprocess and talks to over stdio. The server exposes a small set of tools the agent can call when it wants its own output rewritten in the user's voice.
 
 ## Why an MCP server (and not a Chrome extension)
 
@@ -26,7 +26,7 @@ MCP also gives us:
 
 ## Runtime
 
-- Node ≥ 22.5. (Spec change 2026-06-10: was "Node ≥ 20" with `better-sqlite3`. Switched to the built-in `node:sqlite` driver — a native module in the `npx -y` install path is a top install-failure risk across host agents, and a JS-only dependency tree removes it. Cost: drops Node 20/21 support; Node 22 LTS has been "Active LTS" since Oct 2024, so launch-audience impact is small.)
+- Node ≥ 22.5. (Spec change 2026-06-10: was "Node ≥ 20" with `better-sqlite3`. Switched to the built-in `node:sqlite` driver, a native module in the `npx -y` install path is a top install-failure risk across host agents, and a JS-only dependency tree removes it. Cost: drops Node 20/21 support; Node 22 LTS has been "Active LTS" since Oct 2024, so launch-audience impact is small.)
 - Single binary entrypoint that speaks MCP over stdio.
 - No daemons, no background processes.
 - One JSON config file at `~/.humanifyme/config.json` (overridable via `HUMANIFYME_HOME`).
@@ -149,9 +149,9 @@ returns: { wiped: true }
 
 MCP supports "resources" the agent can read. We expose:
 
-- `humanify://profile` — current profile as JSON.
-- `humanify://profile.md` — plain-English profile summary.
-- `humanify://audit.json` — recent audit entries.
+- `humanify://profile`, current profile as JSON.
+- `humanify://profile.md`, plain-English profile summary.
+- `humanify://audit.json`, recent audit entries.
 
 These let the agent reason about the profile without calling a tool ("the user prefers em-dashes, so I'll keep this one").
 
@@ -159,11 +159,11 @@ These let the agent reason about the profile without calling a tool ("the user p
 
 MCP supports "prompts" surfaced to the user. We register:
 
-- `humanify` — quick rewrite. Input: draft.
-- `humanify-warmer` — preset with `warmer` + `more_like_me`.
-- `humanify-shorter` — preset with `shorter` + `more_like_me`.
-- `humanify-direct` — preset with `more_direct` + `more_like_me`.
-- `build-voice-profile` — kicks off `humanify_build_profile`.
+- `humanify`, quick rewrite. Input: draft.
+- `humanify-warmer`, preset with `warmer` + `more_like_me`.
+- `humanify-shorter`, preset with `shorter` + `more_like_me`.
+- `humanify-direct`, preset with `more_direct` + `more_like_me`.
+- `build-voice-profile`, kicks off `humanify_build_profile`.
 
 Users in Cowork / Claude Code can invoke these as slash commands.
 

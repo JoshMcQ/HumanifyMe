@@ -37,12 +37,12 @@ Output:
 ```
 
 ### `humanify_add_sample`
-- In: `{ text: string; labels: ContextLabel[] }` — `text.length >= 100`, `labels.length >= 1`.
+- In: `{ text: string; labels: ContextLabel[] }`, `text.length >= 100`, `labels.length >= 1`.
 - Out: `{ id: string }`.
 
 ### `humanify_list_samples`
 - In: `{ label?: ContextLabel }`.
-- Out: `{ samples: SampleRecord[] }` — `text` truncated to 200 chars in previews.
+- Out: `{ samples: SampleRecord[] }`, `text` truncated to 200 chars in previews.
 
 ### `humanify_delete_sample`
 - In: `{ id: string }`.
@@ -65,7 +65,7 @@ Long-running. Streams progress notifications via the MCP SDK's progress channel.
   ```
 
 ### `humanify_update_profile`
-- In: `{ profile: StyleProfile }` — schema-validated.
+- In: `{ profile: StyleProfile }`, schema-validated.
 - Out: `{ profile: StyleProfile }`.
 
 ### `humanify_delete_profile`
@@ -82,12 +82,12 @@ A ≤ 1-token ping to confirm the configured key works.
 - Out: `{ valid: boolean; provider: string }`.
 
 ### `humanify_audit_list`
-- In: `{ limit?: number }` — default 20, max 100.
+- In: `{ limit?: number }`, default 20, max 100.
 - Out: `{ entries: AuditEntry[] }`.
 
 ### `humanify_wipe_all`
 Destructive.
-- In: `{ confirm: 'DELETE EVERYTHING' }` — literal string required.
+- In: `{ confirm: 'DELETE EVERYTHING' }`, literal string required.
 - Out: `{ wiped: true }`.
 
 ## Resources
@@ -118,17 +118,17 @@ The MCP registers these prompts (surfaced as slash commands or quick actions in 
 
 Closed set, returned in MCP tool error responses' `data.code` field:
 
-- `BAD_INPUT` — input failed schema validation. Not retryable.
-- `MISSING_CONSENT` — `consentAcceptedAt` is unset; user must run `humanifyme setup` or accept via the host. Not retryable until consent is given.
-- `MISSING_API_KEY` — no API key configured for the requested provider. Not retryable.
-- `INVALID_API_KEY` — provider returned 401. Not retryable.
-- `RATE_LIMITED` — provider returned 429. Retryable.
-- `PROVIDER_ERROR` — provider returned 5xx. Retryable.
-- `NETWORK` — fetch failed. Retryable.
-- `OUTPUT_INVALID` — JSON schema validation failed on LLM output. Retryable (once).
-- `EMPTY_AFTER_REDACTION` — redactor produced empty input. Not retryable.
-- `OVER_LENGTH_CAP` — input exceeds 8,000 chars. Not retryable.
-- `RATE_LIMITED_LOCAL` — exceeded local daily rate limit. Not retryable today.
+- `BAD_INPUT`, input failed schema validation. Not retryable.
+- `MISSING_CONSENT`, `consentAcceptedAt` is unset; user must run `humanifyme setup` or accept via the host. Not retryable until consent is given.
+- `MISSING_API_KEY`, no API key configured for the requested provider. Not retryable.
+- `INVALID_API_KEY`, provider returned 401. Not retryable.
+- `RATE_LIMITED`, provider returned 429. Retryable.
+- `PROVIDER_ERROR`, provider returned 5xx. Retryable.
+- `NETWORK`, fetch failed. Retryable.
+- `OUTPUT_INVALID`, JSON schema validation failed on LLM output. Retryable (once).
+- `EMPTY_AFTER_REDACTION`, redactor produced empty input. Not retryable.
+- `OVER_LENGTH_CAP`, input exceeds 8,000 chars. Not retryable.
+- `RATE_LIMITED_LOCAL`, exceeded local daily rate limit. Not retryable today.
 
 Every error response also includes a human-readable `message` field. We do not leak stack traces.
 

@@ -42,7 +42,7 @@ The base fingerprint is the always-on personality. Context variants override or 
 ```ts
 interface VoiceFingerprint {
   sentenceLength: {
-    average: 'short' | 'medium' | 'long';     // <8, 8–18, >18 words
+    average: 'short' | 'medium' | 'long';     // <8, 8 to 18, >18 words
     variance: 'low' | 'medium' | 'high';      // do they mix short/long?
   };
   formality: 1 | 2 | 3 | 4 | 5;               // 1 = very casual, 5 = very formal
@@ -66,12 +66,12 @@ interface VoiceFingerprint {
   commonPhrases: string[];       // signature phrases the user actually uses
   wordsToAvoid: string[];        // words the user does not use ("delighted", "leverage", "tapestry")
   greetings: string[];           // "hey", "hi team", "morning,"
-  signoffs: string[];            // "thanks", "—J", "best", "later"
-  howTheyAskQuestions: string;   // 1–3 sentence description
-  howTheyDisagree: string;       // 1–3 sentence description
-  howTheyApologize: string;      // 1–3 sentence description
-  howTheyGiveInstructions: string; // 1–3 sentence description
-  exemplars: string[];           // 3–10 short snippets showing the voice
+  signoffs: string[];            // "thanks", ", J", "best", "later"
+  howTheyAskQuestions: string;   // 1 to 3 sentence description
+  howTheyDisagree: string;       // 1 to 3 sentence description
+  howTheyApologize: string;      // 1 to 3 sentence description
+  howTheyGiveInstructions: string; // 1 to 3 sentence description
+  exemplars: string[];           // 3 to 10 short snippets showing the voice
 }
 ```
 
@@ -96,7 +96,7 @@ interface ContextVariant {
 
 When rewriting in context `email`, the effective fingerprint is `mergeDeep(base, contexts.email.overrides)`. The rewrite prompt receives the merged fingerprint plus the context's `notes` and `exemplars`.
 
-If the user has no samples for a requested context, fall back to `base` and warn in the UI: "Profile has no `linkedin` samples yet — using your base voice."
+If the user has no samples for a requested context, fall back to `base` and warn in the UI: "Profile has no `linkedin` samples yet, using your base voice."
 
 ## Storage
 
@@ -108,7 +108,7 @@ If the user has no samples for a requested context, fall back to `base` and warn
 The options page renders each field with an editor:
 
 - Enums → dropdown.
-- Numbers (1–5) → slider.
+- Numbers (1 to 5) → slider.
 - String arrays → tag input with add/remove.
 - Long-form strings (`howTheyAskQuestions` etc.) → textarea.
 - `exemplars` → readonly list with delete, since LLM-generated exemplars come from user samples.
@@ -125,4 +125,4 @@ User can click "Rebuild profile from samples" which re-runs the style-analysis p
 - Reading-level scoring. We don't compute Flesch-Kincaid. The fingerprint encodes the same information more usefully.
 - A neural embedding **as an editable profile field**. Embeddings are opaque to the user and cannot be edited, so they never appear in the editable profile. The structured JSON fingerprint remains the canonical, user-facing source of truth for *how* a person writes.
 
-> **Change note (2026-06-16):** An earlier version of this section stated "no neural embedding ... Structured JSON is the right tradeoff for MVP," excluding embeddings entirely. That stance is **reversed for retrieval only**: as of Milestone M8, embeddings are computed locally and stored solely as a **retrieval key** for the rewrite engine (see `specs/rewrite-engine-spec.md` → Retrieval, and `docs/open-questions.md` Q-18–Q-22). They are never surfaced as an editable profile field and do not change the fingerprint contract above. The exclusion now means "no embeddings *in the editable profile*," not "no embeddings *anywhere*."
+> **Change note (2026-06-16):** An earlier version of this section stated "no neural embedding ... Structured JSON is the right tradeoff for MVP," excluding embeddings entirely. That stance is **reversed for retrieval only**: as of Milestone M8, embeddings are computed locally and stored solely as a **retrieval key** for the rewrite engine (see `specs/rewrite-engine-spec.md` → Retrieval, and `docs/open-questions.md` Q-18, Q-22). They are never surfaced as an editable profile field and do not change the fingerprint contract above. The exclusion now means "no embeddings *in the editable profile*," not "no embeddings *anywhere*."

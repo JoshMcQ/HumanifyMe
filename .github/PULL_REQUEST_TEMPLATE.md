@@ -32,10 +32,10 @@ task, say so and explain the motivation.
 
 <!-- Tick any that apply so reviewers know to look closely. -->
 
-- [ ] `specs/` (spec change — explain why the spec was wrong/incomplete)
-- [ ] `src/privacy/` (redaction / restore / patterns — MIT)
-- [ ] `src/network/` (outbound calls / telemetry — MIT)
-- [ ] `src/engine/verify.ts` (the deterministic quality gate — MIT)
+- [ ] `specs/` (spec change, explain why the spec was wrong/incomplete)
+- [ ] `src/privacy/` (redaction / restore / patterns, MIT)
+- [ ] `src/network/` (outbound calls / telemetry, MIT)
+- [ ] `src/engine/verify.ts` (the deterministic quality gate, MIT)
 - [ ] None of the above
 
 ## Notes for reviewers

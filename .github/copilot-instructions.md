@@ -8,7 +8,7 @@ HumanifyMe is an **MCP server** (Node.js, TypeScript) that an MCP-compatible age
 
 It is **NOT** a Chrome extension. Do not suggest `chrome.runtime`, MV3 manifest, content scripts, popup HTML, or DOM injection.
 
-## Hard constraints — do not suggest code that violates these
+## Hard constraints, do not suggest code that violates these
 
 1. **No network calls that send raw user samples.** The only outbound payloads allowed are: (a) the structured style profile JSON, (b) the current draft to rewrite, (c) the rewrite directive. Anything else is a bug.
 2. **No outbound destinations other than the configured LLM providers.** No analytics endpoints, no usage reporters, no auto-update pings.
@@ -26,14 +26,14 @@ It is **NOT** a Chrome extension. Do not suggest `chrome.runtime`, MV3 manifest,
 - Functions over classes for stateless logic.
 - Tests live next to source files as `*.test.ts`.
 - `better-sqlite3` or `bun:sqlite` for the local database. No ORM unless complexity demands it.
-- `@modelcontextprotocol/sdk` for the MCP transport — do not roll our own protocol.
+- `@modelcontextprotocol/sdk` for the MCP transport, do not roll our own protocol.
 
 ## Files Copilot should be especially careful in
 
-- Anything under `src/engine/` — this is the prompt and provider boundary. Suggestions here have the biggest blast radius.
-- Anything under `src/mcp/` — tool handlers cross the agent boundary. Validation is non-negotiable.
-- `src/privacy/redact.ts` — regression here leaks PII.
-- `src/config/` — handles API keys. No logs that include key values.
+- Anything under `src/engine/`, this is the prompt and provider boundary. Suggestions here have the biggest blast radius.
+- Anything under `src/mcp/`, tool handlers cross the agent boundary. Validation is non-negotiable.
+- `src/privacy/redact.ts`, regression here leaks PII.
+- `src/config/`, handles API keys. No logs that include key values.
 
 ## When to push back
 

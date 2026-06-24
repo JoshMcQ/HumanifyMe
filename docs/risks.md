@@ -7,14 +7,14 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 ### R-01. First rewrite doesn't sound like the user
 
 - **Likelihood:** medium.
-- **Impact:** high — kills the first-impression conversion.
+- **Impact:** high, kills the first-impression conversion.
 - **Mitigation:** the `build-voice-profile` skill nudges users toward varied samples; profile generation prompt prioritizes verbatim exemplars; survey loop drives prompt iteration in M2/M3.
 - **Trigger:** "sounds like me" survey result falls below 60% in any 7-day window.
 
 ### R-02. The `humanify-pr` skill misfires
 
 - **Likelihood:** medium.
-- **Impact:** medium — either annoys users (fires too often) or is forgotten (fires too rarely).
+- **Impact:** medium, either annoys users (fires too often) or is forgotten (fires too rarely).
 - **Mitigation:** explicit trigger language tuned during alpha; per-skill enable/disable in `~/.humanifyme/config.json`.
 - **Trigger:** alpha feedback flags the skill specifically.
 
@@ -37,7 +37,7 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 ### R-05. API key in `config.json` is readable by other local apps
 
 - **Likelihood:** medium (file is `0600` but a compromised user-shell can read it).
-- **Impact:** medium — user pays an LLM bill they didn't intend.
+- **Impact:** medium, user pays an LLM bill they didn't intend.
 - **Mitigation:** prefer OS keychain (`keytar`) on macOS/Windows; document the risk; surface BYO-key usage caps.
 - **Trigger:** an alpha user reports unexpected spend.
 
@@ -60,14 +60,14 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 ### R-08. MCP SDK or host agent changes a protocol detail
 
 - **Likelihood:** medium (the MCP ecosystem is young).
-- **Impact:** medium — install or tool calls break on a subset of agents.
+- **Impact:** medium, install or tool calls break on a subset of agents.
 - **Mitigation:** pin SDK versions; test against each target host before release; release-note the SDK bump.
 - **Trigger:** users report "install fails on [agent]."
 
 ### R-09. SQLite file lock contention with the CLI running while the MCP server is up
 
 - **Likelihood:** low.
-- **Impact:** low — operations retry cleanly.
+- **Impact:** low, operations retry cleanly.
 - **Mitigation:** keep transactions short; never hold a write lock across a network call.
 - **Trigger:** users report intermittent "database is locked."
 
@@ -81,7 +81,7 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 ### R-11. Schema-validation failures on LLM output
 
 - **Likelihood:** medium.
-- **Impact:** low — single retry + clear error.
+- **Impact:** low, single retry + clear error.
 - **Mitigation:** strict-output reminders in prompts; one retry; surface raw output to the user on second failure for debugging.
 - **Trigger:** schema-fail rate > 5% in audit metrics.
 
@@ -96,7 +96,7 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 
 ### R-13. A host agent ships sample-derived voice natively (Cowork / Claude Code / Cursor / ChatGPT)
 
-- **Likelihood:** medium over 12–18 months.
+- **Likelihood:** medium over 12 to 18 months.
 - **Impact:** high.
 - **Mitigation:** privacy and brand moat; deeper profile schema than any native tool offers; cross-tool consistency story they can't match without disrupting their data businesses.
 - **Trigger:** any of the host agents previews sample-derived voice.
@@ -140,7 +140,7 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 
 ### R-19. Drift back toward Chrome extension thinking
 
-- **Likelihood:** low–medium (the original spec lived in this repo).
-- **Impact:** medium — confuses contributors, slows them down.
+- **Likelihood:** low, medium (the original spec lived in this repo).
+- **Impact:** medium, confuses contributors, slows them down.
 - **Mitigation:** loud reminders in CLAUDE.md, AGENTS.md, copilot-instructions; CI guard against `chrome.runtime` and `manifest.json` outside `plugin/`.
 - **Trigger:** any new PR adds extension-shaped scaffolding.

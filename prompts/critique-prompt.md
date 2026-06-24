@@ -18,9 +18,9 @@ Return a single JSON object:
 
 ```ts
 interface CritiqueResult {
-  overallScore: number;          // 0–100
+  overallScore: number;          // 0 to 100
   subscores: {
-    sentenceLength: number;      // 0–100
+    sentenceLength: number;      // 0 to 100
     formality: number;
     directness: number;
     humor: number;
@@ -30,7 +30,7 @@ interface CritiqueResult {
   };
   problems: string[];            // specific phrases or patterns that miss the fingerprint
   aiSmells: string[];            // any phrases that read as generic AI prose
-  fixSuggestions: string[];      // 1–5 concrete edits, each ≤ 1 sentence
+  fixSuggestions: string[];      // 1 to 5 concrete edits, each ≤ 1 sentence
 }
 ```
 
@@ -38,7 +38,7 @@ Rules:
 
 1. Do not rewrite the candidate. Critique only.
 2. `aiSmells` flags phrases like "leverage," "delighted to," "in today's fast-paced world," parallel triplets, hedging adverbs, and the over-balanced cadence typical of LLM output.
-3. `problems` flags voice mismatches specifically — e.g., "uses 'utilize' twice; fingerprint says wordsToAvoid includes utilize."
+3. `problems` flags voice mismatches specifically, e.g., "uses 'utilize' twice; fingerprint says wordsToAvoid includes utilize."
 4. `fixSuggestions` are actionable. "Cut the second sentence" is good. "Make it more like Joshua" is not.
 5. Be harsh on the AI-smell axis. False negatives there are the worst kind of failure for this product.
 

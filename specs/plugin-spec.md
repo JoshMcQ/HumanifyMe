@@ -9,7 +9,7 @@ Every agent that speaks MCP. The two we ship first-class plugin bundles for at l
 1. **Cowork plugin** (`humanifyme.plugin`). Joshua is already in the Cowork ecosystem; this is the lowest-friction install path for the launch audience.
 2. **Claude Code plugin**. The single largest developer-facing audience for MCP plugins today.
 
-The remaining agents — Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop — install via their native MCP config (`mcp.json` / `claude_desktop_config.json` / etc.) using a one-line config snippet we publish at humanifyme.com.
+The remaining agents, Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop, install via their native MCP config (`mcp.json` / `claude_desktop_config.json` / etc.) using a one-line config snippet we publish at humanifyme.com.
 
 ## What the plugin bundle contains
 
@@ -80,7 +80,7 @@ Triggers: "build my voice profile," "learn how I write," "set up HumanifyMe." Wa
 
 Triggers: writing a pull request description, commit message, or release note. The most natural "agent drafted something for me" entry point in a developer workflow. Calls `humanify_text` with `contextLabel: "professional"` and `directives: ["more_like_me", "shorter"]`.
 
-These skills are the secret sauce of the plugin — without them, the user has to remember to ask the agent to use HumanifyMe. With them, the agent reaches for HumanifyMe at the right moment automatically.
+These skills are the secret sauce of the plugin, without them, the user has to remember to ask the agent to use HumanifyMe. With them, the agent reaches for HumanifyMe at the right moment automatically.
 
 ## Per-agent install instructions
 
@@ -124,7 +124,7 @@ These skills are the secret sauce of the plugin — without them, the user has t
 - A bundled LLM or model weights. We don't ship models.
 - A bundled OS-level keychain helper. Use the OS keychain via Node's `keytar` when available.
 - A telemetry SDK. Telemetry, if it exists, is opt-in inside the MCP server and explained in the privacy spec.
-- Auto-update mechanics for the plugin itself — the marketplace handles that.
+- Auto-update mechanics for the plugin itself, the marketplace handles that.
 
 ## Marketplace listing requirements
 
