@@ -40,6 +40,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "deploy:worker": "npm --prefix cf-worker run deploy"
   },
   "dependencies": {
@@ -51,6 +52,7 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@playwright/test": "^1.45.0",
     "@types/adm-zip": "^0.5.7",
     "@types/diff": "^7.0.0",
     "@types/node": "^22.15.0",
