@@ -1,0 +1,16 @@
+{
+  "name": "humanifyme-feedback-worker",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Cloudflare Worker: HumanifyMe anonymous feedback intake + public /api/stats",
+  "scripts": {
+    "deploy": "wrangler deploy",
+    "db:apply": "wrangler d1 execute humanifyme-feedback --file=./schema.sql --remote",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5.5.0",
+    "wrangler": "^3.60.0"
+  }
+}

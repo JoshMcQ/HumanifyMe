@@ -2,7 +2,7 @@
   "name": "humanifyme",
   "version": "0.1.0",
   "description": "Make AI sound like you. A local-first MCP server that learns your writing voice and rewrites AI-generated drafts in it.",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "author": "Joshua McQueary",
   "homepage": "https://humanifyme.com",
   "repository": {
@@ -39,7 +39,8 @@
     "lint": "eslint src",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "deploy:worker": "npm --prefix cf-worker run deploy"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
