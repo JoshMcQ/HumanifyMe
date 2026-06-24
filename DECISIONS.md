@@ -70,6 +70,22 @@ per install) plus Try-It widget rewrites. The sounds-like-me donut and accept_ra
 unify MCP + Try-It + survey Q1 onto one axis (accept/y, edit/kinda, reject/n), so
 /proof shows one number as the mission requires.
 
+## D9 — Try-It is a curated demo, not a hosted rewrite endpoint
+The mission's "existing paste-and-humanify page" doesn't exist, and the privacy
+spec forbids a hosted rewrite backend (rewrites run locally with the user's own
+key). So `site/try-it.html` is a demo: the visitor picks a generic-AI draft and
+reveals a pre-baked "in-your-voice" rewrite, then rates it. The rating is the real
+signal — it POSTs `source: 'try-it'` to `/api/feedback` and folds into the same
+`/api/stats` number as the MCP and survey data. No draft text is rewritten on a
+server; the page says so.
+
+## D10 — Try-It covered by both a Playwright e2e and a vitest structural test
+"Tested via a Playwright spec" → `e2e/try-it.e2e.ts` (Playwright, route-mocked,
+asserts the POST body); it lives under `e2e/` and is NOT matched by vitest, run via
+`npm run test:e2e` after `npx playwright install`. To keep the widget covered in the
+default suite (no browser download here), `site/try-it.test.ts` also structurally
+asserts the page wiring (3 signal buttons, textarea, send → /api/feedback).
+
 ## D5 — feedbackToken minted per rewrite, including cache hits
 Every `rewrite()` return (fresh or cache hit) mints a fresh `feedbackToken` and a
 pending feedback row (signal NULL) capturing context label, provider, and latency.
