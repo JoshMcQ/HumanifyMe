@@ -35,7 +35,7 @@ export function sanitizeRewrite(rewrite: string, draft: string): string {
   return out.trim();
 }
 
-const NUMBER_RE = /\d+(?:[.,:\/-]\d+)*%?/g;
+const NUMBER_RE = /\d+(?:[.,:/-]\d+)*%?/g;
 const URL_RE = /https?:\/\/[^\s)\]>"']+/g;
 const PLACEHOLDER_RE = /\[[A-Z][A-Z_]*_\d+\]/g;
 

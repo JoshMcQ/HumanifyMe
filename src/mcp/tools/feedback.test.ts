@@ -7,7 +7,6 @@ import { acceptConsent } from '../consent.js';
 import { setProviderOverride, FakeLLMProvider } from '../../providers/index.js';
 import { profiles, feedback } from '../../storage/index.js';
 import { makeProfile } from '../../engine/fixtures.js';
-import { HumanifyError } from '../errors.js';
 
 beforeEach(freshHome);
 afterEach(cleanupHome);

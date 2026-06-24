@@ -7,7 +7,10 @@
   "homepage": "https://humanifyme.com",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/joshmcqueary/humanifyme.git"
+    "url": "git+https://github.com/JoshMcQ/HumanifyMe.git"
+  },
+  "bugs": {
+    "url": "https://github.com/JoshMcQ/HumanifyMe/issues"
   },
   "keywords": [
     "mcp",
@@ -52,13 +55,16 @@
     "zod": "^3.24.0"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.4",
     "@playwright/test": "^1.45.0",
     "@types/adm-zip": "^0.5.7",
     "@types/diff": "^7.0.0",
     "@types/node": "^22.15.0",
+    "eslint": "^9.39.4",
     "tsup": "^8.4.0",
     "tsx": "^4.19.0",
     "typescript": "^5.8.0",
+    "typescript-eslint": "^8.62.0",
     "vitest": "^3.1.0"
   }
 }

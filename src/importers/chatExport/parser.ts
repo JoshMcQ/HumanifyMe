@@ -36,7 +36,6 @@ function loadConversationsJson(inputPath: string): unknown {
   }
   if (inputPath.endsWith('.zip')) {
     // Lazy import keeps adm-zip out of the startup path.
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
     const AdmZip = requireAdmZip();
     const zip = new AdmZip(inputPath);
     const entry = zip
@@ -57,7 +56,6 @@ function requireAdmZip(): new (p: string) => {
   getEntries(): Array<{ entryName: string; getData(): Buffer }>;
 } {
   // Deferred require so the dependency loads only when an import runs.
-  // eslint-disable-next-line
   return (require('adm-zip') as { default?: unknown }).default ?? require('adm-zip');
 }
 

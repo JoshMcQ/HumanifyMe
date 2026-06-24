@@ -1,7 +1,7 @@
 // MCP server assembly: tools, resources, prompts. Spawned over stdio by the
 // host agent. See specs/mcp-server-spec.md.
 
-import { McpServer, ResourceTemplate } from '@modelcontextprotocol/sdk/server/mcp.js';
+import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { z } from 'zod';
 import { registerTool } from './mcp/registerTool.js';
 import { ALL_TOOLS } from './mcp/tools/index.js';
