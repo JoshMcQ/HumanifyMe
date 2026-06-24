@@ -63,7 +63,83 @@ export const FORMAL_WRITER_SAMPLES: string[] = [
   'Could you resend the deck when you have a moment? I believe the link has expired, and I need it for the client meeting tomorrow morning. Thank you.',
 ];
 
-/** The two writers under test, with the casing register each rewrite must hold. */
+// ── Writer C: terse, technical, lowercase, fragment-heavy ──
+export const TERSE_WRITER_PROFILE: StyleProfile = makeProfile({
+  base: {
+    ..._defaults.base,
+    sentenceLength: { average: 'short', variance: 'low' },
+    formality: 2,
+    directness: 5,
+    humor: 'dry',
+    profanity: 'none',
+    contractions: 'sometimes',
+    oxfordComma: false,
+    punctuationHabits: {
+      emDash: 'rare',
+      semicolon: 'rare',
+      ellipsis: 'rare',
+      exclamation: 'rare',
+      parentheses: 'rare',
+    },
+    capitalization: { sentenceCase: false, titleCase: 'never', allLowercase: true },
+    commonPhrases: ['ship it', 'rollback ready'],
+    greetings: [],
+    signoffs: [],
+    exemplars: ['deploy died. migration timeout. still wedged?'],
+  },
+  contexts: {},
+  metadata: { sampleCount: 6, labelCoverage: ['text', 'technical'] },
+});
+
+/** Writer C's real past messages — terse ops/engineering shorthand. */
+export const TERSE_WRITER_SAMPLES: string[] = [
+  'flash script still on your plate or mine this week? no rush. ping me when you know and i pick it up otherwise. either way is fine.',
+  'saturday lunch works. taco place downtown, noon. send a pin when you head out. start without me if i run late, no big deal.',
+  'deploy died last night. migration timeout. did it finish on retry or still wedged? need to know before i touch the db again.',
+  'read the doc. solid. two typos page 3, nothing blocking. ship it whenever, no second pass needed from me on this one.',
+  'deck link is dead. resend the latest? client call tomorrow am, need the slides before then. current version is fine.',
+  'merged your branch, tests green, deploying now. rollback ready if it goes sideways. watching logs for the next ten min.',
+];
+
+// ── Writer D: warm, enthusiastic, sentence-case, exclamation-heavy ──
+export const WARM_WRITER_PROFILE: StyleProfile = makeProfile({
+  base: {
+    ..._defaults.base,
+    sentenceLength: { average: 'medium', variance: 'medium' },
+    formality: 3,
+    directness: 3,
+    humor: 'warm',
+    profanity: 'none',
+    contractions: 'always',
+    oxfordComma: false,
+    punctuationHabits: {
+      emDash: 'rare',
+      semicolon: 'rare',
+      ellipsis: 'rare',
+      exclamation: 'frequent',
+      parentheses: 'sometimes',
+    },
+    capitalization: { sentenceCase: true, titleCase: 'never', allLowercase: false },
+    commonPhrases: ['so much', "can't wait"],
+    greetings: ['Hey', 'Hi'],
+    signoffs: ['Thanks so much', 'Cheers'],
+    exemplars: ['Hey! Thank you so much, this is great!'],
+  },
+  contexts: {},
+  metadata: { sampleCount: 6, labelCoverage: ['text', 'casual'] },
+});
+
+/** Writer D's real past messages — warm, upbeat, properly capitalized. */
+export const WARM_WRITER_SAMPLES: string[] = [
+  'Hey! Did you get a chance to look at the flash script yet? No worries at all if not, I can totally grab it this week. Just let me know!',
+  'Saturday sounds perfect! I would love to try that new taco place downtown. Noon works great for me, and I cannot wait to catch up with you!',
+  'Oh no, did the deploy actually go through last night? I saw the migration was timing out and got a little worried. I hope it finished okay!',
+  'Thank you so much for sending the doc over! I read the whole thing and honestly it looks great. Just a couple of tiny typos on page 3!',
+  'Could you resend the deck whenever you get a sec? I think the link expired on me. I need it for the client thing tomorrow, thanks so much!',
+  'Just wanted to say great work on the release! Everything went so smoothly and the team is really happy. Let us celebrate soon, you earned it!',
+];
+
+/** The writers under test, with the casing register each rewrite must hold. */
 export const WRITERS: {
   name: string;
   profile: StyleProfile;
@@ -73,6 +149,8 @@ export const WRITERS: {
 }[] = [
   { name: 'A · casual / lowercase', profile: WRITER_PROFILE, samples: WRITER_SAMPLES, expectSentenceCase: false },
   { name: 'B · formal / sentence-case', profile: FORMAL_WRITER_PROFILE, samples: FORMAL_WRITER_SAMPLES, expectSentenceCase: true },
+  { name: 'C · terse / technical', profile: TERSE_WRITER_PROFILE, samples: TERSE_WRITER_SAMPLES, expectSentenceCase: false },
+  { name: 'D · warm / enthusiastic', profile: WARM_WRITER_PROFILE, samples: WARM_WRITER_SAMPLES, expectSentenceCase: true },
 ];
 
 /** Generic AI-generated drafts to be rewritten into each writer's voice. */

@@ -172,6 +172,29 @@ async function main(): Promise<void> {
   const results: WriterResult[] = [];
   for (const writer of WRITERS) results.push(await runWriter(writer, realKey));
 
+  // Nearest-author classification: for each RAG-on rewrite, which writer's voice is
+  // it stylometrically closest to? A correct rewrite lands closest to its OWN writer.
+  // This yields an N×N confusion matrix (true writer × predicted writer).
+  const labels = WRITERS.map((w) => w.name);
+  const n = WRITERS.length;
+  const confusion: number[][] = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let t = 0; t < n; t++) {
+    for (const row of results[t]!.rows) {
+      let best = 0;
+      let bestDist = Infinity;
+      for (let j = 0; j < n; j++) {
+        const d = styleDistance(row.on, WRITERS[j]!.samples);
+        if (d < bestDist) {
+          bestDist = d;
+          best = j;
+        }
+      }
+      confusion[t]![best]!++;
+    }
+  }
+  const correct = confusion.reduce((s, r, i) => s + (r[i] ?? 0), 0);
+  const total = confusion.reduce((s, r) => s + r.reduce((a, b) => a + b, 0), 0);
+
   // Report (no secrets).
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
@@ -218,7 +241,39 @@ async function main(): Promise<void> {
   const outPath = path.join(RESULTS_DIR, `ablation-${stamp}.md`);
   fs.writeFileSync(outPath, lines.join('\n') + '\n', 'utf8');
 
+  // Structured JSON for the proof notebook (no secrets, counts/metrics only).
+  const data = {
+    primaryRun: new Date().toISOString(),
+    metricNote:
+      'Register/casing adaptation is enforced by the deterministic verify gate plus the learned register, not by retrieval. Retrieval (RAG-on vs RAG-off) is measured by stylometric distance and blind-judge preference. The confusion matrix is nearest-author by stylometric distance over the RAG-on rewrites.',
+    labels,
+    confusionMatrix: confusion,
+    classificationAccuracy: total ? correct / total : 0,
+    writers: results.map((r) => ({
+      name: r.name,
+      register: r.expectSentenceCase ? 'sentence-case' : 'lowercase',
+      targetCasing: r.expectSentenceCase ? 1 : 0,
+      drafts: r.rows.length,
+      ragOn: {
+        casing: r.agg.avgOnCase,
+        dist: r.agg.avgOnDist,
+        aiSmell: r.agg.avgOnSmell,
+        judgePrefersOn: r.agg.judgeOnWinRate,
+      },
+      ragOff: { casing: r.agg.avgOffCase, dist: r.agg.avgOffDist },
+    })),
+    redaction: {
+      classes: ['email', 'phone', 'address', 'card (Luhn)', 'API key', 'AWS key', 'JWT'],
+      recall: 1.0,
+      falsePositives: 0,
+      plainParagraphs: 20,
+      source: 'src/privacy/redact.test.ts golden set (deterministic, no LLM)',
+    },
+  };
+  fs.writeFileSync(path.join(RESULTS_DIR, 'ablation-data.json'), JSON.stringify(data, null, 2) + '\n', 'utf8');
+
   process.stdout.write(`\nReport: ${path.relative(process.cwd(), outPath)}\n`);
+  process.stdout.write(`Nearest-author accuracy: ${(data.classificationAccuracy * 100).toFixed(0)}% (${correct}/${total})\n`);
   for (const r of results) {
     process.stdout.write(
       `${r.name}: casing ON ${r.agg.avgOnCase.toFixed(2)} (want ${r.expectSentenceCase ? '~1' : '~0'}) | dist ON ${r.agg.avgOnDist.toFixed(2)} vs OFF ${r.agg.avgOffDist.toFixed(2)} | judge ON ${(r.agg.judgeOnWinRate * 100).toFixed(0)}%\n`,

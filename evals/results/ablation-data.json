@@ -1,0 +1,118 @@
+{
+  "primaryRun": "2026-06-24T21:07:04.625Z",
+  "metricNote": "Register/casing adaptation is enforced by the deterministic verify gate plus the learned register, not by retrieval. Retrieval (RAG-on vs RAG-off) is measured by stylometric distance and blind-judge preference. The confusion matrix is nearest-author by stylometric distance over the RAG-on rewrites.",
+  "labels": [
+    "A · casual / lowercase",
+    "B · formal / sentence-case",
+    "C · terse / technical",
+    "D · warm / enthusiastic"
+  ],
+  "confusionMatrix": [
+    [
+      5,
+      0,
+      0,
+      0
+    ],
+    [
+      0,
+      5,
+      0,
+      0
+    ],
+    [
+      2,
+      0,
+      3,
+      0
+    ],
+    [
+      1,
+      0,
+      0,
+      4
+    ]
+  ],
+  "classificationAccuracy": 0.85,
+  "writers": [
+    {
+      "name": "A · casual / lowercase",
+      "register": "lowercase",
+      "targetCasing": 0,
+      "drafts": 5,
+      "ragOn": {
+        "casing": 0,
+        "dist": 2.353684130165235,
+        "aiSmell": 0,
+        "judgePrefersOn": 1
+      },
+      "ragOff": {
+        "casing": 0.05,
+        "dist": 3.3797892161446255
+      }
+    },
+    {
+      "name": "B · formal / sentence-case",
+      "register": "sentence-case",
+      "targetCasing": 1,
+      "drafts": 5,
+      "ragOn": {
+        "casing": 1,
+        "dist": 3.218981662719673,
+        "aiSmell": 0,
+        "judgePrefersOn": 1
+      },
+      "ragOff": {
+        "casing": 1,
+        "dist": 2.3169310072846945
+      }
+    },
+    {
+      "name": "C · terse / technical",
+      "register": "lowercase",
+      "targetCasing": 0,
+      "drafts": 5,
+      "ragOn": {
+        "casing": 0,
+        "dist": 2.9225405490538794,
+        "aiSmell": 0,
+        "judgePrefersOn": 1
+      },
+      "ragOff": {
+        "casing": 0,
+        "dist": 3.086778291402624
+      }
+    },
+    {
+      "name": "D · warm / enthusiastic",
+      "register": "sentence-case",
+      "targetCasing": 1,
+      "drafts": 5,
+      "ragOn": {
+        "casing": 1,
+        "dist": 2.4674600037763357,
+        "aiSmell": 0,
+        "judgePrefersOn": 1
+      },
+      "ragOff": {
+        "casing": 1,
+        "dist": 2.686557295605955
+      }
+    }
+  ],
+  "redaction": {
+    "classes": [
+      "email",
+      "phone",
+      "address",
+      "card (Luhn)",
+      "API key",
+      "AWS key",
+      "JWT"
+    ],
+    "recall": 1,
+    "falsePositives": 0,
+    "plainParagraphs": 20,
+    "source": "src/privacy/redact.test.ts golden set (deterministic, no LLM)"
+  }
+}
