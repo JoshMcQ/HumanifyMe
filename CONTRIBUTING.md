@@ -16,27 +16,27 @@ deterministic verification.
 Behavior in this repo is governed by two checked-in files. They are the source of
 truth, not this document:
 
-- **`CLAUDE.md`** — rules for Claude Code working in the repo.
-- **`AGENTS.md`** — rules for any autonomous coding agent (Copilot, Cursor, Aider, etc.).
+- **`CLAUDE.md`**, rules for Claude Code working in the repo.
+- **`AGENTS.md`**, rules for any autonomous coding agent (Copilot, Cursor, Aider, etc.).
 
 If anything here disagrees with those files, those files win. The highlights that
 apply to every contributor, human or agent:
 
 1. **The repo is spec-driven.** Code follows specs; specs do not follow code. If your
-   change disagrees with a spec, update the spec first (and say why), or pick a
-   different task.
+  change disagrees with a spec, update the spec first (and say why), or pick a
+  different task.
 2. **This is an MCP server, not a browser extension.** If you find yourself writing
-   `chrome.runtime`, `MutationObserver`, content scripts, or site adapters, stop and
-   re-read `specs/mcp-server-spec.md`. The project pivoted from an extension to
-   MCP-only on 2026-06-03.
-3. **No backend in the MVP.** Milestones 1–5 are MCP-only. A backend appears in
-   Milestone 6+ and only if `specs/backend-spec.md` justifies it.
+  `chrome.runtime`, `MutationObserver`, content scripts, or site adapters, stop and
+  re-read `specs/mcp-server-spec.md`. The project pivoted from an extension to
+  MCP-only on 2026-06-03.
+3. **No backend in the MVP.** Milestones 1 to 5 are MCP-only. A backend appears in
+  Milestone 6+ and only if `specs/backend-spec.md` justifies it.
 4. **No fine-tuning.** The MVP uses prompt engineering plus structured style profiles.
-   If you think a model needs tuning, write the case in `docs/open-questions.md`
-   instead of building it.
+  If you think a model needs tuning, write the case in `docs/open-questions.md`
+  instead of building it.
 5. **No silent monitoring.** The server acts only when an agent calls one of its
-   tools. No file watching, no clipboard listening, no observing agent output outside
-   opted-in hooks.
+  tools. No file watching, no clipboard listening, no observing agent output outside
+  opted-in hooks.
 
 ---
 
@@ -52,7 +52,7 @@ rules are not style preferences; a PR that breaks one will not merge.
   `restore()` swaps the originals back after the model responds, so the user never
   sees placeholders.
 - **Never log raw content.** The audit log and the feedback/metrics tables store
-  **counts and dimensions only** — provider, route, payload byte size, draft length,
+  **counts and dimensions only**, provider, route, payload byte size, draft length,
   context label, latency, success/error code. No draft, no rewrite, no edited text,
   ever. If you are tempted to log a draft "just for debugging," don't.
 - **All persistent state lives under `~/.humanifyme/`** (`config.json` + `data.db`),
@@ -61,7 +61,7 @@ rules are not style preferences; a PR that breaks one will not merge.
 - **Outbound calls are allowlisted.** Only `src/providers` and `src/network` may call
   `fetch()`, and every hardcoded host must be on the allowlist enforced by
   `src/network/outbound-scan.test.ts`. If you add a network call elsewhere, that test
-  fails by design — that is the point.
+  fails by design, that is the point.
 - **Retrieved voice-memory exemplars are re-redacted at send time.** We never trust
   store-time redaction. Embeddings are computed on-device and are treated as
   PII-equivalent: local-only, never sent.
@@ -78,7 +78,7 @@ When a privacy tradeoff is unclear, do not guess. Add the question to
 
 ## 3. Development setup
 
-You need **Node.js >= 22.5** (the server uses the built-in `node:sqlite` module —
+You need **Node.js >= 22.5** (the server uses the built-in `node:sqlite` module,
 older Node will not work). No native build tools or external database required.
 
 ```bash
@@ -89,15 +89,14 @@ npm install
 
 Common scripts:
 
-| Command              | What it does                                          |
+| Command | What it does |
 | -------------------- | ----------------------------------------------------- |
-| `npm test`           | Run the full unit suite once (vitest).                |
-| `npm run test:watch` | Vitest in watch mode while you work.                  |
-| `npm run typecheck`  | `tsc --noEmit` — must pass with zero errors.          |
-| `npm run lint`       | ESLint over `src`.                                    |
-| `npm run build`      | Bundle the MCP server and CLI with tsup into `dist/`. |
-| `npm run dev`        | Run the MCP server from source via tsx.               |
-| `npm run test:e2e`   | Playwright end-to-end suite (only if you touched it). |
+| `npm test` | Run the full unit suite once (vitest). |
+| `npm run test:watch` | Vitest in watch mode while you work. |
+| `npm run typecheck` | `tsc --noEmit`; must pass with zero errors. |
+| `npm run lint` | ESLint over `src`. |
+| `npm run build` | Bundle the MCP server and CLI with tsup into `dist/`. |
+| `npm run dev` | Run the MCP server from source via tsx. |
 
 Before you open a PR, these four must be green:
 
@@ -115,13 +114,13 @@ both.
 
 Work is organized into milestones and tasks. Do not freelance.
 
-- **`tasks/milestones.md`** — the milestone roadmap and its gate. Milestone 0 (specs)
+- **`tasks/milestones.md`**, the milestone roadmap and its gate. Milestone 0 (specs)
   must show complete before any application code is written.
-- **`tasks/task-breakdown.md`** — the list of concrete tasks, each with explicit
+- **`tasks/task-breakdown.md`**, the list of concrete tasks, each with explicit
   acceptance criteria. Pick the **lowest-numbered unblocked task** unless told
   otherwise.
-- **`tasks/acceptance-criteria.md`** — the criteria, spelled out.
-- **`tasks/test-plan.md`** — which tests a given task must add or update.
+- **`tasks/acceptance-criteria.md`**, the criteria, spelled out.
+- **`tasks/test-plan.md`**, which tests a given task must add or update.
 
 **One task at a time.** Complete it end-to-end (code + tests + every acceptance
 criterion verified), then stop and report. Do not chain tasks without checking in.
@@ -129,14 +128,14 @@ criterion verified), then stop and report. Do not chain tasks without checking i
 ### The spec-gate workflow for every change
 
 1. **Read the linked spec section** for the task. The "What lives where" table in
-   `CLAUDE.md` maps questions to the file that answers them.
+  `CLAUDE.md` maps questions to the file that answers them.
 2. **Restate the objective and acceptance criteria** in your commit/PR message, in
-   your own words.
+  your own words.
 3. **Implement** the smallest change that satisfies the task.
 4. **Write or update tests** per `tasks/test-plan.md`.
 5. **Verify every acceptance criterion.** Do not mark the task done if any AC fails.
 6. **If the spec is wrong or incomplete, fix the spec first** and call it out. Do not
-   silently work around it.
+  silently work around it.
 7. **New question?** Add it to `docs/open-questions.md`.
 
 ---
@@ -167,8 +166,8 @@ Two areas deserve special care:
 If your change touches the rewrite pipeline (`src/engine/rewrite.ts`), remember the
 ordering subtleties that tests pin down: the cache check runs **before** redaction and
 the provider call, the cache key folds in a RAG signature so adding/removing voice
-samples invalidates it, and a fresh feedback token is minted on every call —
-including cache hits — without mutating the cached object. Read the file header before
+samples invalidates it, and a fresh feedback token is minted on every call,
+including cache hits, without mutating the cached object. Read the file header before
 you reorder anything.
 
 ---
@@ -195,20 +194,20 @@ you reorder anything.
 ## 7. Licensing: source-available with an MIT subset
 
 HumanifyMe is **source-available**, not open-source in the OSI sense. Most of the repo
-is proprietary (all rights reserved). A defined subset — the parts that substantiate
-the privacy claims — is released under the **MIT License** so anyone can audit exactly
+is proprietary (all rights reserved). A defined subset, the parts that substantiate
+the privacy claims, is released under the **MIT License** so anyone can audit exactly
 what does and does not leave a machine. See `LICENSE` and `LICENSE-MIT.txt`.
 
 The MIT-licensed directories are:
 
-- `src/privacy/` — redaction, restore, and pattern definitions.
-- `src/network/` — the only module permitted to make outbound telemetry calls.
-- `src/engine/verify.ts` — the deterministic output/casing quality gate.
+- `src/privacy/`, redaction, restore, and pattern definitions.
+- `src/network/`, the only module permitted to make outbound telemetry calls.
+- `src/engine/verify.ts`, the deterministic output/casing quality gate.
 
 What this means for you as a contributor:
 
 - A contribution to those three areas is contributed under the **MIT License**, and
-  each MIT file carries an `SPDX-License-Identifier: MIT` header — keep it. If you add
+  each MIT file carries an `SPDX-License-Identifier: MIT` header, keep it. If you add
   a new file there, add the header.
 - A contribution anywhere else is to the **proprietary** parts of the project. By
   opening a PR you agree your contribution may be used under the repository's
@@ -230,8 +229,8 @@ If you are unsure which bucket your change falls in, ask in the PR before you wr
   imported so they are never hard dependencies. Hold that line.
 - **TypeScript strict.** `npm run typecheck` must pass; no `any` escape hatches without
   a comment explaining why.
-- **Product copy must pass the banned-words gate.** Any user-facing string — tool
-  descriptions, CLI prompts, README, error messages — must not sound like generic AI
+- **Product copy must pass the banned-words gate.** Any user-facing string, tool
+  descriptions, CLI prompts, README, error messages, must not sound like generic AI
   marketing. The forbidden list includes: *seamless, supercharge, unlock, leverage,
   empower, delight, world-class, powerful, smart*. The product literally rewrites text
   to remove this register; our own copy must clear the same bar. When in doubt, run it
@@ -244,17 +243,17 @@ If you are unsure which bucket your change falls in, ask in the PR before you wr
 Good first contributions, roughly in order of approachability:
 
 1. **Redaction patterns** (`src/privacy/patterns.ts`). Adding a well-tested pattern (a
-   new secret format, an international phone shape) is self-contained, MIT-licensed,
-   and easy to verify. Note that pattern order is load-bearing — read the existing
-   comments before reordering.
+  new secret format, an international phone shape) is self-contained, MIT-licensed,
+  and easy to verify. Note that pattern order is load-bearing, read the existing
+  comments before reordering.
 2. **Verification checks** (`src/engine/verify.ts`). Small, pure, deterministic, and
-   covered by table-driven tests. A great place to learn the codebase's testing style.
+  covered by table-driven tests. A great place to learn the codebase's testing style.
 3. **Importers and CLI ergonomics** (`src/cli-main.ts`, plus the chat-export and
-   text-file importers under `src/importers/`). User-facing polish with clear
-   acceptance criteria.
+  text-file importers under `src/importers/`). User-facing polish with clear
+  acceptance criteria.
 4. **Docs and specs.** Tightening a spec, fixing a drifted prompt duplicate (the `.md`
-   prompt files are the human-readable source of truth and can drift from their `.ts`
-   twins), or improving `docs/open-questions.md` is genuinely useful.
+  prompt files are the human-readable source of truth and can drift from their `.ts`
+  twins), or improving `docs/open-questions.md` is genuinely useful.
 
 Before picking anything up, open `tasks/task-breakdown.md` and take the
 lowest-numbered unblocked task with acceptance criteria that match what you want to do.

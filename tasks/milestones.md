@@ -203,7 +203,11 @@ feeds a public proof page — so quality is measured continuously and provable.
 **Tasks inside:** STEP 1 (feedback signal) → STEP 8 (docs + PR), one commit each.
 
 **Status:** complete (2026-06-24). Built on branch `m9-validation`, one TDD commit per
-step; full suite green throughout (~196 tests + worker suite). License split landed
-(MIT for privacy/network/verify; rest proprietary). See `DECISIONS.md` for the
-autonomously-resolved ambiguities (static HTML vs Astro, outbound-scan location,
-feedback model, worker test strategy).
+step; full suite green throughout. License split landed (MIT for privacy/network/verify;
+rest proprietary). See `DECISIONS.md` for the autonomously-resolved ambiguities (static
+HTML vs Astro, outbound-scan location, feedback model, worker test strategy).
+
+Note: the public web stack built here (`cf-worker/`, the static `site/` pages, and the
+`e2e/` specs) was later relocated to a private maintainer tree before the public launch,
+so it is no longer part of this repository. The MCP-side feedback and metrics
+(`humanify_record_feedback`, `humanify_metrics`, opt-in `src/network/` sharing) remain.
