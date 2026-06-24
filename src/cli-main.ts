@@ -335,6 +335,45 @@ Wipe everything anytime with: humanifyme wipe --confirm
         ? 'step 4 (profile): built. try: echo "draft" | humanifyme rewrite'
         : 'step 4 (profile): not built. once you have 3+ samples: humanifyme profile rebuild',
     );
+
+    // Step 5 — opt-in anonymous validation sharing. Default OFF; never content.
+    if (readConfig().shareAnonymousFeedback) {
+      console.log('step 5 (share results): on. turn off anytime: humanifyme share off');
+    } else {
+      console.log(`
+step 5 — share anonymous results? (optional)
+
+Help others see HumanifyMe actually works. If you turn this on, it sends ONLY
+counts — how often rewrites sounded like you, by context/provider, and latency.
+No drafts, no rewrites, no text of any kind. Ever. At most once a day.
+You can turn it off anytime with: humanifyme share off`);
+      const share = await promptYesNo('Share anonymous counts? [y/N] ');
+      updateConfig((c) => {
+        c.shareAnonymousFeedback = share;
+      });
+      console.log(
+        share
+          ? 'step 5 (share results): on, thank you. counts only. off anytime: humanifyme share off'
+          : 'step 5 (share results): off. you can opt in later: humanifyme share on',
+      );
+    }
+  });
+
+// --- share (toggle anonymous validation sharing) ---
+program
+  .command('share <on|off>')
+  .description('Turn anonymous results sharing on or off (counts only, never content)')
+  .action((state: string) => {
+    const on = state === 'on';
+    if (state !== 'on' && state !== 'off') {
+      console.error('usage: humanifyme share on|off');
+      process.exitCode = 1;
+      return;
+    }
+    updateConfig((c) => {
+      c.shareAnonymousFeedback = on;
+    });
+    console.log(`anonymous sharing is now ${on ? 'ON (counts only)' : 'OFF'}.`);
   });
 
 function requireConsentCli(): void {
