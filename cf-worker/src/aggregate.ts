@@ -40,6 +40,8 @@ export function computeStats(events: EventRow[], now: string): Stats {
   const byContext: Record<string, SignalCounts> = {};
   const byProvider: Record<string, SignalCounts> = {};
   const byWeek: Record<string, number> = {};
+  const p50s: number[] = [];
+  const p95s: number[] = [];
   let totalRewrites = 0;
 
   // 1. MCP: keep the latest event per anonymous install (cumulative semantics).
@@ -59,8 +61,13 @@ export function computeStats(events: EventRow[], now: string): Stats {
     byWeek[isoWeek(e.ts)] = (byWeek[isoWeek(e.ts)] ?? 0) + num(totals.rewrites);
     mergeCounts(byContext, e.payload.by_context);
     mergeCounts(byProvider, e.payload.by_provider);
+    if (num(e.payload.latency_p50) > 0) p50s.push(num(e.payload.latency_p50));
+    if (num(e.payload.latency_p95) > 0) p95s.push(num(e.payload.latency_p95));
   }
   const totalUsers = latestByAnon.size;
+  // Per-install percentiles can't be merged exactly, so report the mean across
+  // reporting installs — a faithful-enough public latency figure.
+  const mean = (xs: number[]) => (xs.length === 0 ? 0 : Math.round(xs.reduce((a, b) => a + b, 0) / xs.length));
 
   // 2. Try-It widget: one rewrite per event, single signal.
   for (const e of events) {
@@ -89,6 +96,8 @@ export function computeStats(events: EventRow[], now: string): Stats {
     by_context: byContext,
     by_provider: byProvider,
     by_week: byWeek,
+    latency_p50: mean(p50s),
+    latency_p95: mean(p95s),
     updated_at: now,
   };
 }
