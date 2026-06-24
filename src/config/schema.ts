@@ -34,6 +34,12 @@ export const ConfigSchema = z.object({
   errorReporting: z.boolean(),
   telemetry: z.boolean(),
   rag: RagConfigSchema,
+  // Anonymous validation sharing (M9). OFF by default — opt-in only, explained in
+  // onboarding. When true, the MCP ships AGGREGATE COUNTS (never content) at most
+  // once/24h. shareAnonymousId is a one-time opaque id; lastSharedAt gates the cadence.
+  shareAnonymousFeedback: z.boolean().default(false),
+  shareAnonymousId: z.string().optional(),
+  lastSharedAt: z.string().datetime({ offset: true }).optional(),
 }).strict();
 
 export type Config = z.infer<typeof ConfigSchema>;
@@ -49,4 +55,5 @@ export const DEFAULT_CONFIG: Config = {
   errorReporting: false,
   telemetry: false,
   rag: { enabled: true, embedder: 'lexical', minSamples: 5, topK: 5, mmrLambda: 0.7, dedupCosine: 0.97 },
+  shareAnonymousFeedback: false,
 };

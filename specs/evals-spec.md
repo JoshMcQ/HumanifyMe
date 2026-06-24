@@ -122,7 +122,7 @@ The harness runs the test set against the server, collects rewrites, dispatches 
 
 ## Order of operations
 
-Per `specs/research-credibility-spec.md`, do not publish HMB-v1 before HumanifyMe has at least 1,000 weekly active users. A benchmark without a product behind it reads as posturing and erodes the credibility we are trying to build.
+Do not publish HMB-v1 before HumanifyMe has at least 1,000 weekly active users. A benchmark without a product behind it reads as posturing and erodes the credibility we are trying to build.
 
 ## What is intentionally out of scope
 

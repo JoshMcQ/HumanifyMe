@@ -10,6 +10,8 @@ export { cache } from './repositories/cache.js';
 export { audit } from './repositories/audit.js';
 export { embeddings } from './repositories/embeddings.js';
 export type { EmbeddingRecord } from './repositories/embeddings.js';
+export { feedback, SIGNAL_TO_SOUNDS_LIKE_ME } from './repositories/feedback.js';
+export type { FeedbackSignal, SoundsLikeMe, FeedbackMetrics, SignalCounts } from './repositories/feedback.js';
 export { getDb, closeDb } from './db.js';
 
 /**

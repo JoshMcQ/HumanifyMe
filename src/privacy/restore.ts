@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: MIT
 import { RedactionMap } from './redact.js';
 
 /**

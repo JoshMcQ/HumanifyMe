@@ -22,6 +22,13 @@ stored style profile.
    - `directives`: default `["more_like_me"]`. Add `"shorter"`, `"warmer"`, `"more_direct"`, `"more_professional"`, or `"less_aggressive"` only if the user asked for that quality.
 2. Show the user the `rewrite` field. If `notes` is present, mention it in one short sentence.
 3. Do not edit the rewrite afterward — the tool's output IS the user's voice. Re-call the tool with different directives instead.
+4. **Close the loop.** After the user has seen the rewrite, ask once, briefly:
+   **"did this sound like you? (yes / kinda / no)"** — then call
+   `humanify_record_feedback` with the `feedbackToken` from the `humanify_text`
+   response, mapping the answer to `signal`: yes → `accept`, kinda → `edit`,
+   no → `reject`. Pass their words as `reason` if they gave any. This is how the
+   voice gets better and how the user can see HumanifyMe actually works. Ask only
+   once; never nag. If they ignore it, drop it.
 
 ## Failure handling
 

@@ -17,6 +17,10 @@ runs it through the user's voice before it ships.
    - `directives`: `["more_like_me", "shorter"]`.
 3. Use the `rewrite` as the final text. Keep code blocks, issue numbers, and links exactly as the tool returned them — it preserves concrete commitments.
 4. If the tool fails because no profile exists, fall back to your draft and tell the user that HumanifyMe setup (build-voice-profile) would make this automatic.
+5. **Close the loop.** Once the user has seen the result, ask once: **"did this
+   sound like you? (yes / kinda / no)"** and call `humanify_record_feedback` with
+   the `feedbackToken` from the `humanify_text` response (yes → `accept`,
+   kinda → `edit`, no → `reject`; their words as `reason`). One ask, no nagging.
 
 ## Don't
 

@@ -1,0 +1,59 @@
+name: Bug report
+description: Something in HumanifyMe behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a bug. Please do not paste real writing samples, API keys,
+        or other private content — HumanifyMe is a privacy tool, and the issue tracker
+        is public. Redact anything sensitive before posting.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What did you expect, and what did you get instead?
+      placeholder: I ran `humanifyme rewrite` and ...
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Steps to reproduce
+      description: The exact commands or tool calls. Use redacted/synthetic input.
+      placeholder: |
+        1. node dist/humanifyme.mjs ...
+        2. ...
+    validations:
+      required: true
+  - type: input
+    id: surface
+    attributes:
+      label: Surface
+      description: MCP (which agent?) or CLI?
+      placeholder: Claude Code plugin / CLI / Cursor / ...
+    validations:
+      required: true
+  - type: input
+    id: provider
+    attributes:
+      label: LLM provider
+      placeholder: anthropic / openai / gemini / ollama
+    validations:
+      required: false
+  - type: input
+    id: env
+    attributes:
+      label: Node version and OS
+      placeholder: Node 22.5 on macOS 15 / Windows 11 / Linux
+    validations:
+      required: true
+  - type: textarea
+    id: audit
+    attributes:
+      label: Audit output (optional)
+      description: >
+        `humanifyme audit` (or the `humanify_audit_list` tool) shows metadata-only
+        request rows. Safe to paste — it contains no content.
+    validations:
+      required: false

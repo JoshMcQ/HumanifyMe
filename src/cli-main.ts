@@ -5,13 +5,15 @@ import './suppressExperimentalWarnings.js';
 import fs from 'node:fs';
 import { Command } from 'commander';
 import { VERSION } from './version.js';
-import { samples, audit, wipeAll, profiles } from './storage/index.js';
+import { samples, audit, wipeAll, profiles, feedback } from './storage/index.js';
 import { readConfig, updateConfig } from './config/index.js';
 import { acceptConsent, consentStatus } from './mcp/consent.js';
 import { getProvider } from './providers/index.js';
 import { buildProfile } from './engine/buildProfile.js';
 import { rewrite } from './engine/rewrite.js';
 import { renderProfileMarkdown } from './engine/profileMarkdown.js';
+import { executeTool } from './mcp/registerTool.js';
+import { recordFeedbackTool } from './mcp/tools/feedback.js';
 import { previewChatExport, commitChatExport } from './importers/chatExport/index.js';
 import { importTextFiles } from './importers/textFiles/index.js';
 import { backfillEmbeddings, embedSample } from './engine/voiceMemory.js';
@@ -185,6 +187,11 @@ program
     console.error(
       `\n[${result.providerLatencyMs}ms, ${result.tokens.input}+${result.tokens.output} tokens${result.redactionApplied ? ', redaction applied' : ''}]`,
     );
+    // Active-learning loop: ask the one question that makes the metrics real.
+    // Only when interactive AND stdin wasn't consumed by a piped draft.
+    if (file && process.stdin.isTTY) {
+      await promptFeedback(result.feedbackToken);
+    }
   });
 
 // --- import ---
@@ -237,6 +244,37 @@ program
         `${e.timestamp}  ${e.provider}${e.route}  ${e.payloadBytes}B  draft=${e.draftLength}  profile=${e.profileIncluded ? 'y' : 'n'}  ${e.success ? 'ok' : `FAIL(${e.errorCode})`}`,
       );
     }
+  });
+
+program
+  .command('metrics')
+  .description('Show how well HumanifyMe is matching your voice (local, counts only)')
+  .option('--since <iso>', 'only count feedback on or after this ISO timestamp')
+  .action((opts: { since?: string }) => {
+    const m = feedback.metrics(opts.since ? { since: opts.since } : {});
+    if (m.total === 0) {
+      console.log('no feedback yet. rewrite something and answer "did this sound like you?"');
+      return;
+    }
+    const pct = (x: number) => `${(x * 100).toFixed(0)}%`;
+    console.log(`\nHumanifyMe — your voice-match metrics${opts.since ? ` (since ${opts.since})` : ''}`);
+    console.log('─'.repeat(52));
+    console.log(`rewrites:        ${m.total}  (${m.recorded} rated)`);
+    console.log(`sounds like me:  yes ${m.soundsLikeMe.y} · kinda ${m.soundsLikeMe.kinda} · no ${m.soundsLikeMe.n}`);
+    console.log(`accept / edit / reject:  ${pct(m.acceptRate)} / ${pct(m.editRate)} / ${pct(m.rejectRate)}`);
+    console.log(`latency:         p50 ${m.latencyP50}ms · p95 ${m.latencyP95}ms`);
+    const rows = (label: string, by: Record<string, { total: number; accept: number; edit: number; reject: number }>) => {
+      const keys = Object.keys(by).sort();
+      if (keys.length === 0) return;
+      console.log(`\nby ${label}:`);
+      for (const k of keys) {
+        const c = by[k]!;
+        console.log(`  ${k.padEnd(14)} ${c.total} rewrites  (a${c.accept}/e${c.edit}/r${c.reject})`);
+      }
+    };
+    rows('context', m.byContext);
+    rows('provider', m.byProvider);
+    console.log('');
   });
 
 program
@@ -297,6 +335,45 @@ Wipe everything anytime with: humanifyme wipe --confirm
         ? 'step 4 (profile): built. try: echo "draft" | humanifyme rewrite'
         : 'step 4 (profile): not built. once you have 3+ samples: humanifyme profile rebuild',
     );
+
+    // Step 5 — opt-in anonymous validation sharing. Default OFF; never content.
+    if (readConfig().shareAnonymousFeedback) {
+      console.log('step 5 (share results): on. turn off anytime: humanifyme share off');
+    } else {
+      console.log(`
+step 5 — share anonymous results? (optional)
+
+Help others see HumanifyMe actually works. If you turn this on, it sends ONLY
+counts — how often rewrites sounded like you, by context/provider, and latency.
+No drafts, no rewrites, no text of any kind. Ever. At most once a day.
+You can turn it off anytime with: humanifyme share off`);
+      const share = await promptYesNo('Share anonymous counts? [y/N] ');
+      updateConfig((c) => {
+        c.shareAnonymousFeedback = share;
+      });
+      console.log(
+        share
+          ? 'step 5 (share results): on, thank you. counts only. off anytime: humanifyme share off'
+          : 'step 5 (share results): off. you can opt in later: humanifyme share on',
+      );
+    }
+  });
+
+// --- share (toggle anonymous validation sharing) ---
+program
+  .command('share <on|off>')
+  .description('Turn anonymous results sharing on or off (counts only, never content)')
+  .action((state: string) => {
+    const on = state === 'on';
+    if (state !== 'on' && state !== 'off') {
+      console.error('usage: humanifyme share on|off');
+      process.exitCode = 1;
+      return;
+    }
+    updateConfig((c) => {
+      c.shareAnonymousFeedback = on;
+    });
+    console.log(`anonymous sharing is now ${on ? 'ON (counts only)' : 'OFF'}.`);
   });
 
 function requireConsentCli(): void {
@@ -304,6 +381,31 @@ function requireConsentCli(): void {
     console.error('consent required first. run: humanifyme setup');
     process.exit(1);
   }
+}
+
+/** "did this sound like you? [y/e/n]" → records via the feedback tool.
+ *  y = accept (used as-is), e = edited it (kinda), n = no. Enter skips. */
+async function promptFeedback(token: string): Promise<void> {
+  const readline = await import('node:readline/promises');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const answer = (
+    await rl.question('\ndid this sound like you? [y]es / [e] i edited it / [n]o (enter to skip): ')
+  )
+    .trim()
+    .toLowerCase();
+  const signal = ({ y: 'accept', yes: 'accept', e: 'edit', edited: 'edit', n: 'reject', no: 'reject' } as const)[
+    answer as 'y' | 'yes' | 'e' | 'edited' | 'n' | 'no'
+  ];
+  if (!signal) {
+    rl.close();
+    console.error('[feedback skipped]');
+    return;
+  }
+  const reason =
+    signal === 'accept' ? '' : (await rl.question('what felt off? (optional, enter to skip): ')).trim();
+  rl.close();
+  await executeTool(recordFeedbackTool, { token, signal, ...(reason ? { reason } : {}) });
+  console.error('[thanks — recorded locally]');
 }
 
 async function promptYesNo(question: string): Promise<boolean> {

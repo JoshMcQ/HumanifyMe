@@ -28,4 +28,7 @@ description: Set up HumanifyMe by teaching it how the user writes. Use when the 
    the returned profile) in plain English. Invite the user to correct anything;
    apply corrections with `humanify_update_profile`.
 5. **Prove it.** Offer to humanify a sample draft right away so the user sees
-   the payoff.
+   the payoff. After showing the rewrite, ask once: **"did this sound like you?
+   (yes / kinda / no)"** and call `humanify_record_feedback` with the
+   `feedbackToken` from the `humanify_text` response (yes → `accept`,
+   kinda → `edit`, no → `reject`). This first signal seeds the quality metrics.

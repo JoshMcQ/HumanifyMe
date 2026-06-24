@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Open questions and design discussion
+    url: https://github.com/joshmcqueary/humanifyme/blob/main/docs/open-questions.md
+    about: Unresolved product/architecture questions live here. Good for "should we even do X?" before filing a feature request.
+  - name: Privacy and security model
+    url: https://github.com/joshmcqueary/humanifyme/blob/main/specs/privacy-security-spec.md
+    about: The non-negotiable rules about what stays on a person's machine. Read before proposing anything that touches data flow.
+  - name: How to contribute
+    url: https://github.com/joshmcqueary/humanifyme/blob/main/CONTRIBUTING.md
+    about: Dev setup, the spec-gate workflow, and where to start.

@@ -1,21 +1,24 @@
-MIT License
+HumanifyMe — Source-Available License Notice
+Copyright (c) 2026 Joshua McQueary. All rights reserved.
 
-Copyright (c) 2026 Joshua McQueary
+HumanifyMe is source-available. Most of this repository is proprietary and not
+licensed for redistribution or derivative use. A defined subset — the parts that
+substantiate the product's privacy claims — is released under the MIT License so
+anyone can audit exactly what data does and does not leave the user's machine.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+MIT-LICENSED PARTS (see LICENSE-MIT.txt for the full text)
+  - src/privacy/            (redaction, restore, and pattern definitions)
+  - src/network/            (the only module permitted to make outbound telemetry calls)
+  - src/engine/verify.ts    (the deterministic output/casing quality gate)
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Each MIT-licensed file additionally carries an `SPDX-License-Identifier: MIT`
+header. You may use, copy, modify, and redistribute those files under the terms of
+the MIT License.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+PROPRIETARY PARTS (all rights reserved; not licensed)
+  - src/engine/rewrite.ts and the rewrite pipeline
+  - all prompt templates under prompts/ and src/engine/prompts/
+  - the bundled skills under humanifyme.plugin/skills/
+  - everything else in this repository not listed under the MIT-licensed parts
+
+No trademark rights are granted. "HumanifyMe" is a mark of Joshua McQueary.
