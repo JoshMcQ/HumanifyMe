@@ -12,6 +12,8 @@ import { getProvider } from './providers/index.js';
 import { buildProfile } from './engine/buildProfile.js';
 import { rewrite } from './engine/rewrite.js';
 import { renderProfileMarkdown } from './engine/profileMarkdown.js';
+import { executeTool } from './mcp/registerTool.js';
+import { recordFeedbackTool } from './mcp/tools/feedback.js';
 import { previewChatExport, commitChatExport } from './importers/chatExport/index.js';
 import { importTextFiles } from './importers/textFiles/index.js';
 import { backfillEmbeddings, embedSample } from './engine/voiceMemory.js';
@@ -185,6 +187,11 @@ program
     console.error(
       `\n[${result.providerLatencyMs}ms, ${result.tokens.input}+${result.tokens.output} tokens${result.redactionApplied ? ', redaction applied' : ''}]`,
     );
+    // Active-learning loop: ask the one question that makes the metrics real.
+    // Only when interactive AND stdin wasn't consumed by a piped draft.
+    if (file && process.stdin.isTTY) {
+      await promptFeedback(result.feedbackToken);
+    }
   });
 
 // --- import ---
@@ -304,6 +311,31 @@ function requireConsentCli(): void {
     console.error('consent required first. run: humanifyme setup');
     process.exit(1);
   }
+}
+
+/** "did this sound like you? [y/e/n]" → records via the feedback tool.
+ *  y = accept (used as-is), e = edited it (kinda), n = no. Enter skips. */
+async function promptFeedback(token: string): Promise<void> {
+  const readline = await import('node:readline/promises');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  const answer = (
+    await rl.question('\ndid this sound like you? [y]es / [e] i edited it / [n]o (enter to skip): ')
+  )
+    .trim()
+    .toLowerCase();
+  const signal = ({ y: 'accept', yes: 'accept', e: 'edit', edited: 'edit', n: 'reject', no: 'reject' } as const)[
+    answer as 'y' | 'yes' | 'e' | 'edited' | 'n' | 'no'
+  ];
+  if (!signal) {
+    rl.close();
+    console.error('[feedback skipped]');
+    return;
+  }
+  const reason =
+    signal === 'accept' ? '' : (await rl.question('what felt off? (optional, enter to skip): ')).trim();
+  rl.close();
+  await executeTool(recordFeedbackTool, { token, signal, ...(reason ? { reason } : {}) });
+  console.error('[thanks — recorded locally]');
 }
 
 async function promptYesNo(question: string): Promise<boolean> {

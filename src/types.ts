@@ -78,6 +78,9 @@ export interface RewriteResponse {
   providerLatencyMs: number;
   tokens: { input: number; output: number };
   redactionApplied: boolean;
+  /** Opaque handle (uuid) for recording "did this sound like you?" feedback on
+   *  this specific rewrite via humanify_record_feedback. Minted per call. */
+  feedbackToken: string;
 }
 
 export const MAX_DRAFT_CHARS = 8000;

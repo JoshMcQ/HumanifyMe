@@ -1,7 +1,7 @@
 // The rewrite pipeline per specs/rewrite-engine-spec.md. One implementation,
 // shared by the MCP tool layer and the CLI.
 
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import {
   ContextLabel,
   Directive,
@@ -11,7 +11,7 @@ import {
 import { redact } from '../privacy/redact.js';
 import { restore } from '../privacy/restore.js';
 import { HumanifyError } from '../mcp/errors.js';
-import { cache, audit, samples } from '../storage/index.js';
+import { cache, audit, samples, feedback } from '../storage/index.js';
 import { getEmbeddingProvider } from '../providers/index.js';
 import { readConfig } from '../config/index.js';
 import { LLMProvider } from '../providers/types.js';
@@ -68,7 +68,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
   // corpus changes (a profile hash alone would not — samples live separately).
   const key = cacheKey(args.profile, args.contextLabel, directives, args.draft, ragSignature());
   const hit = cache.get(key);
-  if (hit) return hit;
+  if (hit) return attachFeedback(hit, args, null);
 
   // Redact.
   const { redactedText, map, applied } = redact(args.draft);
@@ -121,6 +121,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
   let result: { text: string; inputTokens: number; outputTokens: number; latencyMs: number } | null =
     null;
   let lengthReminder: string | undefined;
+  let lastAuditId: number | null = null;
 
   for (let attempt = 0; attempt < 2; attempt++) {
     const system = buildRewriteSystemPrompt({
@@ -140,7 +141,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
         maxTokens: 2500,
         temperature: 0.6,
       });
-      audit.append({
+      lastAuditId = audit.append({
         provider: args.provider.name,
         route: args.provider.route,
         payloadBytes: Buffer.byteLength(system + user, 'utf8'),
@@ -227,10 +228,35 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
     providerLatencyMs: result.latencyMs,
     tokens: { input: result.inputTokens, output: result.outputTokens },
     redactionApplied: applied,
+    feedbackToken: '', // stamped by attachFeedback below (also for cache hits)
   };
 
   cache.put(key, response);
-  return response;
+  return attachFeedback(response, args, lastAuditId);
+}
+
+/** Mints a fresh feedback token for this rewrite and records a pending feedback
+ *  row (context/provider/latency only — never content). Returns a clone of the
+ *  response with the token stamped, so a cached response object is never mutated.
+ *  Feedback is best-effort: a storage hiccup must never fail a rewrite. */
+function attachFeedback(
+  response: RewriteResponse,
+  args: RewriteArgs,
+  auditId: number | null,
+): RewriteResponse {
+  const feedbackToken = randomUUID();
+  try {
+    feedback.createPending({
+      token: feedbackToken,
+      auditId,
+      contextLabel: args.contextLabel,
+      provider: args.provider.name,
+      latencyMs: response.providerLatencyMs,
+    });
+  } catch {
+    // swallow — feedback capture is non-essential to the rewrite itself
+  }
+  return { ...response, feedbackToken };
 }
 
 function cacheKey(

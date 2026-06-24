@@ -32,6 +32,7 @@ export const humanifyTextTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
     providerLatencyMs: z.number(),
     tokens: z.object({ input: z.number(), output: z.number() }),
     redactionApplied: z.boolean(),
+    feedbackToken: z.string(),
   }),
   handler: async (input: {
     draft: string;
