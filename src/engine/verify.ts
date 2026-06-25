@@ -35,6 +35,24 @@ export function sanitizeRewrite(rewrite: string, draft: string): string {
   return out.trim();
 }
 
+/**
+ * Em-dashes and en-dashes are the single most recognizable AI tell. When the
+ * writer's own style does not use them, hoping the model avoided them is not
+ * good enough: we remove them deterministically. Dashes acting as a clause break
+ * become commas; dashes inside a number range become hyphens so the digits stay
+ * intact (and the number check still passes). Writers who DO use em-dashes keep
+ * them, so the caller only invokes this when the learned register is dash-free.
+ */
+export function stripAiDashes(text: string): string {
+  return text
+    .replace(/(\d)\s*[–—]\s*(\d)/g, '$1-$2') // 10<dash>20 -> 10-20, keep ranges
+    .replace(/\s*[–—]\s*/g, ', ') // clause-break dash -> comma
+    .replace(/ +,/g, ',') // tidy " ," -> ","
+    .replace(/,\s*,/g, ',') // collapse doubled commas
+    .replace(/\(\s*,\s*/g, '(') // "(, x" -> "(x"
+    .replace(/,\s*([.!?])/g, '$1'); // ", ." -> "."
+}
+
 const NUMBER_RE = /\d+(?:[.,:/-]\d+)*%?/g;
 const URL_RE = /https?:\/\/[^\s)\]>"']+/g;
 const PLACEHOLDER_RE = /\[[A-Z][A-Z_]*_\d+\]/g;

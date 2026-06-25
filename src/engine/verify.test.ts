@@ -1,5 +1,5 @@
 import { describe, expect, it, beforeEach, afterEach } from 'vitest';
-import { sanitizeRewrite, verifyRewrite, issuesToFeedback } from './verify.js';
+import { sanitizeRewrite, stripAiDashes, verifyRewrite, issuesToFeedback } from './verify.js';
 import { rewrite } from './rewrite.js';
 import { makeProfile } from './fixtures.js';
 import { FakeLLMProvider } from '../providers/fake.js';
@@ -16,6 +16,30 @@ describe('sanitizeRewrite', () => {
 
   it('strips trailing whitespace per line and collapses 3+ newlines', () => {
     expect(sanitizeRewrite('line one   \n\n\n\nline two  ', 'x')).toBe('line one\n\nline two');
+  });
+});
+
+describe('stripAiDashes', () => {
+  it('turns a clause-break em-dash into a comma', () => {
+    expect(stripAiDashes('i went home — it was late')).toBe('i went home, it was late');
+  });
+  it('handles an unspaced em-dash', () => {
+    expect(stripAiDashes('the deck—resend it')).toBe('the deck, resend it');
+  });
+  it('handles an en-dash used as a clause break', () => {
+    expect(stripAiDashes('yes – absolutely')).toBe('yes, absolutely');
+  });
+  it('keeps number ranges intact as a hyphen, not a comma', () => {
+    expect(stripAiDashes('pages 10–20 today')).toBe('pages 10-20 today');
+  });
+  it('preserves a decimal version next to a dash', () => {
+    expect(stripAiDashes('version 2.3 — the latest')).toBe('version 2.3, the latest');
+  });
+  it('leaves dash-free text untouched', () => {
+    expect(stripAiDashes('no dashes here at all')).toBe('no dashes here at all');
+  });
+  it('does not leave a stray comma before terminal punctuation', () => {
+    expect(stripAiDashes('done—.')).toBe('done.');
   });
 });
 
@@ -212,5 +236,41 @@ describe('rewrite pipeline with verification', () => {
     expect(fake.calls).toHaveLength(1);
     expect(out.rewrite).not.toMatch(/ {2}/);
     expect(out.rewrite).not.toMatch(/\s$/);
+  });
+
+  it('strips em-dashes for a writer whose register is dash-free', async () => {
+    const dashFree = makeProfile();
+    dashFree.base.punctuationHabits.emDash = 'rare';
+    const fake = new FakeLLMProvider();
+    fake.cannedResponses = [
+      'quick update on the rollout, version 2.3 ships on 6/14 — migration notes are at https://example.com/notes for anyone who wants them.',
+    ];
+    const out = await rewrite({
+      draft,
+      profile: dashFree,
+      contextLabel: 'professional',
+      directives: [],
+      provider: fake,
+    });
+    expect(fake.calls).toHaveLength(1); // strip is deterministic, no retry needed
+    expect(out.rewrite).not.toMatch(/[–—]/); // the AI tell is gone
+    expect(out.rewrite).toContain('2.3'); // numbers survive
+    expect(out.rewrite).toContain('6/14');
+    expect(out.rewrite).toContain('https://example.com/notes'); // url survives
+  });
+
+  it('keeps em-dashes for a writer who actually uses them', async () => {
+    const fake = new FakeLLMProvider();
+    fake.cannedResponses = [
+      'quick update on the rollout, version 2.3 ships on 6/14 — migration notes at https://example.com/notes if you want them.',
+    ];
+    const out = await rewrite({
+      draft,
+      profile, // makeProfile() uses emDash: 'frequent'
+      contextLabel: 'professional',
+      directives: [],
+      provider: fake,
+    });
+    expect(out.rewrite).toMatch(/—/);
   });
 });

@@ -19,7 +19,7 @@ import { StyleProfile, mergeFingerprint } from './styleProfile.js';
 import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
 import { retrieveExemplars } from './retrieve.js';
 import { computeDiff } from './diff.js';
-import { sanitizeRewrite, verifyRewrite, issuesToFeedback } from './verify.js';
+import { sanitizeRewrite, stripAiDashes, verifyRewrite, issuesToFeedback } from './verify.js';
 
 /** Budget for retrieved exemplars in the system prompt: cap per-exemplar and
  *  total length, trimming lowest-ranked first so the fingerprint is never cut. */
@@ -164,7 +164,12 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
       throw he;
     }
 
-    const text = sanitizeRewrite(completion.text, redactedText);
+    let text = sanitizeRewrite(completion.text, redactedText);
+    // Em-dashes are the loudest AI tell. If this writer's own style is dash-free,
+    // strip them deterministically instead of trusting the model to have behaved.
+    if (fingerprint.punctuationHabits.emDash === 'rare') {
+      text = stripAiDashes(text);
+    }
     if (text.length === 0) {
       lengthReminder = 'Your previous attempt returned empty output. You must return the rewritten draft.';
       continue;
