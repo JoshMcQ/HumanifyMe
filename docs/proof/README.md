@@ -23,11 +23,11 @@ The script that runs all of this is `evals/harness/runAblation.ts`. The scorers 
 
 ## What the numbers say
 
-### Rewrites land on the right author
+### Telling the test writers apart (a sanity check)
 
-![Nearest-author confusion matrix: 85 percent of rewrites are stylometrically closest to their own writer](figures/register-confusion-matrix.png)
+![Confusion matrix: a classifier separates the four test writers about 85 percent of the time](figures/register-confusion-matrix.png)
 
-This is the result that matters, and it is not about casing. Take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to, across word choice, sentence rhythm, punctuation, and function-word habits. A rewrite that caught the voice lands closest to its own writer.
+Take each retrieval-grounded rewrite and ask which of the four test writers it lands closest to under the stylometric scorer: 17 of 20 (85 percent) land on their own writer. That number is weaker than it looks, and the Limitations section below says exactly why. The writers differ mostly by register; the scorer is eight coarse surface features with no function-word or n-gram component; casing is one of those features and is also gate-enforced; and every miss falls between the two lowercase writers (A and C). Read it as a register-separation check, not as evidence the engine captured an idiolect.
 
 17 of 20 rewrites (85 percent) classify back to the correct author. The three misses: two of writer C's rewrites (terse, lowercase) land closer to writer A (casual, lowercase), and one of writer D's lands on A. A and C share a lowercase casual register, so overlap there is expected rather than surprising. We show the off-diagonal cells, not only the diagonal.
 
@@ -58,7 +58,7 @@ We report writer B even though retrieval hurt the distance score there this run.
 
 We also ran a blind LLM judge: a separate model shown the on and off outputs, asked which sounds more like the real person, with slot order alternated to cancel position bias. It preferred the retrieval-grounded output for all four writers this run, and on two earlier runs.
 
-We include this for completeness and we do not lean on it. A model judging another model's output is a weak proxy for human preference: it can carry the same blind spots, and "sounds like a real person" is exactly the call models are least reliable at. The deterministic attribution at the top is the load-bearing evidence. Human evaluation is the honest next step, and it is the one we will trust.
+We include this for completeness and we do not lean on it. A model judging another model's output is a weak proxy for human preference: it can carry the same blind spots, and "sounds like a real person" is exactly the call models are least reliable at. The per-writer retrieval-on-vs-off distance is the measure we trust more, and even that is limited (see below). Human evaluation is the honest next step, and it is the one we will trust.
 
 ### What we are not claiming
 
@@ -68,6 +68,18 @@ We include this for completeness and we do not lean on it. A model judging anoth
 - We are not claiming style-pure retrieval. The MVP keys on a general embedder, which entangles topic with style.
 
 What we are claiming, narrowly: across four registers, retrieval-grounded rewrites are stylometrically attributable to the correct author 85 percent of the time and move closer to the real voice for most writers.
+
+## Limitations (why this is not proof yet)
+
+This is a smoke test on synthetic writers, not a study. Be skeptical of all of it:
+
+- **The writers are not real people.** They are hand-built fixtures in `evals/corpus/writer.ts`, and all four paraphrase the same handful of underlying messages, so only register really varies. There is no genuine idiolect to attribute on.
+- **n = 20.** Far too small to claim a rate with any confidence.
+- **No human judgment.** The only non-deterministic judge is an LLM, which we do not rely on.
+- **The nearest-writer classifier has two real flaws.** It normalizes each candidate distance by a different writer's own variance, so the distances it compares are not on a common scale; and it scores each rewrite against the same samples that retrieval fed into the prompt (reference leakage). Both inflate the apparent 85 percent. A correct version would standardize all candidates in one shared space and hold the scoring samples out of retrieval.
+- **The scorer is surface-level.** Eight coarse features, no function-word frequencies and no character n-grams, so it is closer to a style smoke test than to real authorship attribution, despite the stylometry literature this project cites being built on exactly those features.
+
+Real proof needs real writers, held-out samples scored on a shared scale, and human raters. We have not done that yet, and we are not going to pretend the numbers above are more than a preliminary signal.
 
 ## Privacy: the guarantee is architectural
 

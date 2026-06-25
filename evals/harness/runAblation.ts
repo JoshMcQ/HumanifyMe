@@ -1,13 +1,14 @@
-// RAG ablation runner (internal eval). Makes real Anthropic calls — run by hand
+// RAG ablation runner (internal eval). Makes real Anthropic calls, run by hand
 // via `npx tsx evals/harness/runAblation.ts`, NOT in the vitest CI path.
 //
-// Runs TWO writers of opposite register (casual/lowercase and formal/sentence-
-// case) through the same generic-AI drafts. For each draft: rewrite RAG-on and
-// RAG-off, score with the deterministic T4 (AI-smell), T5 (stylometry), and
-// casing-fidelity scorers, and have Anthropic act as a blind judge ("which
-// rewrite sounds more like this writer?"). The casing column is the proof that
-// the engine adapts capitalization to the actual user instead of a house style.
-// Writes a Markdown report to evals/results/. No secrets are written or printed.
+// Runs FOUR writers of distinct register through the same generic-AI drafts. For
+// each draft: rewrite RAG-on and RAG-off, score with the deterministic AI-smell,
+// stylometry, and casing-fidelity scorers, build a nearest-writer confusion
+// matrix, and have Anthropic act as a blind judge ("which rewrite sounds more
+// like this writer?"). These are SYNTHETIC test writers, so read the numbers as a
+// smoke test, not proof; the nearest-writer classifier also has known scale and
+// reference-leakage flaws (see docs/proof Limitations).
+// Writes a Markdown report plus ablation-data.json to evals/results/. No secrets.
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -199,7 +200,7 @@ async function main(): Promise<void> {
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   fs.mkdirSync(RESULTS_DIR, { recursive: true });
   const lines: string[] = [];
-  lines.push(`# RAG ablation (two registers) — ${new Date().toISOString()}`);
+  lines.push(`# RAG ablation (four registers), ${new Date().toISOString()}`);
   lines.push('');
   lines.push('Same generic-AI drafts, two writers of opposite register, retrieval ON vs OFF.');
   lines.push('Lower stylometric distance = closer to the writer. Casing = fraction of sentences that start with a capital (≈0 for a lowercase writer, ≈1 for a formal one).');

@@ -9,13 +9,13 @@
 
 HumanifyMe learns how one specific person writes and rewrites an AI agent's output in that person's voice before a human reads it. You install it as a plugin in Claude Code, Cowork, Cursor, and other AI agents. It is not "write better." It is "stop sounding like AI."
 
-## The problem, and the evidence behind it
+## Why this exists
 
 People hand more of their writing to AI agents every day: commit messages, PR descriptions, Slack posts, email drafts. Every agent produces the same recognizable register, polished, balanced, faintly corporate, and recipients have learned to spot it. The usual fixes (Grammarly, Wordtune, "AI humanizers") push text toward a generic professional voice, which is the opposite of the goal.
 
 The starting assumption is checkable, and a large study tested it. Wang et al. (2025) ran tens of thousands of generations across frontier models and hundreds of real authors and found that few-shot prompting does not convincingly imitate ordinary writers in informal genres: authorship-verification accuracy on blog-style text stays low, structured genres like news and email do far better, and more exemplars give diminishing returns [13]. The plain reading is that dropping a few samples into a prompt and asking a model to "write like me" hits a ceiling on casual voice. HumanifyMe's response to that ceiling is a persistent, retrievable corpus of the user's own writing plus a paraphrase-then-restyle rewrite, rather than a longer prompt.
 
-Two words get used here and they are not the same thing. MCP (Model Context Protocol) is the protocol HumanifyMe speaks: the standard an agent uses to call a tool like `humanify_text`. A plugin is how you install it: a small bundle that registers that MCP server plus a few skills in your agent in one step. So the plugin is the package you add, and MCP is what the server inside it talks. You install the plugin once and never deal with either word again.
+A quick note on two words that get blurred. MCP (Model Context Protocol) is the protocol HumanifyMe speaks, so any MCP-compatible agent can call its `humanify_text` tool. A plugin is a different thing: in Claude Code and Cowork it is a packaging format that bundles capabilities (an MCP server, skills, commands, hooks) into one installable unit. HumanifyMe's plugin bundles its MCP server plus three skills, so installing the plugin sets up the server and teaches the agent when to reach for it in one step. You can also skip the plugin and register the MCP server directly (see below); the plugin is just the convenient package for the agents that support one.
 
 ## System architecture
 
@@ -160,11 +160,11 @@ One honest limitation: the MVP keys retrieval on a general-purpose embedder, not
 
 We ran a four-register evaluation: four writers with distinct voices (casual lowercase, formal sentence-case, terse technical, warm enthusiastic), five generic-AI drafts each, rewritten with retrieval on and off. That is 20 rewrite pairs. The full method, raw numbers, and reproduction steps are in [`docs/proof/README.md`](docs/proof/README.md). Run date 2026-06-24. No single number settles personalized writing, so we report several deterministic measures and where they disagree [16][17].
 
-### Rewrites land on the right author
+### Telling the test writers apart (a sanity check, not proof)
 
-![Nearest-author confusion matrix: 85 percent of rewrites are stylometrically closest to their own writer](docs/proof/figures/register-confusion-matrix.png)
+![Confusion matrix: a classifier separates the four test writers about 85 percent of the time](docs/proof/figures/register-confusion-matrix.png)
 
-This is the load-bearing result, and it is not about casing. Take each retrieval-grounded rewrite and ask which of the four writers' real voices it is stylometrically closest to, across word choice, sentence rhythm, punctuation, and function-word habits. A rewrite that caught the voice lands closest to its own writer. 17 of 20 (85 percent) do. The three misses are writer C's terse-lowercase rewrites landing on writer A's casual-lowercase voice twice, and one of writer D's landing on A; A and C share a lowercase casual register, so overlap there is expected. The attribution uses classic interpretable stylometric features as a fast screen, not as a verdict [1][3].
+Take each retrieval-grounded rewrite and ask which of the four test writers it lands closest to under the stylometric scorer: 17 of 20 (85 percent) land on their own writer. Be skeptical of that number, because we are. The writers were built to differ mostly by register; the scorer is eight coarse surface features (sentence and word length, comma, exclamation, question, dash and contraction rates, and lowercase-start rate) with no function-word or n-gram features; and casing is one of those features while also being enforced by the verify gate. Every misclassification falls between the two lowercase writers (A and C). So this mostly separates register, which was designed to be separable. It is a check that the machinery does something, not evidence the engine reproduced anyone's idiolect. The honest signal is the per-writer retrieval-on-vs-off comparison below, and the limitations are spelled out in [`docs/proof/README.md`](docs/proof/README.md).
 
 ### It also holds the writer's register
 

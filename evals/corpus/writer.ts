@@ -1,11 +1,11 @@
 // Corpus for the RAG ablation (internal eval, not the public HMB bench).
 //
-// TWO writers with opposite registers, on purpose: the engine must adapt casing
-// and grammar to *whoever the user is*, never to a house style. Writer A is
-// casual/lowercase; Writer B is formal/sentence-case. The same generic-AI drafts
-// are rewritten for both — the proof is that A's rewrites come out lowercase and
-// B's come out properly capitalized, measured deterministically (see
-// evals/scorers/casing.ts) and confirmed by a blind judge.
+// FOUR writers of distinct register, on purpose: the engine must adapt casing and
+// grammar to whoever the user is, never to a house style. These are synthetic
+// fixtures, not real people, and they paraphrase the same handful of underlying
+// messages, so register is the main thing that varies between them. Rewrites are
+// scored deterministically (see evals/scorers/) and, separately, by an LLM judge
+// we do not lean on. See docs/proof for what this does and does not show.
 
 import { makeProfile } from '../../src/engine/fixtures.js';
 import type { StyleProfile } from '../../src/engine/styleProfile.js';
