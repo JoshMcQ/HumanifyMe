@@ -2,6 +2,7 @@
 
 **Make AI sound like you.** · [humanifyme.com](https://humanifyme.com)
 
+[![npm](https://img.shields.io/npm/v/humanifyme.svg)](https://www.npmjs.com/package/humanifyme)
 [![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
 [![CI](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-source--available%20%2B%20MIT%20core-blue.svg)](LICENSE)
