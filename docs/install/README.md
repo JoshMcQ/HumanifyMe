@@ -1,19 +1,12 @@
 # Installing HumanifyMe in your agent
 
 HumanifyMe is an MCP server. Any agent that speaks MCP can use it. All
-snippets assume Node ≥ 22.5 is installed.
-
-> **Status: `humanifyme` is not on npm yet.** The `npx ... humanifyme@latest`
-> snippets below are the intended form once the package is published; today they
-> will fail with a 404. Until publish, build the server from a clone
-> (`npm install && npm run build`) and register it by absolute path, for example:
-> `claude mcp add humanifyme -- node /absolute/path/to/repo/dist/humanifyme-mcp.mjs`.
-> The same `node /abs/.../dist/humanifyme-mcp.mjs` command substitutes for the
-> `npx` command in every config block below.
+snippets assume Node ≥ 22.5 is installed. The `humanifyme` package is published
+on npm, so the `npx` snippets below work as-is with nothing checked out.
 
 After installing in any agent, ask the agent to "set up HumanifyMe" (it will
-walk you through provider, samples, and profile), or run the `setup` command on
-the built CLI (`node /abs/.../dist/humanifyme.mjs setup`).
+walk you through provider, samples, and profile), or run `npx -y humanifyme setup`
+in a terminal.
 
 ## Cowork / Claude Code (plugin)
 
