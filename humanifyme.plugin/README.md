@@ -15,5 +15,6 @@ redacted text to the LLM provider you configure, and nowhere else. Audit every
 outbound request with `humanifyme audit`.
 
 Requires Node ≥ 22.5 on PATH. The bundled `.mcp.json` runs the MCP server straight
-from npm (`npx -y --package humanifyme@latest humanifyme-mcp`), so installing the
-plugin needs no local build or clone.
+from npm, pinned to the released version (`npx -y --package humanifyme@0.1.0
+humanifyme-mcp`), so installing the plugin needs no local build or clone. The pin
+moves with each plugin release, so an install never auto-pulls an unreviewed version.

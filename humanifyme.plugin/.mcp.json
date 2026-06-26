@@ -2,7 +2,7 @@
   "mcpServers": {
     "humanifyme": {
       "command": "npx",
-      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
+      "args": ["-y", "--package", "humanifyme@0.1.0", "humanifyme-mcp"]
     }
   }
 }
