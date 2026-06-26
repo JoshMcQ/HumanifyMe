@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 // Pure-function redactor. Runs before any text leaves the device.
 // See specs/privacy-security-spec.md "Redaction rules".
 

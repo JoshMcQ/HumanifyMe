@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 // Redaction patterns per specs/privacy-security-spec.md.
 // Order matters: more specific secret patterns run before generic ones,
 // and card numbers run before phone numbers to avoid partial matches.

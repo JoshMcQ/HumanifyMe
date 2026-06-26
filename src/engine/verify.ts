@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 // Deterministic post-generation verification. This is the quality moat:
 // existing "humanizers" introduce whitespace artifacts, drop numbers, and
 // flatten constraints. We verify mechanically and retry with targeted

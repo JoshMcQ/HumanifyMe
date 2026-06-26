@@ -193,7 +193,7 @@ feeds a public proof page, so quality is measured continuously and provable.
 - `humanify_metrics` (MCP + CLI) reports accept/edit/reject rates, sounds-like-me,
   by-context, by-provider, and p50/p95 latency, locally, counts only.
 - Opt-in (`shareAnonymousFeedback`, default false) ships a counts-only aggregate via
-  the MIT-licensed `src/network/` at most once/24h; the outbound-destination scan is
+  the `src/network/` module at most once/24h; the outbound-destination scan is
   a real test allowlisting only providers + network.
 - A Cloudflare Worker (`cf-worker/`) accepts mcp/try-it/survey events into D1 with a
   KV rate limit, and serves a precomputed counts-only `/api/stats` (cron every 10m).
@@ -203,8 +203,8 @@ feeds a public proof page, so quality is measured continuously and provable.
 **Tasks inside:** STEP 1 (feedback signal) → STEP 8 (docs + PR), one commit each.
 
 **Status:** complete (2026-06-24). Built on branch `m9-validation`, one TDD commit per
-step; full suite green throughout. License split landed (MIT for privacy/network/verify;
-rest proprietary). Autonomously-resolved ambiguities (static HTML vs Astro,
+step; full suite green throughout. (The repo was later relicensed to Apache-2.0
+across the board; see `LICENSE`.) Autonomously-resolved ambiguities (static HTML vs Astro,
 outbound-scan location, feedback model, worker test strategy) are recorded in the
 project's git history.
 

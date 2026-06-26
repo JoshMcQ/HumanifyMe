@@ -62,7 +62,7 @@ rules are not style preferences; a PR that breaks one will not merge.
   store-time redaction. Embeddings are computed on-device and are treated as
   PII-equivalent: local-only, never sent.
 - **Anonymous telemetry is opt-in and OFF by default.** Aggregate, counts-only
-  sharing lives in exactly one MIT-licensed module, `src/network/feedbackShip.ts`,
+  sharing lives in exactly one module, `src/network/feedbackShip.ts`,
   refuses to run unless opted in, and is capped at once per 24h. If your change could
   affect what bytes leave the machine, it belongs in that module and nowhere else.
 
@@ -187,30 +187,22 @@ you reorder anything.
 
 ---
 
-## 7. Licensing: source-available with an MIT subset
+## 7. Licensing
 
-HumanifyMe is **source-available**, not open-source in the OSI sense. Most of the repo
-is proprietary (all rights reserved). A defined subset, the parts that substantiate
-the privacy claims, is released under the **MIT License** so anyone can audit exactly
-what does and does not leave a machine. See `LICENSE` and `LICENSE-MIT.txt`.
-
-The MIT-licensed directories are:
-
-- `src/privacy/`, redaction, restore, and pattern definitions.
-- `src/network/`, the only module permitted to make outbound telemetry calls.
-- `src/engine/verify.ts`, the deterministic output/casing quality gate.
+HumanifyMe is **open source under the Apache License 2.0** (see `LICENSE`). That
+covers the whole repository, including the rewrite engine, prompts, and bundled
+skills. The privacy-critical modules (`src/privacy/`, `src/network/`,
+`src/engine/verify.ts`) are part of the same Apache-2.0 release, so anyone can read
+and verify exactly what data does and does not leave a machine.
 
 What this means for you as a contributor:
 
-- A contribution to those three areas is contributed under the **MIT License**, and
-  each MIT file carries an `SPDX-License-Identifier: MIT` header, keep it. If you add
-  a new file there, add the header.
-- A contribution anywhere else is to the **proprietary** parts of the project. By
-  opening a PR you agree your contribution may be used under the repository's
-  source-available terms.
-- No trademark rights are granted. "HumanifyMe" is a mark of Joshua McQueary.
-
-If you are unsure which bucket your change falls in, ask in the PR before you write it.
+- By opening a PR you agree your contribution is licensed under Apache-2.0, the same
+  terms as the rest of the project. No separate CLA.
+- Apache-2.0 includes a patent grant from contributors, which is part of why it was
+  chosen for an AI tool.
+- No trademark rights are granted by the license. "HumanifyMe" is a mark of Joshua
+  McQueary.
 
 ---
 
@@ -239,7 +231,7 @@ If you are unsure which bucket your change falls in, ask in the PR before you wr
 Good first contributions, roughly in order of approachability:
 
 1. **Redaction patterns** (`src/privacy/patterns.ts`). Adding a well-tested pattern (a
-  new secret format, an international phone shape) is self-contained, MIT-licensed,
+  new secret format, an international phone shape) is self-contained,
   and easy to verify. Note that pattern order is load-bearing, read the existing
   comments before reordering.
 2. **Verification checks** (`src/engine/verify.ts`). Small, pure, deterministic, and

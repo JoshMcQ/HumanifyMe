@@ -1,4 +1,3 @@
-// SPDX-License-Identifier: MIT
 //
 // The outbound-destination scan promised by tasks/test-plan.md, finally real.
 // It statically guarantees two things about the whole src/ tree:

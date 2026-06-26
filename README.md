@@ -5,7 +5,7 @@
 [![npm](https://img.shields.io/npm/v/humanifyme.svg)](https://www.npmjs.com/package/humanifyme)
 [![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
 [![CI](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml)
-[![License](https://img.shields.io/badge/license-source--available%20%2B%20MIT%20core-blue.svg)](LICENSE)
+[![License](https://img.shields.io/github/license/JoshMcQ/HumanifyMe.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.5-green.svg)](https://nodejs.org)
 [![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D77655.svg)](https://claude.com/claude-code)
 
@@ -231,14 +231,14 @@ Most of the code was written with Claude Code, Anthropic's agentic coding tool, 
 
 ## Privacy methodology
 
-HumanifyMe is local-first and redacts before it sends. The modules that substantiate the privacy claims (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) are MIT-licensed so you can audit them.
+HumanifyMe is local-first and redacts before it sends. The modules that substantiate the privacy claims (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) are open source so you can audit them.
 
 - **Local-first.** All state lives under `~/.humanifyme/` (`config.json` plus `data.db`), overridable only via `HUMANIFYME_HOME`. Raw samples never leave that directory.
 - **Redact before send.** `redact()` masks emails, phones, US street addresses, Luhn-checked cards, API keys, AWS access-key IDs, and JWTs into numbered placeholders. Pattern order is load-bearing. Identical values collapse to one placeholder. `restore()` swaps the originals back after the model responds.
 - **Re-redact exemplars at send time.** Retrieved voice-memory exemplars are redacted again before sending, never trusting how they were stored.
 - **Outbound allowlist plus static scan test.** `src/network/outbound-scan.test.ts` scans the whole `src/` tree to assert that only `src/providers` and `src/network` may call `fetch()`, and that every hardcoded outbound host is on a 4-entry allowlist: `api.anthropic.com`, `api.openai.com`, `generativelanguage.googleapis.com`, `humanifyme.com`.
 - **Metadata-only audit log.** Every outbound provider call writes a row with provider, route, payload byte size, draft length, and success, never content. A 20-entry ring buffer surfaced via `humanify_audit_list`.
-- **Opt-in, counts-only feedback.** Every rewrite mints a per-rewrite feedback token and writes a pending counts-only row (context, provider, latency, never the text). You answer "did this sound like you?" and `humanify_metrics` aggregates the answers locally. Anonymous sharing of those aggregate counts is OFF by default, gated to once per 24h, and lives in one MIT-licensed module, `src/network/feedbackShip.ts`, which ships only a salted install id plus counts.
+- **Opt-in, counts-only feedback.** Every rewrite mints a per-rewrite feedback token and writes a pending counts-only row (context, provider, latency, never the text). You answer "did this sound like you?" and `humanify_metrics` aggregates the answers locally. Anonymous sharing of those aggregate counts is OFF by default, gated to once per 24h, and lives in one module, `src/network/feedbackShip.ts`, which ships only a salted install id plus counts.
 
 ## Repository layout
 
@@ -253,11 +253,11 @@ HumanifyMe is local-first and redacts before it sends. The modules that substant
 
 ## Contributing
 
-We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for branch, test, and PR conventions, then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/`. That trio is the heart of the methodology above, and it is MIT-licensed. The one set of rules you cannot break is `specs/privacy-security-spec.md`. When you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue` on the tracker.
+We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for branch, test, and PR conventions, then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/`. That trio is the heart of the methodology above. The one set of rules you cannot break is `specs/privacy-security-spec.md`. When you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue` on the tracker.
 
 ## License
 
-Source-available. Most of the repo is proprietary. The parts that substantiate the privacy claims (`src/privacy/`, `src/network/`, and `src/engine/verify.ts`) are MIT, see `LICENSE`, `LICENSE-MIT.txt`, and the `SPDX-License-Identifier: MIT` headers.
+Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The whole repository is open source, including the rewrite engine, prompts, and the privacy-critical modules (`src/privacy/`, `src/network/`, `src/engine/verify.ts`), so anyone can read and verify exactly what data does and does not leave a machine. "HumanifyMe" is a trademark of Joshua McQueary; the license does not grant trademark rights.
 
 ## References
 

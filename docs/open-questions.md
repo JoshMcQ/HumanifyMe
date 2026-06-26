@@ -42,7 +42,7 @@ Format: `Q-NN. Question. Blocks: <what>. Notes: <considerations>. Status: open |
 ### Q-05. Do we open-source the privacy-critical modules?
 
 - **Blocks:** nothing immediately; affects positioning.
-- **Notes:** Open-sourcing `src/privacy/`, `src/engine/`, and the rewrite request shape gives users (and reviewers) a way to verify our claims. Risk: copycats can build on top. Recommendation: MIT-license the privacy and request layers; keep skills, plugin packaging, and any future paid features proprietary.
+- **Notes:** Open-sourcing `src/privacy/`, `src/engine/`, and the rewrite request shape gives users (and reviewers) a way to verify our claims. Risk: copycats can build on top. Resolved (2026-06-26): the entire repository is released under Apache-2.0 (fully open source).
 - **Status:** open.
 
 ### Q-06. Where does the privacy policy live and who drafts it?

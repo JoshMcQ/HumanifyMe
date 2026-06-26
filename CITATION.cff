@@ -18,6 +18,6 @@ keywords:
   - personalization
   - local-first
   - privacy
-license: LicenseRef-source-available-with-MIT-core
+license: Apache-2.0
 version: 0.1.0
 date-released: "2026-06-26"

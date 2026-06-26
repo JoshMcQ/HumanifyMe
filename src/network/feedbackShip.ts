@@ -1,9 +1,8 @@
-// SPDX-License-Identifier: MIT
 //
 // The ONLY module that ships anything to HumanifyMe's own servers, and it ships
 // COUNTS ONLY. No draft, no rewrite, no edited text, no reason strings — ever.
 // Off unless the user opted in (config.shareAnonymousFeedback). At most once per
-// 24h. Auditable on purpose: this file is MIT-licensed so anyone can verify the
+// 24h. Auditable on purpose: it is open source so anyone can verify the
 // exact bytes that leave the machine. See specs/privacy-security-spec.md.
 
 import { createHash, randomUUID } from 'node:crypto';

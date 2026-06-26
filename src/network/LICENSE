@@ -1,7 +1,0 @@
-The files in this directory (src/network/) are licensed under the MIT License.
-See /LICENSE-MIT.txt for the full text. Each file also carries an
-`SPDX-License-Identifier: MIT` header.
-
-This module is MIT-licensed on purpose: it is the only part of HumanifyMe
-permitted to send data to HumanifyMe's own servers, so it is open for anyone to
-audit exactly what leaves the user's machine (counts only, never content).

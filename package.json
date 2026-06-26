@@ -2,7 +2,7 @@
   "name": "humanifyme",
   "version": "0.1.0",
   "description": "Make AI sound like you. A local-first MCP server that learns your writing voice and rewrites AI-generated drafts in it.",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "Apache-2.0",
   "author": "Joshua McQueary",
   "homepage": "https://humanifyme.com",
   "repository": {

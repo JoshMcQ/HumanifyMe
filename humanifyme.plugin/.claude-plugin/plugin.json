@@ -9,6 +9,6 @@
   },
   "homepage": "https://humanifyme.com",
   "repository": "https://github.com/JoshMcQ/HumanifyMe",
-  "license": "SEE LICENSE IN LICENSE",
+  "license": "Apache-2.0",
   "keywords": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
 }
