@@ -3,10 +3,12 @@
   "displayName": "HumanifyMe",
   "version": "0.1.0",
   "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
-  "author": "humanifyme.com",
+  "author": {
+    "name": "Joshua McQueary",
+    "url": "https://humanifyme.com"
+  },
   "homepage": "https://humanifyme.com",
+  "repository": "https://github.com/JoshMcQ/HumanifyMe",
   "license": "SEE LICENSE IN LICENSE",
-  "mcps": ["./mcp/server.json"],
-  "skills": ["./skills/humanify", "./skills/build-voice-profile", "./skills/humanify-pr"],
-  "tags": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
+  "keywords": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
 }

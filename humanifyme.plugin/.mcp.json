@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "node",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/../dist/humanifyme-mcp.mjs"]
+    }
+  }
+}

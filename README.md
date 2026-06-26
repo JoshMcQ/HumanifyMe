@@ -40,7 +40,17 @@ flowchart LR
 
 ### As a plugin (start here)
 
-HumanifyMe is published as the `humanifyme` package on npm and bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `plugin.json` manifest, the MCP server it registers (run via `npx -y humanifyme`), and three skills that teach the agent when to reach for it (`humanify`, `build-voice-profile`, `humanify-pr`). In Claude Code or Cowork, add it through the plugin or marketplace flow; the bundle handles MCP registration for you. Copy-paste setup for every other agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
+HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills that teach the agent when to reach for it (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root also ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+
+To install from a clone today (no npm package required yet):
+
+```bash
+npm install && npm run build                              # builds dist/humanifyme-mcp.mjs
+claude plugin marketplace add /absolute/path/to/this/repo # register the bundled marketplace
+claude plugin install humanifyme@humanifyme               # installs the 3 skills + MCP server
+```
+
+The bundled `.mcp.json` launches the server from the built `dist/` via `node ${CLAUDE_PLUGIN_ROOT}/../dist/humanifyme-mcp.mjs`, which resolves when the plugin loads in place from this repo. Publishing `humanifyme` to npm (so any install runs the server via `npx -y humanifyme` with no local build) is still pending. Until then, the most portable way to register just the MCP server is the absolute-path form under "Raw MCP registration" below. Copy-paste setup for other agents (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
 
 Once installed:
 

@@ -14,4 +14,8 @@ Your writing samples stay on your machine (`~/.humanifyme/`). Rewrites send
 redacted text to the LLM provider you configure, and nowhere else. Audit every
 outbound request with `humanifyme audit`.
 
-Requires Node ≥ 22.5 on PATH (the MCP runs via `npx -y humanifyme`).
+Requires Node ≥ 22.5 on PATH. The bundled `.mcp.json` runs the MCP server from
+the repo's built output (`node ${CLAUDE_PLUGIN_ROOT}/../dist/humanifyme-mcp.mjs`),
+so build it once with `npm install && npm run build` at the repo root before first
+use. Publishing `humanifyme` to npm (so the server can run via `npx -y humanifyme`
+with no local build) is not done yet.
