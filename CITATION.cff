@@ -1,0 +1,23 @@
+cff-version: 1.2.0
+title: HumanifyMe
+message: "If you use HumanifyMe in your work, please cite it."
+type: software
+authors:
+  - family-names: McQueary
+    given-names: Joshua
+url: "https://humanifyme.com"
+repository-code: "https://github.com/JoshMcQ/HumanifyMe"
+abstract: >-
+  A local-first MCP server that learns one person's writing voice and rewrites
+  AI-generated drafts in that voice. Writing samples stay on the user's machine;
+  only redacted text reaches the configured LLM provider.
+keywords:
+  - mcp
+  - model-context-protocol
+  - writing-style
+  - personalization
+  - local-first
+  - privacy
+license: LicenseRef-source-available-with-MIT-core
+version: 0.1.0
+date-released: "2026-06-26"

@@ -1,0 +1,4 @@
+# Activates the "Sponsor" button on the repo. The GitHub Sponsors entry only
+# renders once JoshMcQ is enrolled at https://github.com/sponsors.
+github: [JoshMcQ]
+custom: ["https://humanifyme.com"]
