@@ -1,7 +1,8 @@
 # HumanifyMe
 
-**Make AI sound like you.**
+**Make AI sound like you.** · [humanifyme.com](https://humanifyme.com)
 
+[![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
 [![CI](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-source--available%20%2B%20MIT%20core-blue.svg)](LICENSE)
 [![Node](https://img.shields.io/badge/node-%3E%3D22.5-green.svg)](https://nodejs.org)
