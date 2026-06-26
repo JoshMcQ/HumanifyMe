@@ -155,7 +155,7 @@ Each milestone has an entry condition (the "gate"), a definition of done, and a 
 
 ## Milestone 8, Retrieval-augmented voice (RAG)
 
-**Gate to start:** M3 done (rewrite engine exists to wire retrieval into). This milestone is local-first, embeddings, vectors, and retrieval all run on-device and persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`. NO backend is introduced, so it stays inside the MVP rules in `specs/mvp-spec.md` and `CLAUDE.md` hard rule 4.
+**Gate to start:** M3 done (rewrite engine exists to wire retrieval into). This milestone is local-first, embeddings, vectors, and retrieval all run on-device and persist only in `~/.humanifyme/data.db` and `~/.humanifyme/models/`. NO backend is introduced, so it stays inside the MVP rules in `specs/mvp-spec.md` and the no-backend rule in `CONTRIBUTING.md`.
 
 **Why this milestone exists:** The rewrite engine never feeds the user's actual past messages into a rewrite, it only conditions on the abstract style fingerprint in `profiles`. The static `profile.exemplars` are a frozen, hand-picked few. Retrieval-augmented voice fixes rewrite quality by selecting the user's own most relevant past samples per draft and making them the primary voice signal. See `specs/rewrite-engine-spec.md` (Retrieval) and `docs/open-questions.md` Q-18, Q-22.
 
@@ -204,8 +204,9 @@ feeds a public proof page, so quality is measured continuously and provable.
 
 **Status:** complete (2026-06-24). Built on branch `m9-validation`, one TDD commit per
 step; full suite green throughout. License split landed (MIT for privacy/network/verify;
-rest proprietary). See `DECISIONS.md` for the autonomously-resolved ambiguities (static
-HTML vs Astro, outbound-scan location, feedback model, worker test strategy).
+rest proprietary). Autonomously-resolved ambiguities (static HTML vs Astro,
+outbound-scan location, feedback model, worker test strategy) are recorded in the
+project's git history.
 
 Note: the public web stack built here (`cf-worker/`, the static `site/` pages, and the
 `e2e/` specs) was later relocated to a private maintainer tree before the public launch,

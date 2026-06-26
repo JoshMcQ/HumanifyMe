@@ -142,5 +142,5 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 
 - **Likelihood:** low, medium (the original spec lived in this repo).
 - **Impact:** medium, confuses contributors, slows them down.
-- **Mitigation:** loud reminders in CLAUDE.md, AGENTS.md, copilot-instructions; CI guard against `chrome.runtime` and `manifest.json` outside `plugin/`.
+- **Mitigation:** loud reminders in CONTRIBUTING.md and copilot-instructions; CI guard against `chrome.runtime` and `manifest.json` outside `plugin/`.
 - **Trigger:** any new PR adds extension-shaped scaffolding.

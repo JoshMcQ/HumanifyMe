@@ -250,7 +250,7 @@ These tasks make the user's own past messages the primary voice signal in a rewr
   - Embeddings survive a process restart and are reused (no recompute) on the next rewrite.
   - `humanify_wipe_all` removes all embeddings; a follow-up rewrite cold-starts.
   - `specs/privacy-security-spec.md` and the audit view describe embedding storage/flow consistently with the implementation.
-  - All new copy passes the banned-words list in `CLAUDE.md` / `prompts/critique-prompt.md`.
+  - All new copy passes the banned-words list in `CONTRIBUTING.md` / `prompts/critique-prompt.md`.
 - **Tests required:** config round-trip + default tests; an opt-out parity test (M3 behavior); a persist-across-restart test; a wipe-then-cold-start test.
 - **Risk:** medium (privacy-facing; copy and spec must match code).
 - **Depends on:** T-65.

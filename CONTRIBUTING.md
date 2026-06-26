@@ -13,14 +13,10 @@ deterministic verification.
 
 ## 1. Ground rules: read these first
 
-Behavior in this repo is governed by two checked-in files. They are the source of
-truth, not this document:
-
-- **`CLAUDE.md`**, rules for Claude Code working in the repo.
-- **`AGENTS.md`**, rules for any autonomous coding agent (Copilot, Cursor, Aider, etc.).
-
-If anything here disagrees with those files, those files win. The highlights that
-apply to every contributor, human or agent:
+The checked-in **specs** under `specs/` are the source of truth for product behavior;
+this document is the source of truth for how to contribute. When the two disagree, the
+specs win for *what* to build and this guide wins for *how* to build it. The highlights
+that apply to every contributor, human or agent:
 
 1. **The repo is spec-driven.** Code follows specs; specs do not follow code. If your
   change disagrees with a spec, update the spec first (and say why), or pick a
@@ -128,7 +124,7 @@ criterion verified), then stop and report. Do not chain tasks without checking i
 ### The spec-gate workflow for every change
 
 1. **Read the linked spec section** for the task. The "What lives where" table in
-  `CLAUDE.md` maps questions to the file that answers them.
+  section 10 maps questions to the file that answers them.
 2. **Restate the objective and acceptance criteria** in your commit/PR message, in
   your own words.
 3. **Implement** the smallest change that satisfies the task.
@@ -259,6 +255,25 @@ Before picking anything up, open `tasks/task-breakdown.md` and take the
 lowest-numbered unblocked task with acceptance criteria that match what you want to do.
 Look for issues labeled **good first issue** on GitHub; if none fit, ask and we will
 point you at one.
+
+---
+
+## 10. What lives where
+
+When you have a question, this table maps it to the file that answers it:
+
+| Question you have                          | File to read                                  |
+| ------------------------------------------ | --------------------------------------------- |
+| What is this product?                      | `specs/product-spec.md`                       |
+| What ships first?                          | `specs/mvp-spec.md`                           |
+| What does the MCP server look like?        | `specs/mcp-server-spec.md`                    |
+| How is it packaged as a plugin?            | `specs/plugin-spec.md`                         |
+| What can I build right now?                | `tasks/task-breakdown.md`                     |
+| How is data stored?                        | `docs/data-model.md`                          |
+| What's the MCP tool contract?              | `docs/api-contract.md`                        |
+| What can the LLM be prompted to do?        | `prompts/`                                    |
+| What must I never do?                      | `specs/privacy-security-spec.md`              |
+| What are we explicitly not building yet?   | `specs/mvp-spec.md` -> "Out of scope for MVP" |
 
 ---
 

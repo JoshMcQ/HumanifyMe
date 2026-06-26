@@ -12,7 +12,7 @@ import { HumanifyError } from '../../mcp/errors.js';
 export type FeedbackSignal = 'accept' | 'edit' | 'reject';
 export type SoundsLikeMe = 'y' | 'kinda' | 'n';
 
-/** The single source of truth for the two-axis mapping (see DECISIONS.md D3). */
+/** The single source of truth for the two-axis mapping (yes->accept, kinda->edit, no->reject). */
 export const SIGNAL_TO_SOUNDS_LIKE_ME: Record<FeedbackSignal, SoundsLikeMe> = {
   accept: 'y',
   edit: 'kinda',
