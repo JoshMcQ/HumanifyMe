@@ -9,19 +9,38 @@
 [![Node](https://img.shields.io/badge/node-%3E%3D22.5-green.svg)](https://nodejs.org)
 [![Built with Claude Code](https://img.shields.io/badge/built%20with-Claude%20Code-D77655.svg)](https://claude.com/claude-code)
 
-HumanifyMe learns how one specific person writes and rewrites an AI agent's output in that person's voice before a human reads it. You install it as a plugin in Claude Code, Cowork, Cursor, and other AI agents. It is not "write better." It is "stop sounding like AI."
+HumanifyMe learns how *one specific person* writes, then rewrites an AI agent's output in that person's voice before anyone reads it. Install it once and every agent on your machine — Claude Code, Cowork, Cursor — rewrites in the same voice. It is not "write better." It is "stop sounding like AI."
 
-## Why this exists
+It runs locally. The only thing that crosses the network is a redacted draft sent to the LLM provider you choose.
 
-People hand more of their writing to AI agents every day: commit messages, PR descriptions, Slack posts, email drafts. Every agent produces the same recognizable register, polished, balanced, faintly corporate, and recipients have learned to spot it. The usual fixes (Grammarly, Wordtune, "AI humanizers") push text toward a generic professional voice, which is the opposite of the goal.
+## Quickstart
 
-The starting assumption is checkable, and a large study tested it. Wang et al. (2025) ran tens of thousands of generations across frontier models and hundreds of real authors and found that few-shot prompting does not convincingly imitate ordinary writers in informal genres: authorship-verification accuracy on blog-style text stays low, structured genres like news and email do far better, and more exemplars give diminishing returns [13]. The plain reading is that dropping a few samples into a prompt and asking a model to "write like me" hits a ceiling on casual voice. HumanifyMe's response to that ceiling is a persistent, retrievable corpus of the user's own writing plus a paraphrase-then-restyle rewrite, rather than a longer prompt.
+Install the plugin straight from the bundled marketplace — no clone, no build:
 
-A quick note on two words that get blurred. MCP (Model Context Protocol) is the protocol HumanifyMe speaks, so any MCP-compatible agent can call its `humanify_text` tool. A plugin is a different thing: in Claude Code and Cowork it is a packaging format that bundles capabilities (an MCP server, skills, commands, hooks) into one installable unit. HumanifyMe's plugin bundles its MCP server plus three skills, so installing the plugin sets up the server and teaches the agent when to reach for it in one step. You can also skip the plugin and register the MCP server directly (see below); the plugin is just the convenient package for the agents that support one.
+```bash
+claude plugin marketplace add JoshMcQ/HumanifyMe   # register the marketplace
+claude plugin install humanifyme@humanifyme        # installs 3 skills + the MCP server
+```
 
-## System architecture
+Then:
 
-An agent calls one tool, `humanify_text`. Everything else happens locally, and the only data that crosses the network is a redacted draft sent to the configured LLM provider.
+1. **`/humanifyme:build-voice-profile`** — give it 3 to 10 of your real writing samples.
+2. HumanifyMe builds a structured voice fingerprint and stores it locally in `~/.humanifyme/`.
+3. **`/humanifyme:humanify`** rewrites any draft in your voice — call it explicitly, or let the bundled skills trigger it after an agent drafts an email, PR, or message for you.
+
+Run `/reload-plugins` if you installed mid-session. Using a different agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) or the CLI? See [Install](#install).
+
+## Why it exists
+
+People hand more of their writing to AI every day — commits, PR descriptions, Slack posts, email drafts — and every agent produces the same recognizable register: polished, balanced, faintly corporate. Recipients have learned to spot it. The usual fixes (Grammarly, Wordtune, "AI humanizers") push text toward a *generic* professional voice, which is the opposite of the goal.
+
+Few-shot prompting alone cannot close the gap. A large 2025 study ran tens of thousands of generations across frontier models and hundreds of real authors and found that dropping a few samples into a prompt and asking a model to "write like me" hits a ceiling on casual voice ([Wang et al., 2025](https://arxiv.org/abs/2509.14543)). HumanifyMe's answer to that ceiling is a persistent, retrievable corpus of *your* writing plus a paraphrase-then-restyle rewrite — not a longer prompt.
+
+> **MCP vs. plugin.** MCP (Model Context Protocol) is the protocol HumanifyMe speaks, so any MCP-compatible agent can call its `humanify_text` tool. A plugin is the packaging format (used by Claude Code and Cowork) that bundles the MCP server plus skills into one installable unit. You can install the plugin, or [register the MCP server directly](#raw-mcp-registration).
+
+## How it works
+
+An agent calls one tool, `humanify_text`. Everything else happens on your machine.
 
 ```mermaid
 flowchart LR
@@ -38,26 +57,21 @@ flowchart LR
     DB --> E["embeddings"]
 ```
 
+The rewrite is **paraphrase-then-restyle**: strip the source style, re-render toward your learned voice, then run a deterministic gate no prompt can skip. The three pieces that carry the design:
+
+- **Deterministic verification — the quality moat.** Most "rewrite in my voice" tools stop at the prompt and hope. After every generation, [`src/engine/verify.ts`](src/engine/verify.ts) runs five mechanical checks against the redacted draft: words the model *introduced* from your avoid-list, dropped numbers (dates, prices, versions), broken URLs, vanished redaction placeholders, and your learned casing register. Failures on the first attempt become instructions for one retry; survivors become user-facing "review before sending" notes. It never blocks output.
+- **An editable voice fingerprint.** Your voice is a readable, labeled JSON object — sentence length, formality, directness, punctuation habits, words you avoid, your real greetings and sign-offs — not an opaque vector. Every dimension can be specialized per context (casual, professional, email, annoyed, …) and deep-merged at rewrite time. You can read it and correct it.
+- **Retrieval over your own writing.** Embeddings of your past messages live locally and are pulled as few-shot exemplars at rewrite time, with the structured fingerprint as the structural spec and cold-start fallback. One persistent voice memory in `~/.humanifyme/data.db`, shared across every agent and project on your machine. The default embedder is offline and dependency-free; MiniLM and Ollama are opt-in, local-only upgrades.
+
+Deep dives: [architecture & rewrite pipeline](docs/architecture.md) · [voice memory & retrieval](docs/voice-memory.md) · [data model](docs/data-model.md).
+
 ## Install
 
 ### As a plugin (start here)
 
-HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills that teach the agent when to reach for it (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root also ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json).
+HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The two-line install is in [Quickstart](#quickstart).
 
-Install it straight from the bundled marketplace (no clone, no local build):
-
-```bash
-claude plugin marketplace add JoshMcQ/HumanifyMe   # register the marketplace
-claude plugin install humanifyme@humanifyme        # installs the 3 skills + MCP server
-```
-
-The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.1.0 humanifyme-mcp`, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
-
-Once installed, the three skills are namespaced under the plugin (`/humanifyme:humanify`, `/humanifyme:build-voice-profile`, `/humanifyme:humanify-pr`), and run `/reload-plugins` if you installed mid-session:
-
-1. Give it 3 to 10 of your real writing samples through the `/humanifyme:build-voice-profile` skill.
-2. HumanifyMe builds a structured voice fingerprint and stores it locally.
-3. Your agent calls `humanify_text` automatically through the bundled skills, or you invoke `/humanifyme:humanify` explicitly.
+The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.1.0 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
 
 ### Command line
 
@@ -80,114 +94,17 @@ If your agent does not use the plugin format, register the server directly:
 claude mcp add humanifyme -- node /path/to/repo/dist/humanifyme-mcp.mjs
 ```
 
-The server exposes 16 `humanify_*` tools in one registry: the headline `humanify_text`, plus feedback and metrics, sample add/list/delete, profile get/build/update/delete, provider set, key test, audit list, wipe-all, and two importers (chat export and text files). The same engine runs without MCP via the `humanifyme` CLI (`rewrite`, `metrics`, `share on|off`, `setup`).
-
-## The rewrite pipeline
-
-The whole rewrite lives in one function, `rewrite(args)` in `src/engine/rewrite.ts`, shared by the MCP tool layer and the CLI. The shape is paraphrase-then-restyle, the recipe most authorship style transfer still uses: strip the source style, then re-render toward the learned target voice [11]. That second step is the hard one. Few-shot style transfer moves text away from a source style more reliably than it moves text toward a target style [12], which is exactly why the engine does not rely on exemplars alone and follows every generation with the deterministic gate below.
-
-```mermaid
-flowchart TD
-    A["draft text"] --> B["validate"]
-    B --> C["cache check"]
-    C -->|hit| Z["attach fresh feedback token and return"]
-    C -->|miss| D["redact"]
-    D --> E["merge fingerprint"]
-    E --> F["retrieve exemplars"]
-    F --> G["build prompt"]
-    G --> H["call provider"]
-    H --> I["verify gate"]
-    I -->|"fail on attempt 0"| G
-    I -->|"pass or final attempt"| J["restore placeholders"]
-    J --> K["diff"]
-    K --> L["mint feedback token"]
-    L --> M["return rewrite, diff, notes, feedbackToken"]
-```
-
-A few stages carry the weight:
-
-**Cache before redaction.** The cache key is a sha256 over the profile hash, context label, sorted directives, draft hash, and a retrieval signature. A hit returns immediately, so redaction is not always the first thing that happens to a draft. The retrieval signature folds in the embedder model, sample count, newest-sample timestamp, and every `rag.*` tunable, so adding or removing a voice sample invalidates the cache without running retrieval on the hit path.
-
-**Redact, then restore.** `redact(draft)` masks PII into numbered placeholders before anything crosses the network. After the model responds, `restore()` puts the originals back, so you never see a `[EMAIL_1]` token. A draft that is nothing but redactable content throws `EMPTY_AFTER_REDACTION` instead of being sent.
-
-### The quality moat: deterministic verification
-
-Most "rewrite in my voice" tools stop at the prompt and hope the model behaved. The published field converges on ensemble evaluation, which is an offline, aggregate measurement across many outputs. That is the right tool for judging a system, but it is the wrong tool for a single rewrite: an aggregate score can report strong average voice match while individual outputs quietly drop a price, alter a version number, or reintroduce a banned phrase. HumanifyMe adds a per-rewrite gate instead, closer to a contract test than to a benchmark. We hold this as design rationale, not as a result from the literature.
-
-After every generation, `verifyRewrite()` in `src/engine/verify.ts` runs a pure, deterministic gate over the candidate, all against the redacted draft so raw PII never reaches this layer. It runs exactly five mechanical checks:
-
-1. **Banned words.** Flags a word only if the model introduced it (present in the rewrite, absent from your draft). A banned word you wrote yourself is left alone.
-2. **Numbers.** Every digit-bearing token in the draft (dates, prices, versions, percentages) must survive verbatim, or `missing_number` fires.
-3. **URLs.** Every `http(s)` URL must survive byte for byte.
-4. **Redaction placeholders.** Every `[THING_N]` must survive so `restore()` can put the real value back. A dropped numeric suffix still passes; only a fully vanished placeholder fails.
-5. **Casing register.** Learned per user, not a house style. The fingerprint records whether you write all-lowercase or sentence-case, and the gate enforces it. The threshold is forgiving on purpose: a single proper noun for a lowercase writer is tolerated, not punished.
-
-On attempt 0, any issues (or an out-of-band length ratio) become natural-language instructions threaded into the next system prompt, and the loop retries exactly once. On the final attempt, surviving issues become user-facing "review before sending" notes. Verification never blocks output. The only thing that always forces another attempt is empty model output.
-
-### The voice fingerprint
-
-HumanifyMe learns your voice as a single structured JSON object, a `VoiceFingerprint` plus per-context overrides, not as an opaque vector. This is a deliberate descendant of the cheap, interpretable feature tradition in computational stylometry, where function-word frequencies, character n-grams, and similar surface features carry strong per-author signal without a neural model [1][2][3]. An interpretable, labeled-axis representation is something a person can read and correct, in the spirit of style embeddings whose axes are named linguistic attributes rather than dimensions of a black box [4]. An opaque embedding cannot be inspected or edited by the person it describes, so it is not used as the user-facing artifact.
-
-`buildProfile.ts` redacts every sample, concatenates them with labels, calls the provider once (`temperature 0.2`, JSON mode), validates against `StyleProfileSchema` with zod, and persists it. No code measures sentence length or contraction rate. The dimensions are LLM judgments mapped to coarse enums. We do not compute Flesch-Kincaid.
-
-The dimensions, in short:
-
-| Dimension | Shape | Enforcement |
-| --- | --- | --- |
-| `sentenceLength` | average (short/medium/long) + variance | prompt target |
-| `formality` | 1 to 5 | prompt target |
-| `directness` | 1 to 5 | prompt target |
-| `humor`, `profanity`, `contractions` | coarse enums | prompt target |
-| `punctuationHabits` | emDash, semicolon, ellipsis, exclamation, parentheses | prompt target |
-| `capitalization` | sentenceCase, titleCase, allLowercase | prompt target plus deterministic verify |
-| `commonPhrases` | real recurring phrases | used where they fit, never forced |
-| `wordsToAvoid` | words you do not use | forbidden plus deterministic verify |
-| `greetings` / `signoffs` | your real openers and closers | carried in fingerprint |
-| `howTheyAskQuestions` / `howTheyDisagree` / `howTheyApologize` / `howTheyGiveInstructions` | short freeform descriptions | carried as authoritative |
-| `exemplars` | 3 to 10 verbatim post-redaction snippets | ground the voice |
-
-Every base dimension can be context-specialized across nine labels (`casual`, `professional`, `annoyed`, `polite`, `direct`, `sales`, `email`, `text`, `linkedin`). At rewrite time the engine deep-merges base with the requested context. The profile is not a single voice on purpose: cross-discourse authorship verification work shows the same person verifiably writes differently across registers, so a single-vector model of their voice would average those away [5]. Most of these dimensions are steered through the prompt; only `wordsToAvoid` and the capitalization register are checked and enforced after generation.
-
-## Your voice memory (the brain)
-
-The retrieved exemplars are the primary voice signal at rewrite time; the structured fingerprint is the structural spec and the cold-start fallback. The reason for that ordering is the strongest head-to-head evidence in the personalization literature: in a controlled comparison across the LaMP tasks, retrieval over a user's own history carried most of the personalization gain while parameter-efficient fine-tuning added little on its own [6]. The multi-stage retrieve-then-condition shape itself is the field standard [7]. Keying retrieval on the user's own writing also keeps raw samples local and out of model weights, which fits the privacy model.
-
-When retrieval is on, HumanifyMe stores embeddings of your own past writing and pulls your most-similar past messages as few-shot exemplars. Here is the part people get wrong: it does not create a database inside your project folder.
-
-The embeddings and your profile live in `~/.humanifyme/data.db`, in your HOME directory, resolved by `src/paths.ts` and overridable only via `HUMANIFYME_HOME`. That means one persistent personal voice memory, shared across every agent and every project on your machine. Open a new repo, switch from Claude Code to Cursor, start a fresh chat: same voice. The memory grows as you add samples, and it never lands in version control by accident because it was never in the project to begin with.
-
-How retrieval works:
-
-- It embeds the already-redacted draft on-device and runs cosine similarity against locally-stored per-sample vectors in the SQLite `sample_embeddings` table.
-- Selection is greedy Maximal Marginal Relevance with a recency tiebreaker and a dedup gate (drops candidates whose cosine to an already-chosen exemplar exceeds 0.97). Returning fewer exemplars, or none, is a normal outcome.
-- Below `minSamples` (default 5) embedded samples, retrieval returns nothing and the engine stays profile-only.
-- The default embedder is dependency-free and offline: `lexical-v1`, a deterministic 512-dim lexical embedder. MiniLM (transformers.js / ONNX, `all-MiniLM-L6-v2`) and Ollama are opt-in, local-only upgrades behind the same interface.
-- Sample text is embedded from raw text at ingest, but every selected exemplar is passed through `redact()` again at send time. Store-time redaction is never trusted.
-- The whole stage is fail-open: any error degrades to profile-only. Retrieval never blocks a rewrite.
-
-One honest limitation: the MVP keys retrieval on a general-purpose embedder, not a dedicated style embedding. Author embeddings are known to entangle topic with style, so a general embedding will partly retrieve on what a sample is about rather than purely on how it is written [9][10]. Keying retrieval on a content-independent style embedding is the intended direction and a consistent, if modest, win in the retrieval literature [8], with a style-pure embedding as the planned upgrade. We do not claim the MVP already does style-pure retrieval, because the evidence says general embeddings do not.
+The server exposes 16 `humanify_*` tools in one registry: the headline `humanify_text`, plus feedback and metrics, sample add/list/delete, profile get/build/update/delete, provider set, key test, audit list, wipe-all, and two importers. The same engine runs without MCP via the `humanifyme` CLI.
 
 ## Does it actually work?
 
-We ran a four-register evaluation: four writers with distinct voices (casual lowercase, formal sentence-case, terse technical, warm enthusiastic), five generic-AI drafts each, rewritten with retrieval on and off. That is 20 rewrite pairs. The full method, raw numbers, and reproduction steps are in [`docs/proof/README.md`](docs/proof/README.md). Run date 2026-06-24. No single number settles personalized writing, so we report several deterministic measures and where they disagree [16][17].
-
-### Telling the test writers apart (a sanity check, not proof)
+A four-register evaluation: four writers with distinct voices (casual lowercase, formal sentence-case, terse technical, warm enthusiastic), five generic-AI drafts each, rewritten with retrieval on and off — 20 rewrite pairs. Full method, raw numbers, and reproduction steps are in [`docs/proof/README.md`](docs/proof/README.md). Run date 2026-06-24.
 
 ![Confusion matrix: a classifier separates the four test writers about 85 percent of the time](docs/proof/figures/register-confusion-matrix.png)
 
-Take each retrieval-grounded rewrite and ask which of the four test writers it lands closest to under the stylometric scorer: 17 of 20 (85 percent) land on their own writer. Be skeptical of that number, because we are. The writers were built to differ mostly by register; the scorer is eight coarse surface features (sentence and word length, comma, exclamation, question, dash and contraction rates, and lowercase-start rate) with no function-word or n-gram features; and casing is one of those features while also being enforced by the verify gate. Every misclassification falls between the two lowercase writers (A and C). So this mostly separates register, which was designed to be separable. It is a check that the machinery does something, not evidence the engine reproduced anyone's idiolect. The honest signal is the per-writer retrieval-on-vs-off comparison below, and the limitations are spelled out in [`docs/proof/README.md`](docs/proof/README.md).
+**Attribution (a sanity check, not proof).** Ask which of the four writers each retrieval-grounded rewrite lands closest to under a stylometric scorer: 17 of 20 (85%) land on their own writer. Be skeptical, because we are — the writers differ mostly by register, the scorer is eight coarse surface features, and every miss falls between the two lowercase writers. It shows the machinery does something; it is not evidence it reproduced anyone's idiolect.
 
-### It also holds the writer's register
-
-![Register adaptation: lowercase writers land at casing 0.00, sentence-case writers at 1.00](docs/proof/figures/register-adaptation.png)
-
-A smaller, fully deterministic check: does a rewrite keep the writer's capitalization habit? The two lowercase writers stay at 0.00, the two sentence-case writers at 1.00, enforced by the verify gate plus the learned register rather than by retrieval. Casing is the easiest dimension to see and to verify, which is why it earns a figure, but it is the floor of a voice, not its substance. The attribution result above is the one that speaks to substance.
-
-### Retrieval pulls the rewrite closer
-
-![Stylometric distance, retrieval ON vs OFF, per writer](docs/proof/figures/stylometric-distance.png)
-
-Retrieval pulls the rewrite closer to the real writer for three of the four writers this run. Lower is closer.
+**Retrieval pulls the rewrite closer** to the real writer for three of four writers this run (lower is closer). We report writer B even though retrieval hurt it — the metric is noisy and we are not rounding a loss into a win.
 
 | Writer | Distance ON | Distance OFF | Retrieval helps? |
 | --- | --- | --- | --- |
@@ -196,49 +113,32 @@ Retrieval pulls the rewrite closer to the real writer for three of the four writ
 | C (terse / technical) | 2.92 | 3.09 | yes, small |
 | D (warm / enthusiastic) | 2.47 | 2.69 | yes, small |
 
-We report writer B even though retrieval hurt the distance score there this run. The metric is noisy, and we are not rounding a loss into a win.
+**What we do not claim:** that an LLM judging an LLM is proof (we ran it; it's a weak proxy); that retrieval helps every writer; that the MVP already does style-pure retrieval; or that redaction recall is a privacy guarantee. The honest test is human evaluation, and the [proof doc](docs/proof/README.md) spells out every limitation.
 
-### Privacy: the guarantee is architectural
+## Privacy
 
-The privacy assurance is not a recall percentage. It is that the engine runs on your machine and the privacy-critical code is Apache-2.0, so you can read exactly what leaves (see Privacy methodology below). Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret. On the golden fixture set in `src/privacy/redact.test.ts` it masks all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) with no false positives on 20 plain paragraphs, deterministically, but it is best-effort by design and documented as such.
+HumanifyMe is local-first and redacts before it sends. The privacy assurance is **architectural, not a recall percentage**: the engine runs on your machine and the privacy-critical code ([`src/privacy/`](src/privacy/), [`src/network/`](src/network/), [`src/engine/verify.ts`](src/engine/verify.ts)) is Apache-2.0, so you can read exactly what leaves.
 
-![Redaction on the test fixtures: all seven planted secret classes masked, no false positives on 20 plain paragraphs](docs/proof/figures/redaction-coverage.png)
+- **Local-first.** All state lives under `~/.humanifyme/`, overridable only via `HUMANIFYME_HOME`. Raw samples never leave that directory.
+- **Redact before send.** `redact()` masks emails, phones, US addresses, Luhn-checked cards, API keys, AWS access-key IDs, and JWTs into numbered placeholders before the single network call; `restore()` swaps them back after. Retrieved exemplars are re-redacted at send time — store-time redaction is never trusted. Best-effort by design, and documented as such.
+- **Outbound allowlist + static scan.** [`src/network/outbound-scan.test.ts`](src/network/outbound-scan.test.ts) asserts that only `src/providers` and `src/network` may call `fetch()`, and that every hardcoded host is on a 4-entry allowlist.
+- **Metadata-only telemetry.** The audit log and opt-in feedback record counts, latency, and byte sizes — never content. Anonymous sharing is OFF by default and gated to once per 24h.
 
-### What we do not claim
+On the golden fixtures in `src/privacy/redact.test.ts`, redaction masks all seven planted secret classes with no false positives across 20 plain paragraphs — deterministically. The full methodology is in [`specs/privacy-security-spec.md`](specs/privacy-security-spec.md), the one set of rules contributors cannot break.
 
-- We do not count an LLM judging another LLM's output as proof. We ran that check (a model picking which rewrite sounds more like the writer) and it favored the retrieval-grounded one every time, but a model rating a model is a weak proxy. Human evaluation is the honest test, and it is the one we trust.
-- We do not claim retrieval helps every writer; it hurt writer B's distance this run.
-- We do not claim the engine already does style-pure retrieval. It does not, for the reason given above.
-- We do not treat redaction recall as a privacy guarantee. The guarantee is architectural.
+## Not a detection-bypass tool
 
-The claim is narrow: across four registers, retrieval-grounded rewrites are stylometrically attributable to the correct author 85 percent of the time and move closer to the real voice for most writers. That is it.
-
-## What HumanifyMe will not do: detection bypass
-
-HumanifyMe is not an AI-detection-bypass tool, and the specs say so. The research supports that stance on the merits, not only on ethics. Detection is fragile: there is a theoretical bound on detector reliability, and recursive paraphrasing defeats most detectors in practice [14]. Optimizing to beat a detector is optimizing against a moving, leaky target, and a tool that wins at fooling classifiers proves nothing about whether the output actually sounds like the user.
-
-We do track AI-tell density as a sanity floor, not a target. Generic model prose carries a recognizable stylistic signature, which is the same uniformity the product exists to remove [15]. Lowering AI-tells is necessary but nowhere near sufficient for sounding like a specific person, and it can be satisfied by generic edits that move text toward no one's voice. The voice-fidelity measures, with a human in the loop, remain the thing that matters.
+HumanifyMe will not help you beat AI detectors, and the specs say so. The research backs the stance on the merits: detection is fragile — there is a theoretical bound on detector reliability and recursive paraphrasing defeats most detectors ([Sadasivan et al., 2024](https://arxiv.org/abs/2303.11156)) — and a tool that wins at fooling classifiers proves nothing about whether the output sounds like *you*. We track AI-tell density only as a sanity floor, never as a target.
 
 ## The research it is based on
 
-The design choices here are grounded in prior work rather than guesses. The prior-art survey, the state-of-the-art review, and the evaluation design live in the repo: [`docs/research/prior-work.md`](docs/research/prior-work.md), [`docs/research/state-of-the-art.md`](docs/research/state-of-the-art.md), and [`docs/research/evaluation.md`](docs/research/evaluation.md). Each maps a line of research to a concrete design choice and is explicit about where the science stops and our opinion starts. The deterministic verify gate and the negative-profile field, in particular, are design bets against named open failure modes, not validated published results.
+Every design choice maps to prior work, and each write-up is explicit about where the science stops and our opinion starts: [prior-work survey](docs/research/prior-work.md) · [state-of-the-art review](docs/research/state-of-the-art.md) · [evaluation design](docs/research/evaluation.md). The deterministic verify gate, in particular, is a design bet against a named failure mode, not a validated published result. The full, linked reference list is below.
 
 ## Why I built it
 
 I wanted AI to write messages for me and it never quite could. I would have something typed up, ask it to just tighten the wording, and get back a completely different message in a voice that was not mine. So I started prompting my way around it, and that turned into this.
 
 Most of the code was written with Claude Code, Anthropic's agentic coding tool, against specs and acceptance criteria I wrote and reviewed. The product and architecture calls are mine: plugin-first distribution, keeping everything local, the verify gate, and how it gets evaluated.
-
-## Privacy methodology
-
-HumanifyMe is local-first and redacts before it sends. The modules that substantiate the privacy claims (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) are open source so you can audit them.
-
-- **Local-first.** All state lives under `~/.humanifyme/` (`config.json` plus `data.db`), overridable only via `HUMANIFYME_HOME`. Raw samples never leave that directory.
-- **Redact before send.** `redact()` masks emails, phones, US street addresses, Luhn-checked cards, API keys, AWS access-key IDs, and JWTs into numbered placeholders. Pattern order is load-bearing. Identical values collapse to one placeholder. `restore()` swaps the originals back after the model responds.
-- **Re-redact exemplars at send time.** Retrieved voice-memory exemplars are redacted again before sending, never trusting how they were stored.
-- **Outbound allowlist plus static scan test.** `src/network/outbound-scan.test.ts` scans the whole `src/` tree to assert that only `src/providers` and `src/network` may call `fetch()`, and that every hardcoded outbound host is on a 4-entry allowlist: `api.anthropic.com`, `api.openai.com`, `generativelanguage.googleapis.com`, `humanifyme.com`.
-- **Metadata-only audit log.** Every outbound provider call writes a row with provider, route, payload byte size, draft length, and success, never content. A 20-entry ring buffer surfaced via `humanify_audit_list`.
-- **Opt-in, counts-only feedback.** Every rewrite mints a per-rewrite feedback token and writes a pending counts-only row (context, provider, latency, never the text). You answer "did this sound like you?" and `humanify_metrics` aggregates the answers locally. Anonymous sharing of those aggregate counts is OFF by default, gated to once per 24h, and lives in one module, `src/network/feedbackShip.ts`, which ships only a salted install id plus counts.
 
 ## Repository layout
 
@@ -248,20 +148,21 @@ HumanifyMe is local-first and redacts before it sends. The modules that substant
 /humanifyme.plugin/              <- plugin bundle: manifest, MCP registration, skills
 /prompts/                        <- LLM prompt templates for the rewrite engine
 /evals/                          <- ablation runner, scorers, results
-/docs/                           <- research, proof, install snippets, data model, contracts
+/docs/                           <- research, proof, architecture, install, data model
 ```
 
 ## Contributing
 
-We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for branch, test, and PR conventions, then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/`. That trio is the heart of the methodology above. The one set of rules you cannot break is `specs/privacy-security-spec.md`. When you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue` on the tracker.
+We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md), then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/` — that trio is the heart of the methodology. The rules you cannot break live in [`specs/privacy-security-spec.md`](specs/privacy-security-spec.md); when you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue`.
 
 ## License
 
-Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The whole repository is open source, including the rewrite engine, prompts, and the privacy-critical modules (`src/privacy/`, `src/network/`, `src/engine/verify.ts`), so anyone can read and verify exactly what data does and does not leave a machine. "HumanifyMe" is a trademark of Joshua McQueary; the license does not grant trademark rights.
+Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The whole repository is open source, including the rewrite engine, prompts, and the privacy-critical modules, so anyone can verify exactly what data does and does not leave a machine. "HumanifyMe" is a trademark of Joshua McQueary; the license does not grant trademark rights.
 
-## References
+<details>
+<summary><strong>References</strong> — the works the design rests on (each title links to the canonical published version, verified to resolve)</summary>
 
-These are the works HumanifyMe's design rests on, drawn from the project's prior-work survey ([`docs/research/prior-work.md`](docs/research/prior-work.md)). Each title links to the canonical published version (DOI, arXiv, or ACL Anthology), verified to resolve to the cited paper.
+Drawn from the project's [prior-work survey](docs/research/prior-work.md).
 
 1. Stamatatos. [A Survey of Modern Authorship Attribution Methods](https://doi.org/10.1002/asi.21001). JASIST, 2009.
 2. Koppel, Schler & Argamon. [Computational Methods in Authorship Attribution](https://doi.org/10.1002/asi.20961). JASIST, 2009.
@@ -280,3 +181,5 @@ These are the works HumanifyMe's design rests on, drawn from the project's prior
 15. Rivera-Soto et al. [Few-Shot Detection of Machine-Generated Text Using Style Representations](https://arxiv.org/abs/2401.06712). ICLR, 2024.
 16. Jangra et al. [Evaluating Style-Personalized Text Generation](https://arxiv.org/abs/2508.06374), 2025.
 17. Jin et al. [A Survey of Deep Learning for Text Style Transfer](https://doi.org/10.1162/coli_a_00426). Computational Linguistics (MIT Press), 2022.
+
+</details>
