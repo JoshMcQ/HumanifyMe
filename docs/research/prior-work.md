@@ -98,7 +98,7 @@ Every citation below appears in the internal literature review this document was
 6. Wegmann, Schraagen & Nguyen. Same Author or Just Same Topic? RepL4NLP at ACL, 2022.
 7. Patel et al. StyleDistance. NAACL, 2025.
 8. Wang et al. Can Authorship Representation Learning Capture Stylistic Features? TACL, 2023.
-9. Stamatatos, Bevendorff et al. PAN 2023 Cross-Discourse Authorship Verification Overview. CLEF / Springer LNCS, 2023.
+9. Stamatatos, Bevendorff et al. PAN 2023 Cross-Discourse Authorship Verification Overview. CLEF 2023 Working Notes (CEUR-WS).
 10. Patel et al. LISA: Learning Interpretable Style Embeddings. Findings of EMNLP, 2023.
 
 **Retrieval-augmented generation and personalization**
@@ -106,7 +106,7 @@ Every citation below appears in the internal literature review this document was
 11. Salemi et al. LaMP. ACL, 2024.
 12. Kumar et al. LongLaMP, 2024.
 13. Salemi & Zamani. LaMP-QA. EMNLP, 2025.
-14. Salemi & Zamani. RAG vs PEFT for Privacy-Preserving Personalization. ACM TOIS, 2025.
+14. Salemi & Zamani. RAG vs PEFT for Privacy-Preserving Personalization. ICTIR (ACM SIGIR), 2025.
 15. Li et al. Teach LLMs to Personalize, 2023.
 16. Mysore et al. PEARL. EMNLP Workshop (CustomNLP4U), 2024.
 17. Neelakanteswara et al. RAGs to Style. Personalize at ACL, 2024.
@@ -118,7 +118,7 @@ Every citation below appears in the internal literature review this document was
 
 **AI-generated-text detection**
 
-23. Sadasivan et al. Can AI-Generated Text Be Reliably Detected? ICML, 2024.
+23. Sadasivan et al. Can AI-Generated Text Be Reliably Detected? TMLR, 2024.
 24. Rivera-Soto et al. Few-Shot Detection of Machine-Generated Text Using Style Representations. ICLR, 2024.
 
 **Evaluation methodology**

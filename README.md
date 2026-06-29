@@ -261,22 +261,22 @@ Apache License 2.0. See [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE). The whole r
 
 ## References
 
-These are the works HumanifyMe's design rests on, drawn from the project's prior-work survey ([`docs/research/prior-work.md`](docs/research/prior-work.md)). Titles, authors, and years are reproduced as given there and should be web-verified before external use.
+These are the works HumanifyMe's design rests on, drawn from the project's prior-work survey ([`docs/research/prior-work.md`](docs/research/prior-work.md)). Each title links to the canonical published version (DOI, arXiv, or ACL Anthology), verified to resolve to the cited paper.
 
-1. Stamatatos. A Survey of Modern Authorship Attribution Methods. JASIST, 2009.
-2. Koppel, Schler & Argamon. Computational Methods in Authorship Attribution. JASIST, 2009.
-3. Abbasi & Chen. Writeprints. ACM TOIS, 2008.
-4. Patel et al. LISA: Learning Interpretable Style Embeddings. Findings of EMNLP, 2023.
-5. Stamatatos, Bevendorff et al. PAN 2023 Cross-Discourse Authorship Verification Overview. CLEF / Springer LNCS, 2023.
-6. Salemi & Zamani. RAG vs PEFT for Privacy-Preserving Personalization. ACM TOIS, 2025.
-7. Li et al. Teach LLMs to Personalize, 2023.
-8. Neelakanteswara et al. RAGs to Style. Personalize at ACL, 2024.
-9. Wegmann, Schraagen & Nguyen. Same Author or Just Same Topic? RepL4NLP at ACL, 2022.
-10. Wang et al. Can Authorship Representation Learning Capture Stylistic Features? TACL, 2023.
-11. Krishna, Wieting & Iyyer. STRAP. EMNLP, 2020.
-12. Patel, Andrews & Callison-Burch. STYLL, 2022.
-13. Wang et al. Catch Me If You Can? Not Yet. Findings of EMNLP, 2025.
-14. Sadasivan et al. Can AI-Generated Text Be Reliably Detected? ICML, 2024.
-15. Rivera-Soto et al. Few-Shot Detection of Machine-Generated Text Using Style Representations. ICLR, 2024.
-16. Jangra et al. Evaluating Style-Personalized Text Generation, 2025.
-17. Jin et al. A Survey of Deep Learning for Text Style Transfer. Computational Linguistics (MIT Press), 2022.
+1. Stamatatos. [A Survey of Modern Authorship Attribution Methods](https://doi.org/10.1002/asi.21001). JASIST, 2009.
+2. Koppel, Schler & Argamon. [Computational Methods in Authorship Attribution](https://doi.org/10.1002/asi.20961). JASIST, 2009.
+3. Abbasi & Chen. [Writeprints](https://doi.org/10.1145/1344411.1344413). ACM TOIS, 2008.
+4. Patel et al. [LISA: Learning Interpretable Style Embeddings](https://arxiv.org/abs/2305.12696). Findings of EMNLP, 2023.
+5. Stamatatos, Bevendorff et al. [PAN 2023 Cross-Discourse Authorship Verification Overview](https://ceur-ws.org/Vol-3497/paper-199.pdf). CLEF 2023 Working Notes (CEUR-WS).
+6. Salemi & Zamani. [RAG vs PEFT for Privacy-Preserving Personalization](https://doi.org/10.1145/3731120.3744595). ICTIR (ACM SIGIR), 2025.
+7. Li et al. [Teach LLMs to Personalize](https://arxiv.org/abs/2308.07968), 2023.
+8. Neelakanteswara et al. [RAGs to Style](https://aclanthology.org/2024.personalize-1.11/). Personalize at ACL, 2024.
+9. Wegmann, Schraagen & Nguyen. [Same Author or Just Same Topic?](https://arxiv.org/abs/2204.04907) RepL4NLP at ACL, 2022.
+10. Wang et al. [Can Authorship Representation Learning Capture Stylistic Features?](https://doi.org/10.1162/tacl_a_00610) TACL, 2023.
+11. Krishna, Wieting & Iyyer. [STRAP](https://arxiv.org/abs/2010.05700). EMNLP, 2020.
+12. Patel, Andrews & Callison-Burch. [STYLL](https://arxiv.org/abs/2212.08986), 2022.
+13. Wang et al. [Catch Me If You Can? Not Yet](https://arxiv.org/abs/2509.14543). Findings of EMNLP, 2025.
+14. Sadasivan et al. [Can AI-Generated Text Be Reliably Detected?](https://arxiv.org/abs/2303.11156) TMLR, 2024.
+15. Rivera-Soto et al. [Few-Shot Detection of Machine-Generated Text Using Style Representations](https://arxiv.org/abs/2401.06712). ICLR, 2024.
+16. Jangra et al. [Evaluating Style-Personalized Text Generation](https://arxiv.org/abs/2508.06374), 2025.
+17. Jin et al. [A Survey of Deep Learning for Text Style Transfer](https://doi.org/10.1162/coli_a_00426). Computational Linguistics (MIT Press), 2022.
