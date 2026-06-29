@@ -33,9 +33,9 @@ task, say so and explain the motivation.
 <!-- Tick any that apply so reviewers know to look closely. -->
 
 - [ ] `specs/` (spec change, explain why the spec was wrong/incomplete)
-- [ ] `src/privacy/` (redaction / restore / patterns, MIT)
-- [ ] `src/network/` (outbound calls / telemetry, MIT)
-- [ ] `src/engine/verify.ts` (the deterministic quality gate, MIT)
+- [ ] `src/privacy/` (redaction / restore / patterns, Apache-2.0)
+- [ ] `src/network/` (outbound calls / telemetry, Apache-2.0)
+- [ ] `src/engine/verify.ts` (the deterministic quality gate, Apache-2.0)
 - [ ] None of the above
 
 ## Notes for reviewers

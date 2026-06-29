@@ -83,7 +83,7 @@ Real proof needs real writers, held-out samples scored on a shared scale, and hu
 
 ## Privacy: the guarantee is architectural
 
-The privacy assurance is not the recall number below. It is that everything runs on your machine and the privacy-critical code (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) is MIT, so you can read exactly what leaves and confirm it yourself. That is the part worth trusting.
+The privacy assurance is not the recall number below. It is that everything runs on your machine and the privacy-critical code (`src/privacy/`, `src/network/`, `src/engine/verify.ts`) is Apache-2.0, so you can read exactly what leaves and confirm it yourself. That is the part worth trusting.
 
 Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret, and the spec says so. On the golden fixture set in `src/privacy/redact.test.ts` it is deterministic and clean: all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) masked, 0 false positives across 20 plain paragraphs. Useful, but a floor, not a guarantee.
 

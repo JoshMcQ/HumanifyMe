@@ -51,13 +51,13 @@ claude plugin marketplace add JoshMcQ/HumanifyMe   # register the marketplace
 claude plugin install humanifyme@humanifyme        # installs the 3 skills + MCP server
 ```
 
-The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@latest humanifyme-mcp`, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
+The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.1.0 humanifyme-mcp`, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) is in [`docs/install/`](docs/install/).
 
-Once installed:
+Once installed, the three skills are namespaced under the plugin (`/humanifyme:humanify`, `/humanifyme:build-voice-profile`, `/humanifyme:humanify-pr`), and run `/reload-plugins` if you installed mid-session:
 
-1. Give it 3 to 10 of your real writing samples through the `build-voice-profile` skill.
+1. Give it 3 to 10 of your real writing samples through the `/humanifyme:build-voice-profile` skill.
 2. HumanifyMe builds a structured voice fingerprint and stores it locally.
-3. Your agent calls `humanify_text` automatically through bundled skills, or explicitly when you ask.
+3. Your agent calls `humanify_text` automatically through the bundled skills, or you invoke `/humanifyme:humanify` explicitly.
 
 ### Command line
 
@@ -200,7 +200,7 @@ We report writer B even though retrieval hurt the distance score there this run.
 
 ### Privacy: the guarantee is architectural
 
-The privacy assurance is not a recall percentage. It is that the engine runs on your machine and the privacy-critical code is MIT, so you can read exactly what leaves (see Privacy methodology below). Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret. On the golden fixture set in `src/privacy/redact.test.ts` it masks all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) with no false positives on 20 plain paragraphs, deterministically, but it is best-effort by design and documented as such.
+The privacy assurance is not a recall percentage. It is that the engine runs on your machine and the privacy-critical code is Apache-2.0, so you can read exactly what leaves (see Privacy methodology below). Redaction is a best-effort layer in front of the single network call, not a promise to catch every secret. On the golden fixture set in `src/privacy/redact.test.ts` it masks all seven planted secret classes (emails, phones, addresses, cards, API keys, AWS keys, JWTs) with no false positives on 20 plain paragraphs, deterministically, but it is best-effort by design and documented as such.
 
 ![Redaction on the test fixtures: all seven planted secret classes masked, no false positives on 20 plain paragraphs](docs/proof/figures/redaction-coverage.png)
 

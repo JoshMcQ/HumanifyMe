@@ -17,13 +17,12 @@ A plugin is a directory packaged as a `.plugin` (zip) with:
 
 ```
 humanifyme.plugin/
-├── plugin.json              <- plugin manifest
-├── mcp/
-│   └── server.json          <- MCP server registration (points at the humanifyme-mcp binary)
+├── .claude-plugin/
+│   └── plugin.json          <- plugin manifest (only this file lives here)
+├── .mcp.json                <- MCP server registration (points at the humanifyme-mcp binary)
 ├── skills/
 │   ├── humanify/
-│   │   ├── SKILL.md
-│   │   └── examples/
+│   │   └── SKILL.md
 │   ├── build-voice-profile/
 │   │   └── SKILL.md
 │   └── humanify-pr/
@@ -31,33 +30,35 @@ humanifyme.plugin/
 └── README.md
 ```
 
-### `plugin.json`
+### `.claude-plugin/plugin.json`
+
+Only `plugin.json` lives inside `.claude-plugin/`; every other directory (`skills/`, `.mcp.json`) sits at the plugin root. Skills are auto-discovered from `skills/`, so the manifest does not enumerate them.
 
 ```jsonc
 {
   "name": "humanifyme",
   "displayName": "HumanifyMe",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
-  "author": "humanifyme.com",
+  "author": { "name": "Joshua McQueary", "url": "https://humanifyme.com" },
   "homepage": "https://humanifyme.com",
-  "license": "MIT",
-  "mcps": ["./mcp/server.json"],
-  "skills": ["./skills/humanify", "./skills/build-voice-profile", "./skills/humanify-pr"],
-  "tags": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
+  "repository": "https://github.com/JoshMcQ/HumanifyMe",
+  "license": "Apache-2.0",
+  "keywords": ["writing", "voice", "rewrite", "privacy", "anti-ai-tone"]
 }
 ```
 
-### `mcp/server.json`
+### `.mcp.json`
+
+The version is pinned (not `@latest`) so a plugin install always resolves to a known, audited build.
 
 ```jsonc
 {
-  "name": "humanifyme",
-  "command": "npx",
-  "args": ["-y", "humanifyme-mcp@latest"],
-  "transport": "stdio",
-  "env": {
-    "HUMANIFYME_HOME": "${HOME}/.humanifyme"
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@0.1.0", "humanifyme-mcp"]
+    }
   }
 }
 ```
