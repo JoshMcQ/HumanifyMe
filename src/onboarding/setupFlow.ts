@@ -1,4 +1,4 @@
-import type { ContextLabel, ProviderName } from '../types.js';
+import { PROVIDERS, type ContextLabel, type ProviderName } from '../types.js';
 
 export interface SetupIo {
   write(message: string): void;
@@ -29,7 +29,6 @@ export interface SetupResult {
   stoppedAt?: 'consent' | 'provider' | 'samples' | 'profile';
 }
 
-const PROVIDERS: readonly ProviderName[] = ['anthropic', 'openai', 'gemini', 'ollama'];
 const SAMPLE_LABELS: readonly ContextLabel[] = ['email', 'casual', 'professional'];
 const DEMO_DRAFT =
   'I am writing to follow up regarding the project update. Please let me know if you have had an opportunity to review it and whether there are any next steps I should be aware of.';

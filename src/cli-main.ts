@@ -192,7 +192,7 @@ provider
     if (!valid) process.exitCode = 1;
   });
 
-// --- rewrite ---
+// --- analyze ---
 program
   .command('analyze [file]')
   .description('Review a draft for recognizable AI-writing signs (reads a file, or stdin)')
@@ -495,6 +495,7 @@ function configureProvider(
   const previousApiKey = getProviderApiKey(provider);
   setProviderApiKey(provider, opts.apiKey);
   config.providers[provider] = {
+    ...config.providers[provider],
     credentialStored: true,
     ...(opts.model ? { model: opts.model } : {}),
   };

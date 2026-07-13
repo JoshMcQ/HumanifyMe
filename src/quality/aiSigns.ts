@@ -209,17 +209,28 @@ const AUTOMATIC_SIGN_IDS = new Set<number>([
   74,
 ]);
 
+const LINE_BREAK_PATTERN = /\r?\n/;
+const BULLET_LINE_PATTERN = /^\s*(?:[-*+] |\d+[.)] )/;
+const CONTRACTION_PATTERN = /\b(?:i'm|i've|i'd|i'll|you're|you've|you'd|you'll|we're|we've|we'd|we'll|they're|they've|they'd|they'll|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|can't|couldn't|won't|wouldn't|shouldn't|it's|that's|there's|here's)\b/i;
+const HEDGE_PATTERN = /\b(?:may|might|could|perhaps|potentially|generally|typically|arguably|in many cases|it depends)\b/gi;
+const EM_DASH_PATTERN = /\u2014/g;
+const SEMICOLON_PATTERN = /;/g;
+const COLON_PATTERN = /:/g;
+const WORD_PATTERN = /\b[\w']+\b/g;
+const ASCII_ALPHANUMERIC_PATTERN = /[A-Za-z0-9]/;
+const REGEX_SPECIAL_CHARACTER_PATTERN = /[.*+?^${}()|[\]\\]/g;
+
 function categoryFor(id: number): AiSignCategory {
   if (id <= 9 || (id >= 28 && id <= 36) || id === 65 || id === 66 || id === 68 || id === 70 || id === 90) {
     return 'formula';
   }
+  if (id === 12 || id === 71 || id === 72 || id === 73) return 'formatting';
   if ((id >= 10 && id <= 14) || id === 48 || id === 49 || id === 50 || id === 51 || id === 55 || id === 67 || id === 74 || id === 75 || id === 79) {
     return 'structure';
   }
   if ((id >= 15 && id <= 22) || id === 37 || id === 38 || id === 39 || id === 42 || id === 43 || id === 47 || id === 53 || id === 54 || (id >= 57 && id <= 60) || id === 63 || id === 69 || id === 76 || id === 77 || id === 78 || id === 83 || id === 85 || id === 86) {
     return 'voice';
   }
-  if (id === 12 || id === 71 || id === 72 || id === 73) return 'formatting';
   if (id === 23 || id === 26 || id === 62 || (id >= 80 && id <= 82) || id === 89) return 'credibility';
   return 'word-choice';
 }
@@ -240,6 +251,10 @@ export const AI_TELL_PHRASES: readonly string[] = [
   ...new Set(PHRASE_RULES.flatMap((rule) => rule.phrases)),
 ];
 
+const LITERAL_PATTERNS = new Map(
+  AI_TELL_PHRASES.map((phrase) => [phrase, compileLiteralPattern(phrase)] as const),
+);
+
 export function analyzeAiWriting(text: string): AiWritingAnalysis {
   const wordCount = countWords(text);
   const findings = new Map<number, AiSignFinding>();
@@ -257,30 +272,31 @@ export function analyzeAiWriting(text: string): AiWritingAnalysis {
     if (occurrences >= (rule.minimum ?? 1)) addFinding(findings, rule.signId, occurrences, evidence);
   }
 
-  const nonBlankLines = text.split(/\r?\n/).filter((line) => line.trim()).length;
-  const bulletLines = text.split(/\r?\n/).filter((line) => /^\s*(?:[-*+] |\d+[.)] )/.test(line)).length;
+  const lines = text.split(LINE_BREAK_PATTERN);
+  const nonBlankLines = lines.filter((line) => line.trim()).length;
+  const bulletLines = lines.filter((line) => BULLET_LINE_PATTERN.test(line)).length;
   if (bulletLines >= 5 && bulletLines / Math.max(nonBlankLines, 1) >= 0.4) {
     addFinding(findings, 12, bulletLines, [`${bulletLines} bullet lines`]);
   }
 
-  if (wordCount >= 80 && !/\b(?:i'm|i've|i'd|i'll|you're|you've|you'd|you'll|we're|we've|we'd|we'll|they're|they've|they'd|they'll|isn't|aren't|wasn't|weren't|don't|doesn't|didn't|can't|couldn't|won't|wouldn't|shouldn't|it's|that's|there's|here's)\b/i.test(text)) {
+  if (wordCount >= 80 && !CONTRACTION_PATTERN.test(text)) {
     addFinding(findings, 38, 1, ['no contractions in 80+ words']);
   }
 
-  const hedges = countMatches(text, /\b(?:may|might|could|perhaps|potentially|generally|typically|arguably|in many cases|it depends)\b/gi);
+  const hedges = countMatches(text, HEDGE_PATTERN);
   if (hedges >= 4 && hedges / Math.max(wordCount, 1) >= 0.025) {
     addFinding(findings, 53, hedges, [`${hedges} hedges`]);
   }
 
-  const emDashes = countMatches(text, /\u2014/g);
+  const emDashes = countMatches(text, EM_DASH_PATTERN);
   if (emDashes > 0) addFinding(findings, 72, emDashes, ['\u2014']);
 
-  const semicolons = countMatches(text, /;/g);
+  const semicolons = countMatches(text, SEMICOLON_PATTERN);
   if (semicolons >= 3 && semicolons / Math.max(wordCount, 1) >= 0.015) {
     addFinding(findings, 73, semicolons, [`${semicolons} semicolons`]);
   }
 
-  const colons = countMatches(text, /:/g);
+  const colons = countMatches(text, COLON_PATTERN);
   if (colons >= 3 && colons / Math.max(wordCount, 1) >= 0.015) {
     addFinding(findings, 74, colons, [`${colons} colons`]);
   }
@@ -328,13 +344,13 @@ function addFinding(
 }
 
 function countWords(text: string): number {
-  return (text.match(/\b[\w']+\b/g) ?? []).length;
+  return (text.match(WORD_PATTERN) ?? []).length;
 }
 
 function countLiteral(text: string, phrase: string): number {
-  const escaped = escapeRegex(phrase);
-  if (!/[A-Za-z0-9]/.test(phrase)) return countMatches(text, new RegExp(escaped, 'g'));
-  return countMatches(text, new RegExp(`\\b${escaped}\\b`, 'gi'));
+  const pattern = LITERAL_PATTERNS.get(phrase);
+  if (!pattern) throw new Error(`No compiled pattern for AI-writing phrase: ${phrase}`);
+  return countMatches(text, pattern);
 }
 
 function countMatches(text: string, regex: RegExp): number {
@@ -342,5 +358,12 @@ function countMatches(text: string, regex: RegExp): number {
 }
 
 function escapeRegex(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  return value.replace(REGEX_SPECIAL_CHARACTER_PATTERN, '\\$&');
+}
+
+function compileLiteralPattern(phrase: string): RegExp {
+  const escaped = escapeRegex(phrase);
+  return ASCII_ALPHANUMERIC_PATTERN.test(phrase)
+    ? new RegExp(`\\b${escaped}\\b`, 'gi')
+    : new RegExp(escaped, 'g');
 }

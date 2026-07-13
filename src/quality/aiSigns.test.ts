@@ -18,6 +18,7 @@ describe('AI writing sign catalog', () => {
       title: 'Weird em dash addiction',
       detection: 'automatic',
     });
+    expect(AI_WRITING_SIGNS[11]).toMatchObject({ id: 12, category: 'formatting' });
   });
 
   it('keeps the public checklist synchronized with the canonical catalog', () => {

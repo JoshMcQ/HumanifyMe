@@ -5,6 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 
 const homes: string[] = [];
+const GUIDED_SETUP_HELP = /Guided setup: privacy, provider, samples, profile,\s+first rewrite/;
 
 afterEach(() => {
   for (const home of homes.splice(0)) fs.rmSync(home, { recursive: true, force: true });
@@ -41,9 +42,7 @@ describe('humanifyme CLI', () => {
     const result = runCli(['--help']);
 
     expect(result.status).toBe(0);
-    expect(result.stdout).toMatch(
-      /Guided setup: privacy, provider, samples, profile,\s+first rewrite/,
-    );
+    expect(result.stdout).toMatch(GUIDED_SETUP_HELP);
   });
 
   it('fails clearly instead of hanging when setup has no interactive terminal', () => {
