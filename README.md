@@ -15,18 +15,26 @@ It runs locally. The only thing that crosses the network is a redacted draft sen
 
 ## Quickstart
 
-Install the plugin straight from the bundled marketplace — no clone, no build:
+Run the secure one-time setup first. It explains the privacy boundary, hides your
+provider key while you type it, validates the provider, collects three writing
+samples, builds your profile, and offers a first rewrite:
+
+```bash
+npx -y humanifyme@0.2.0 setup
+```
+
+Never paste a provider key into an AI chat or pass it as a command-line flag. Then
+install the plugin from the bundled marketplace — no clone or build:
 
 ```bash
 claude plugin marketplace add JoshMcQ/HumanifyMe   # register the marketplace
 claude plugin install humanifyme@humanifyme        # installs 3 skills + the MCP server
 ```
 
-Then:
-
-1. **`/humanifyme:build-voice-profile`** — give it 3 to 10 of your real writing samples.
-2. HumanifyMe builds a structured voice fingerprint and stores it locally in `~/.humanifyme/`.
-3. **`/humanifyme:humanify`** rewrites any draft in your voice — call it explicitly, or let the bundled skills trigger it after an agent drafts an email, PR, or message for you.
+Then use **`/humanifyme:humanify`** on any draft, or let the bundled skills trigger
+it after an agent drafts an email, PR, or message. The CLI and every installed
+agent share the profile stored in `~/.humanifyme/`. Use
+**`/humanifyme:build-voice-profile`** later to add samples or rebuild it.
 
 Run `/reload-plugins` if you installed mid-session. Using a different agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) or the CLI? See [Install](#install).
 
@@ -79,7 +87,7 @@ Deep dives: [architecture & rewrite pipeline](docs/architecture.md) · [voice me
 
 HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The two-line install is in [Quickstart](#quickstart).
 
-The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.1.0 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
+The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.2.0 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
 
 ### Command line
 
@@ -132,6 +140,7 @@ A four-register evaluation: four writers with distinct voices (casual lowercase,
 HumanifyMe is local-first and redacts before it sends. The privacy assurance is **architectural, not a recall percentage**: the engine runs on your machine and the privacy-critical code ([`src/privacy/`](src/privacy/), [`src/network/`](src/network/), [`src/engine/verify.ts`](src/engine/verify.ts)) is Apache-2.0, so you can read exactly what leaves.
 
 - **Local-first.** All state lives under `~/.humanifyme/`, overridable only via `HUMANIFYME_HOME`. Raw samples never leave that directory.
+- **Keys stay in the OS credential store.** Cloud API keys are stored in Windows Credential Manager, macOS Keychain, or Linux Secret Service. HumanifyMe fails closed if the keychain is unavailable; it never falls back to plaintext config storage.
 - **Redact before send.** `redact()` masks emails, phones, US addresses, Luhn-checked cards, API keys, AWS access-key IDs, and JWTs into numbered placeholders before the single network call; `restore()` swaps them back after. Retrieved exemplars are re-redacted at send time — store-time redaction is never trusted. Best-effort by design, and documented as such.
 - **Outbound allowlist + static scan.** [`src/network/outbound-scan.test.ts`](src/network/outbound-scan.test.ts) asserts that only `src/providers` and `src/network` may call `fetch()`, and that every hardcoded host is on a 4-entry allowlist.
 - **Metadata-only telemetry.** The audit log and opt-in feedback record counts, latency, and byte sizes — never content. Anonymous sharing is OFF by default and gated to once per 24h.

@@ -54,11 +54,18 @@ describe('humanifyme CLI', () => {
     expect(result.stderr).not.toContain(' at ');
   });
 
-  it('does not accept an empty provider credential in noninteractive use', () => {
+  it('requires a secure interactive prompt for cloud credentials', () => {
     const result = runCli(['provider', 'set', 'anthropic']);
 
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('an API key is required for anthropic');
+    expect(result.stderr).toContain('cloud credentials require a secure interactive prompt');
     expect(result.stderr).not.toContain(' at ');
+  });
+
+  it('does not expose an API-key command-line option', () => {
+    const result = runCli(['provider', 'set', '--help']);
+
+    expect(result.status).toBe(0);
+    expect(result.stdout).not.toContain('--api-key');
   });
 });

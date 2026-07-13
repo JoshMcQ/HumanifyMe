@@ -147,6 +147,7 @@ describe('runSetupFlow', () => {
 
     expect(await runSetupFlow(io, services)).toEqual({ completed: false, stoppedAt: 'provider' });
     expect(calls.cleared).toEqual(['gemini']);
+    expect(io.output.some((line) => line.includes('network unavailable'))).toBe(true);
   });
 
   it('keeps a completed profile when the optional demo rewrite fails', async () => {

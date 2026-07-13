@@ -1,9 +1,13 @@
 import { z } from 'zod';
 
+const CloudProviderConfigSchema = z
+  .object({ credentialStored: z.literal(true), model: z.string().optional() })
+  .strict();
+
 export const ProviderConfigSchema = z.object({
-  anthropic: z.object({ apiKey: z.string(), model: z.string().optional() }).strict().optional(),
-  openai: z.object({ apiKey: z.string(), model: z.string().optional() }).strict().optional(),
-  gemini: z.object({ apiKey: z.string(), model: z.string().optional() }).strict().optional(),
+  anthropic: CloudProviderConfigSchema.optional(),
+  openai: CloudProviderConfigSchema.optional(),
+  gemini: CloudProviderConfigSchema.optional(),
   ollama: z.object({ baseUrl: z.string().url(), model: z.string() }).strict().optional(),
 }).strict();
 
@@ -23,7 +27,7 @@ export const RagConfigSchema = z
   .default({});
 
 export const ConfigSchema = z.object({
-  version: z.literal(1),
+  version: z.literal(2),
   consentAcceptedAt: z.string().datetime({ offset: true }).optional(),
   defaultProvider: z.enum(['anthropic', 'openai', 'gemini', 'ollama']),
   providers: ProviderConfigSchema,
@@ -45,7 +49,7 @@ export const ConfigSchema = z.object({
 export type Config = z.infer<typeof ConfigSchema>;
 
 export const DEFAULT_CONFIG: Config = {
-  version: 1,
+  version: 2,
   defaultProvider: 'anthropic',
   providers: {},
   redactionPatterns: ['default'],

@@ -54,8 +54,8 @@ Format: `Q-NN. Question. Blocks: <what>. Notes: <considerations>. Status: open |
 ### Q-07. OS keychain integration scope?
 
 - **Blocks:** Milestone 1 / Milestone 5.
-- **Notes:** `keytar` works on macOS and Windows; Linux has many keychain implementations and is more fragile. Recommendation: macOS + Windows in MVP; Linux falls back to file with a logged warning.
-- **Status:** open (recommend the fallback approach).
+- **Decision:** Use `@napi-rs/keyring` for Windows Credential Manager, macOS Keychain, and Linux Secret Service. Fail closed when unavailable; no plaintext fallback.
+- **Status:** resolved in v0.2.0.
 
 ## Recruiting and launch
 

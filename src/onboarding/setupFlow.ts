@@ -64,17 +64,19 @@ export async function runSetupFlow(io: SetupIo, services: SetupServices): Promis
     services.configureProvider(provider, secret);
     io.write(`Testing ${provider}...`);
     let providerWorks = false;
+    let providerError: unknown;
     try {
       providerWorks = await services.testProvider(provider);
-    } catch {
-      providerWorks = false;
+    } catch (error) {
+      providerError = error;
     }
     if (!providerWorks) {
       services.clearProvider(provider);
+      const detail = providerError ? `: ${errorMessage(providerError)}` : '';
       return stop(
         io,
         'provider',
-        `${provider} could not be reached or rejected the credential. Run setup again to retry.`,
+        `${provider} could not be reached or rejected the credential${detail}. Run setup again to retry.`,
       );
     }
     io.write(`${provider} is ready.`);

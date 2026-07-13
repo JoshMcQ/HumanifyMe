@@ -8,11 +8,13 @@ description: Set up HumanifyMe by teaching it how the user writes. Use when the 
 ## Flow
 
 1. **Consent + provider check.** Call `humanify_test_key`. If it errors with
-   `MISSING_API_KEY`, ask the user which provider they want (anthropic, openai,
-   gemini, or local ollama) and for an API key, then call `humanify_set_provider`.
-   If any call errors with `MISSING_CONSENT`, explain in one sentence: samples
-   stay on their machine; only redacted text goes to their own provider. Ask them
-   to run `humanifyme setup` in a terminal (the CLI records consent).
+   `MISSING_API_KEY` or any later call returns `MISSING_CONSENT`, ask the user to
+   run `npx -y humanifyme@0.2.0 setup` in a terminal, then return here. That
+   wizard records consent, accepts the API key without echo, validates it, and
+   can build the initial profile. **Never ask the user to paste an API key into
+   chat and never put a cloud key in an MCP tool argument.** The host model can
+   see chat and tool arguments. `humanify_set_provider` is only for local Ollama,
+   which has no API key.
 2. **Collect samples.** The profile needs at least 3 samples of at least 100
    characters; 5 to 10 is better. Two paths, can be combined:
    - **Bulk (best results):** if the user has a ChatGPT or Claude data export,

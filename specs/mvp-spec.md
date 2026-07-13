@@ -44,7 +44,7 @@ Ship an MCP server, installable as a Cowork plugin and a Claude Code plugin, tha
    - At launch: Anthropic, OpenAI, Gemini wired up. Ollama follows in the first few weeks.
    - Configured via `humanify_set_provider` and/or `~/.humanifyme/config.json`.
    - The user can switch providers per call via the `provider` argument to `humanify_text`.
-   - BYO API key (stored locally; OS keychain on macOS/Windows when available).
+   - BYO API key stored in Windows Credential Manager, macOS Keychain, or Linux Secret Service with no plaintext fallback.
 
 7. **Redaction.**
    - Before any sample or draft is sent to the LLM, run `redact()` over it.

@@ -34,12 +34,12 @@ Live document. Add new risks as they surface. Each entry has: ID, description, l
 - **Mitigation:** privacy-spec rules; CI checks for HTTP calls outside `src/engine/providers/`; audit log surfaces last 20 requests; redactor pre-stage.
 - **Trigger:** any PR introduces a network call outside the engine layer.
 
-### R-05. API key in `config.json` is readable by other local apps
+### R-05. OS credential store is unavailable
 
-- **Likelihood:** medium (file is `0600` but a compromised user-shell can read it).
-- **Impact:** medium, user pays an LLM bill they didn't intend.
-- **Mitigation:** prefer OS keychain (`keytar`) on macOS/Windows; document the risk; surface BYO-key usage caps.
-- **Trigger:** an alpha user reports unexpected spend.
+- **Likelihood:** low on Windows/macOS; medium on headless Linux without Secret Service.
+- **Impact:** setup cannot persist a cloud credential.
+- **Mitigation:** fail closed with a clear error and offer local Ollama; never fall back to plaintext. The packed-install smoke test verifies the native binding loads.
+- **Trigger:** setup reports that the OS keychain is unavailable.
 
 ### R-06. Redactor misses a PII pattern
 

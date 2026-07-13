@@ -14,7 +14,11 @@ Your writing samples stay on your machine (`~/.humanifyme/`). Rewrites send
 redacted text to the LLM provider you configure, and nowhere else. Audit every
 outbound request with `humanifyme audit`.
 
+Before first use, run `npx -y humanifyme@0.2.0 setup` in a terminal. The wizard
+accepts cloud credentials through hidden input; never paste an API key into an AI
+chat or MCP tool argument. The plugin reuses the profile created by that wizard.
+
 Requires Node ≥ 22.5 on PATH. The bundled `.mcp.json` runs the MCP server straight
-from npm, pinned to the released version (`npx -y --package humanifyme@0.1.0
+from npm, pinned to the released version (`npx -y --package humanifyme@0.2.0
 humanifyme-mcp`), so installing the plugin needs no local build or clone. The pin
 moves with each plugin release, so an install never auto-pulls an unreviewed version.

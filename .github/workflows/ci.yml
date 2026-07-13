@@ -37,3 +37,5 @@ jobs:
         run: npm run test:coverage
       - name: Build
         run: npm run build
+      - name: Smoke-test packed CLI
+        run: npm run test:package

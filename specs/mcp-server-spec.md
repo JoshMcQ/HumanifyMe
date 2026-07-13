@@ -31,7 +31,7 @@ MCP also gives us:
 - No daemons, no background processes.
 - One JSON config file at `~/.humanifyme/config.json` (overridable via `HUMANIFYME_HOME`).
 - One SQLite database at `~/.humanifyme/data.db` for samples, profile, cache, audit log.
-- LLM provider API keys stored either inline in `config.json` (default) or pulled from the OS keychain on macOS/Windows when available.
+- LLM provider API keys live only in the current user's OS credential store: Windows Credential Manager, macOS Keychain, or Linux Secret Service. `config.json` stores provider metadata, never the key.
 
 We use SQLite instead of IndexedDB because we are no longer in a browser. SQLite gives us schema migrations, queryable indices, and a single-file backup story.
 
@@ -114,11 +114,14 @@ returns: { deleted: true }
 ### `humanify_set_provider`
 
 ```ts
-input: { provider: 'anthropic' | 'openai' | 'gemini' | 'ollama'; apiKey?: string; baseUrl?: string }
+input: { provider: 'ollama'; baseUrl?: string; model?: string }
 returns: { provider: string; valid: boolean }
 ```
 
-`baseUrl` lets the user point Ollama or a self-hosted OpenAI-compatible endpoint at a custom address.
+This tool configures local Ollama only. Cloud credentials must never pass through
+chat or MCP tool arguments because the host model can see them. The interactive
+`humanifyme setup` and `humanifyme provider set <name>` commands accept cloud keys
+through hidden terminal input.
 
 ### `humanify_test_key`
 
@@ -182,12 +185,12 @@ Implementation depends on the host agent's hook API and is rolled out per-agent.
 
 ```jsonc
 {
-  "version": 1,
+  "version": 2,
   "defaultProvider": "anthropic",
   "providers": {
-    "anthropic": { "apiKey": "sk-ant-...", "model": "claude-sonnet-4-6" },
-    "openai":    { "apiKey": "sk-...",     "model": "gpt-4o" },
-    "gemini":    { "apiKey": "...",        "model": "gemini-1.5-pro" },
+    "anthropic": { "credentialStored": true, "model": "claude-sonnet-4-6" },
+    "openai":    { "credentialStored": true, "model": "gpt-4o" },
+    "gemini":    { "credentialStored": true, "model": "gemini-1.5-pro" },
     "ollama":    { "baseUrl": "http://localhost:11434", "model": "llama3.2:3b" }
   },
   "redactionPatterns": ["default"],
@@ -199,7 +202,10 @@ Implementation depends on the host agent's hook API and is rolled out per-agent.
 }
 ```
 
-Sensitive values (`apiKey`) are written to disk with `0600` perms on POSIX. On Windows we set ACLs to the current user only. On macOS we try the keychain first; fall back to file with a logged warning.
+Cloud API keys are stored in the OS credential store through `@napi-rs/keyring`.
+There is no plaintext fallback. A keychain failure stops setup with a clear error;
+it never causes the key to be written into `config.json`. Config files still use
+owner-only permissions because they contain private product settings and consent state.
 
 ## Error model
 

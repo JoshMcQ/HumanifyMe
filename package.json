@@ -1,6 +1,6 @@
 {
   "name": "humanifyme",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Make AI sound like you. A local-first MCP server that learns your writing voice and rewrites AI-generated drafts in it.",
   "license": "Apache-2.0",
   "author": "Joshua McQueary",
@@ -43,11 +43,14 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:package": "node scripts/smoke-packed-cli.mjs",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm run test:coverage && npm run build"
+    "check:release-version": "node scripts/check-release-version.mjs",
+    "prepublishOnly": "npm run check:release-version && npm run lint && npm run typecheck && npm run test:coverage && npm run build && npm run test:package"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
+    "@napi-rs/keyring": "^1.3.0",
     "adm-zip": "^0.5.16",
     "commander": "^13.1.0",
     "diff": "^9.0.0",

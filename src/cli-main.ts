@@ -6,7 +6,13 @@ import fs from 'node:fs';
 import { Command } from 'commander';
 import { VERSION } from './version.js';
 import { samples, audit, wipeAll, profiles, feedback } from './storage/index.js';
-import { readConfig, updateConfig } from './config/index.js';
+import { readConfig, updateConfig, writeConfig } from './config/index.js';
+import {
+  deleteProviderApiKey,
+  getProviderApiKey,
+  setProviderApiKey,
+  type CloudProviderName,
+} from './config/secrets.js';
 import { acceptConsent, consentStatus } from './mcp/consent.js';
 import { getProvider } from './providers/index.js';
 import { buildProfile } from './engine/buildProfile.js';
@@ -133,26 +139,47 @@ const provider = program.command('provider').description('Configure LLM provider
 provider
   .command('set <name>')
   .description(`set provider (${PROVIDERS.join('|')}) and make it default`)
-  .option('--api-key <key>', 'API key; omit in a terminal to enter it without echo')
   .option('--model <model>', 'model override')
   .option('--base-url <url>', 'base URL (ollama or self-hosted)')
-  .action(async (name: string, opts: { apiKey?: string; model?: string; baseUrl?: string }) => {
+  .action(async (name: string, opts: { model?: string; baseUrl?: string }) => {
     const parsed = PROVIDERS.find((p) => p === name);
     if (!parsed) {
       console.error(`unknown provider "${name}". options: ${PROVIDERS.join(', ')}`);
       process.exitCode = 1;
       return;
     }
-    const apiKey =
-      parsed === 'ollama' || opts.apiKey
-        ? opts.apiKey
-        : process.stdin.isTTY
-          ? await promptSecret(`${parsed} API key (input hidden): `)
-          : undefined;
-    configureProvider(parsed, { ...opts, apiKey });
-    const valid = await getProvider(parsed).testKey();
-    console.log(`${parsed} configured. key ${valid ? 'works' : 'FAILED validation'}.`);
-    if (!valid) process.exitCode = 1;
+    if (parsed !== 'ollama' && (!process.stdin.isTTY || !process.stdout.isTTY)) {
+      console.error(
+        `cloud credentials require a secure interactive prompt. Open a terminal and run: humanifyme provider set ${parsed}`,
+      );
+      process.exitCode = 1;
+      return;
+    }
+    const apiKey = parsed === 'ollama' ? undefined : await promptSecret(`${parsed} API key (input hidden): `);
+    const previousConfig = readConfig();
+    const cloudProvider = parsed === 'ollama' ? null : (parsed as CloudProviderName);
+    const previousApiKey = cloudProvider ? getProviderApiKey(cloudProvider) : null;
+    let valid = false;
+    let validationError: unknown;
+    try {
+      configureProvider(parsed, { ...opts, apiKey });
+      valid = await getProvider(parsed).testKey();
+    } catch (error) {
+      validationError = error;
+    }
+    if (!valid) {
+      writeConfig(previousConfig);
+      if (cloudProvider) restoreProviderApiKey(cloudProvider, previousApiKey);
+    }
+    if (valid) {
+      console.log(`${parsed} configuration saved. Provider works.`);
+    } else {
+      const detail = validationError
+        ? ` ${validationError instanceof Error ? validationError.message : String(validationError)}`
+        : '';
+      console.error(`${parsed} configuration not saved: provider validation failed.${detail}`);
+      process.exitCode = 1;
+    }
   });
 
 provider
@@ -314,8 +341,13 @@ program
       process.exitCode = 1;
       return;
     }
-    const result = await runSetupFlow(terminalSetupIo(), setupServices());
-    if (result.stoppedAt === 'provider' || result.stoppedAt === 'profile') process.exitCode = 1;
+    try {
+      const result = await runSetupFlow(terminalSetupIo(), setupServices());
+      if (result.stoppedAt === 'provider' || result.stoppedAt === 'profile') process.exitCode = 1;
+    } catch (error) {
+      console.error(`setup failed: ${error instanceof Error ? error.message : String(error)}`);
+      process.exitCode = 1;
+    }
   });
 
 // --- share (toggle anonymous validation sharing) ---
@@ -448,21 +480,31 @@ function configureProvider(
   provider: ProviderName,
   opts: { apiKey?: string; model?: string; baseUrl?: string },
 ): void {
-  updateConfig((config) => {
-    if (provider === 'ollama') {
-      config.providers.ollama = {
-        baseUrl: opts.baseUrl ?? 'http://localhost:11434',
-        model: opts.model ?? 'llama3.2:3b',
-      };
-    } else {
-      if (!opts.apiKey) throw new Error(`an API key is required for ${provider}`);
-      config.providers[provider] = {
-        apiKey: opts.apiKey,
-        ...(opts.model ? { model: opts.model } : {}),
-      };
-    }
+  const config = readConfig();
+  if (provider === 'ollama') {
+    config.providers.ollama = {
+      baseUrl: opts.baseUrl ?? 'http://localhost:11434',
+      model: opts.model ?? 'llama3.2:3b',
+    };
     config.defaultProvider = provider;
-  });
+    writeConfig(config);
+    return;
+  }
+
+  if (!opts.apiKey) throw new Error(`an API key is required for ${provider}`);
+  const previousApiKey = getProviderApiKey(provider);
+  setProviderApiKey(provider, opts.apiKey);
+  config.providers[provider] = {
+    credentialStored: true,
+    ...(opts.model ? { model: opts.model } : {}),
+  };
+  config.defaultProvider = provider;
+  try {
+    writeConfig(config);
+  } catch (error) {
+    restoreProviderApiKey(provider, previousApiKey);
+    throw error;
+  }
 }
 
 function terminalSetupIo(): SetupIo {
@@ -482,15 +524,25 @@ function setupServices(): SetupServices {
     },
     configuredProvider: () => {
       const config = readConfig();
-      return config.providers[config.defaultProvider] ? config.defaultProvider : null;
+      const provider = config.defaultProvider;
+      if (provider === 'ollama') return config.providers.ollama ? provider : null;
+      return config.providers[provider] && getProviderApiKey(provider) ? provider : null;
     },
     configureProvider: (provider, secret) => {
       configureProvider(provider, { apiKey: secret });
     },
     clearProvider: (provider) => {
-      updateConfig((config) => {
-        delete config.providers[provider];
-      });
+      const cloudProvider = provider === 'ollama' ? null : provider;
+      const previousApiKey = cloudProvider ? getProviderApiKey(cloudProvider) : null;
+      if (cloudProvider) deleteProviderApiKey(cloudProvider);
+      try {
+        updateConfig((config) => {
+          delete config.providers[provider];
+        });
+      } catch (error) {
+        if (cloudProvider) restoreProviderApiKey(cloudProvider, previousApiKey);
+        throw error;
+      }
     },
     testProvider: async (provider) => getProvider(provider).testKey(),
     sampleCount: () => samples.count(),
@@ -528,6 +580,11 @@ function setupServices(): SetupServices {
       });
     },
   };
+}
+
+function restoreProviderApiKey(provider: CloudProviderName, apiKey: string | null): void {
+  if (apiKey !== null) setProviderApiKey(provider, apiKey);
+  else deleteProviderApiKey(provider);
 }
 
 program.parseAsync(process.argv).catch((err) => {
