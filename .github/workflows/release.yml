@@ -12,8 +12,6 @@ jobs:
   release:
     name: build, test, publish
     runs-on: ubuntu-latest
-    env:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,7 +20,6 @@ jobs:
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-          cache: npm
       - run: npm ci
       - name: Require a tagged commit from main
         run: |
@@ -32,8 +29,6 @@ jobs:
         run: npm run check:release-version -- --tag "$GITHUB_REF_NAME" --ensure-unpublished
       - name: Publish to npm
         run: npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:

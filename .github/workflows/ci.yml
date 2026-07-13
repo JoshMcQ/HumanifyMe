@@ -10,15 +10,23 @@ permissions:
 
 jobs:
   build-test:
-    name: build & test (node ${{ matrix.node }})
-    runs-on: ubuntu-latest
+    name: build & test (${{ matrix.os }}, node ${{ matrix.node }})
+    runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         include:
-          - node: '22.x'
+          - os: ubuntu-latest
+            node: '22.x'
             node_opts: '--experimental-sqlite'
-          - node: '24.x'
+          - os: ubuntu-latest
+            node: '24.x'
+            node_opts: ''
+          - os: windows-latest
+            node: '24.x'
+            node_opts: ''
+          - os: macos-latest
+            node: '24.x'
             node_opts: ''
     env:
       NODE_OPTIONS: ${{ matrix.node_opts }}

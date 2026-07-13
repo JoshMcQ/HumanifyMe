@@ -41,6 +41,7 @@ for (const file of [
   'humanifyme.plugin/README.md',
   'humanifyme.plugin/skills/build-voice-profile/SKILL.md',
   'docs/install/README.md',
+  'docs/releasing.md',
   'specs/plugin-spec.md',
 ]) {
   const pins = [...readText(file).matchAll(/humanifyme@(\d+\.\d+\.\d+)/g)].map((match) => match[1]);
