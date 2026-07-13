@@ -14,8 +14,14 @@ describe('aiSmellScore (T4)', () => {
     expect(r.hits).toContain('world-class');
   });
 
+  it('counts em dashes as AI-tell punctuation', () => {
+    const r = aiSmellScore('This approach works \u2014 not because it is complex, but because it is simple.');
+    expect(r.count).toBe(1);
+    expect(r.hits).toContain('\u2014');
+  });
+
   it('scores clean human text as zero', () => {
-    const r = aiSmellScore('hey — did you get a chance to look at the flash script? no rush');
+    const r = aiSmellScore('hey, did you get a chance to look at the flash script? no rush');
     expect(r.count).toBe(0);
     expect(r.per100Words).toBe(0);
   });

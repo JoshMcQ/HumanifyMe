@@ -17,7 +17,15 @@ import { recordFeedbackTool } from './mcp/tools/feedback.js';
 import { previewChatExport, commitChatExport } from './importers/chatExport/index.js';
 import { importTextFiles } from './importers/textFiles/index.js';
 import { backfillEmbeddings, embedSample } from './engine/voiceMemory.js';
-import { ContextLabelSchema, DirectiveSchema, PROVIDERS, CONTEXT_LABELS } from './types.js';
+import {
+  ContextLabelSchema,
+  DirectiveSchema,
+  PROVIDERS,
+  CONTEXT_LABELS,
+  type ProviderName,
+} from './types.js';
+import { analyzeAiWriting, formatAiWritingAnalysis } from './quality/aiSigns.js';
+import { runSetupFlow, type SetupIo, type SetupServices } from './onboarding/setupFlow.js';
 
 const program = new Command();
 program.name('humanifyme').description('Make AI sound like you.').version(VERSION);
@@ -125,7 +133,7 @@ const provider = program.command('provider').description('Configure LLM provider
 provider
   .command('set <name>')
   .description(`set provider (${PROVIDERS.join('|')}) and make it default`)
-  .option('--api-key <key>', 'API key (not needed for ollama)')
+  .option('--api-key <key>', 'API key; omit in a terminal to enter it without echo')
   .option('--model <model>', 'model override')
   .option('--base-url <url>', 'base URL (ollama or self-hosted)')
   .action(async (name: string, opts: { apiKey?: string; model?: string; baseUrl?: string }) => {
@@ -135,20 +143,16 @@ provider
       process.exitCode = 1;
       return;
     }
-    updateConfig((c) => {
-      if (parsed === 'ollama') {
-        c.providers.ollama = {
-          baseUrl: opts.baseUrl ?? 'http://localhost:11434',
-          model: opts.model ?? 'llama3.2:3b',
-        };
-      } else {
-        if (!opts.apiKey) throw new Error(`--api-key is required for ${parsed}`);
-        c.providers[parsed] = { apiKey: opts.apiKey, ...(opts.model ? { model: opts.model } : {}) };
-      }
-      c.defaultProvider = parsed;
-    });
+    const apiKey =
+      parsed === 'ollama' || opts.apiKey
+        ? opts.apiKey
+        : process.stdin.isTTY
+          ? await promptSecret(`${parsed} API key (input hidden): `)
+          : undefined;
+    configureProvider(parsed, { ...opts, apiKey });
     const valid = await getProvider(parsed).testKey();
     console.log(`${parsed} configured. key ${valid ? 'works' : 'FAILED validation'}.`);
+    if (!valid) process.exitCode = 1;
   });
 
 provider
@@ -158,9 +162,18 @@ provider
     const name = readConfig().defaultProvider;
     const valid = await getProvider().testKey();
     console.log(`${name}: ${valid ? 'key works' : 'key INVALID or unreachable'}`);
+    if (!valid) process.exitCode = 1;
   });
 
 // --- rewrite ---
+program
+  .command('analyze [file]')
+  .description('Review a draft for recognizable AI-writing signs (reads a file, or stdin)')
+  .action((file: string | undefined) => {
+    const draft = file ? fs.readFileSync(file, 'utf8') : fs.readFileSync(0, 'utf8');
+    console.log(formatAiWritingAnalysis(analyzeAiWriting(draft)));
+  });
+
 program
   .command('rewrite [file]')
   .description('Rewrite a draft in your voice (reads the file, or stdin if omitted)')
@@ -294,69 +307,15 @@ program
 
 program
   .command('setup')
-  .description('First-run setup: consent, provider, samples, profile')
+  .description('Guided setup: privacy, provider, samples, profile, first rewrite')
   .action(async () => {
-    console.log('HumanifyMe setup');
-    console.log('================');
-    if (consentStatus()) {
-      console.log('step 1 (consent): already accepted.');
-    } else {
-      console.log(`
-step 1 — consent.
-
-HumanifyMe stores your writing samples ONLY on this machine (~/.humanifyme).
-When building your profile or rewriting a draft, redacted text is sent to the
-LLM provider YOU configure — and nowhere else. No telemetry, no other servers.
-Wipe everything anytime with: humanifyme wipe --confirm
-`);
-      const accepted = await promptYesNo('Accept and continue? [y/N] ');
-      if (!accepted) {
-        console.log('setup aborted. nothing stored.');
-        return;
-      }
-      acceptConsent();
-      console.log('consent recorded.');
+    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+      console.error('setup needs an interactive terminal. Open one and run: npx -y humanifyme setup');
+      process.exitCode = 1;
+      return;
     }
-    const config = readConfig();
-    const hasProvider = Object.keys(config.providers).length > 0;
-    console.log(
-      hasProvider
-        ? `step 2 (provider): ${config.defaultProvider} configured.`
-        : 'step 2 (provider): not configured. run: humanifyme provider set anthropic --api-key <key>',
-    );
-    const n = samples.count();
-    console.log(
-      n >= 3
-        ? `step 3 (samples): ${n} stored.`
-        : `step 3 (samples): ${n} stored; need at least 3. add with: humanifyme sample add <file> --label email  (or: humanifyme import chat <export.zip>)`,
-    );
-    console.log(
-      profiles.get()
-        ? 'step 4 (profile): built. try: echo "draft" | humanifyme rewrite'
-        : 'step 4 (profile): not built. once you have 3+ samples: humanifyme profile rebuild',
-    );
-
-    // Step 5 — opt-in anonymous validation sharing. Default OFF; never content.
-    if (readConfig().shareAnonymousFeedback) {
-      console.log('step 5 (share results): on. turn off anytime: humanifyme share off');
-    } else {
-      console.log(`
-step 5 — share anonymous results? (optional)
-
-Help others see HumanifyMe actually works. If you turn this on, it sends ONLY
-counts — how often rewrites sounded like you, by context/provider, and latency.
-No drafts, no rewrites, no text of any kind. Ever. At most once a day.
-You can turn it off anytime with: humanifyme share off`);
-      const share = await promptYesNo('Share anonymous counts? [y/N] ');
-      updateConfig((c) => {
-        c.shareAnonymousFeedback = share;
-      });
-      console.log(
-        share
-          ? 'step 5 (share results): on, thank you. counts only. off anytime: humanifyme share off'
-          : 'step 5 (share results): off. you can opt in later: humanifyme share on',
-      );
-    }
+    const result = await runSetupFlow(terminalSetupIo(), setupServices());
+    if (result.stoppedAt === 'provider' || result.stoppedAt === 'profile') process.exitCode = 1;
   });
 
 // --- share (toggle anonymous validation sharing) ---
@@ -408,12 +367,167 @@ async function promptFeedback(token: string): Promise<void> {
   console.error('[thanks — recorded locally]');
 }
 
-async function promptYesNo(question: string): Promise<boolean> {
+async function promptLine(question: string): Promise<string> {
   const readline = await import('node:readline/promises');
   const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  const answer = (await rl.question(question)).trim().toLowerCase();
-  rl.close();
-  return answer === 'y' || answer === 'yes';
+  try {
+    return await rl.question(question);
+  } finally {
+    rl.close();
+  }
+}
+
+async function promptMultiline(instructions: string): Promise<string> {
+  const readline = await import('node:readline/promises');
+  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+  console.log(`\n${instructions}`);
+  const lines: string[] = [];
+  try {
+    for await (const line of rl) {
+      if (line.trim() === '.done') break;
+      if (lines.length === 0 && line.trim() === '.skip') return '.skip';
+      lines.push(line);
+    }
+  } finally {
+    rl.close();
+  }
+  return lines.join('\n');
+}
+
+function promptSecret(question: string): Promise<string> {
+  if (!process.stdin.isTTY || !process.stdout.isTTY || !process.stdin.setRawMode) {
+    return Promise.reject(new Error('secret input requires an interactive terminal'));
+  }
+  return new Promise((resolve, reject) => {
+    const input = process.stdin;
+    const output = process.stdout;
+    const wasRaw = input.isRaw;
+    let value = '';
+
+    const cleanup = () => {
+      input.off('data', onData);
+      input.setRawMode?.(Boolean(wasRaw));
+      input.pause();
+    };
+    const finish = () => {
+      cleanup();
+      output.write('\n');
+      resolve(value);
+    };
+    const cancel = () => {
+      cleanup();
+      output.write('\n');
+      reject(new Error('input cancelled'));
+    };
+    const onData = (chunk: Buffer | string) => {
+      for (const char of chunk.toString()) {
+        if (char === '\u0003') {
+          cancel();
+          return;
+        }
+        if (char === '\r' || char === '\n') {
+          finish();
+          return;
+        }
+        if (char === '\u0008' || char === '\u007f') {
+          value = value.slice(0, -1);
+          continue;
+        }
+        if (char >= ' ') value += char;
+      }
+    };
+
+    output.write(question);
+    input.setRawMode(true);
+    input.resume();
+    input.on('data', onData);
+  });
+}
+
+function configureProvider(
+  provider: ProviderName,
+  opts: { apiKey?: string; model?: string; baseUrl?: string },
+): void {
+  updateConfig((config) => {
+    if (provider === 'ollama') {
+      config.providers.ollama = {
+        baseUrl: opts.baseUrl ?? 'http://localhost:11434',
+        model: opts.model ?? 'llama3.2:3b',
+      };
+    } else {
+      if (!opts.apiKey) throw new Error(`an API key is required for ${provider}`);
+      config.providers[provider] = {
+        apiKey: opts.apiKey,
+        ...(opts.model ? { model: opts.model } : {}),
+      };
+    }
+    config.defaultProvider = provider;
+  });
+}
+
+function terminalSetupIo(): SetupIo {
+  return {
+    write: (message) => console.log(message),
+    ask: promptLine,
+    askSecret: promptSecret,
+    askMultiline: promptMultiline,
+  };
+}
+
+function setupServices(): SetupServices {
+  return {
+    consentAccepted: () => Boolean(consentStatus()),
+    acceptConsent: () => {
+      acceptConsent();
+    },
+    configuredProvider: () => {
+      const config = readConfig();
+      return config.providers[config.defaultProvider] ? config.defaultProvider : null;
+    },
+    configureProvider: (provider, secret) => {
+      configureProvider(provider, { apiKey: secret });
+    },
+    clearProvider: (provider) => {
+      updateConfig((config) => {
+        delete config.providers[provider];
+      });
+    },
+    testProvider: async (provider) => getProvider(provider).testKey(),
+    sampleCount: () => samples.count(),
+    addSample: async (text, label) => {
+      const record = samples.add({ text, labels: [label], source: 'paste' });
+      await embedSample(record.id, record.text);
+    },
+    hasProfile: () => Boolean(profiles.get()),
+    buildProfile: async () => {
+      const profile = await buildProfile(getProvider(), {
+        force: true,
+        onProgress: (event) => console.log(`  ${event.stage}`),
+      });
+      return renderProfileMarkdown(profile);
+    },
+    runDemo: async (draft) => {
+      const profile = profiles.get();
+      if (!profile) throw new Error('voice profile is missing');
+      const result = await rewrite({
+        draft,
+        profile,
+        contextLabel: 'email',
+        directives: ['more_like_me'],
+        provider: getProvider(),
+      });
+      return { rewrite: result.rewrite, feedbackToken: result.feedbackToken };
+    },
+    recordFeedback: async (token, signal) => {
+      await executeTool(recordFeedbackTool, { token, signal });
+    },
+    sharingEnabled: () => readConfig().shareAnonymousFeedback,
+    setSharing: (enabled) => {
+      updateConfig((config) => {
+        config.shareAnonymousFeedback = enabled;
+      });
+    },
+  };
 }
 
 program.parseAsync(process.argv).catch((err) => {

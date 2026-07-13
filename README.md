@@ -30,6 +30,14 @@ Then:
 
 Run `/reload-plugins` if you installed mid-session. Using a different agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) or the CLI? See [Install](#install).
 
+Want to inspect a draft before setting up a profile? The analyzer is local, deterministic, and needs no API key:
+
+```bash
+echo "At its core, this robust approach paves the way." | npx -y humanifyme analyze
+```
+
+It reports the exact phrases and punctuation it matched against the public [90-sign AI-writing checklist](docs/ai-writing-signs.md). It is an editing aid, not an AI detector; subjective signs stay labeled for human review instead of being turned into a fake probability.
+
 ## Why it exists
 
 People hand more of their writing to AI every day — commits, PR descriptions, Slack posts, email drafts — and every agent produces the same recognizable register: polished, balanced, faintly corporate. Recipients have learned to spot it. The usual fixes (Grammarly, Wordtune, "AI humanizers") push text toward a *generic* professional voice, which is the opposite of the goal.
@@ -75,15 +83,19 @@ The bundled `.mcp.json` launches the server from the published npm package via `
 
 ### Command line
 
-```bash
-npm install        # Node >= 22.5 (uses the built-in node:sqlite)
-npm run build      # tsup -> dist/humanifyme-mcp.mjs (MCP) + dist/humanifyme.mjs (CLI)
+From npm, one command walks through privacy, provider, three samples, profile creation, and a first rewrite. API-key input is hidden and setup resumes from the last completed step if interrupted.
 
-node dist/humanifyme.mjs setup                                   # consent
-node dist/humanifyme.mjs provider set anthropic --api-key sk-... # your key
-node dist/humanifyme.mjs sample add my-email.txt --label email   # 3+ samples
-node dist/humanifyme.mjs profile rebuild
-echo "We are delighted to leverage synergies." | node dist/humanifyme.mjs rewrite
+```bash
+npx -y humanifyme setup
+npx -y humanifyme rewrite draft.txt
+```
+
+Contributing from a checkout requires Node 22.5 or newer:
+
+```bash
+npm ci
+npm run build
+node dist/humanifyme.mjs setup
 ```
 
 ### Raw MCP registration
