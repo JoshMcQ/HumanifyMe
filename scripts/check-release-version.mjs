@@ -16,7 +16,7 @@ const marketplace = readJson('.claude-plugin/marketplace.json');
 const mcp = readJson('humanifyme.plugin/.mcp.json');
 const version = packageJson.version;
 const expectedPackage = `${packageJson.name}@${version}`;
-const escapedVersion = version.replace(/\./g, '\\.');
+const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 const equal = (label, actual, expected) => {
   if (actual !== expected) fail(`${label} is ${JSON.stringify(actual)}; expected ${JSON.stringify(expected)}`);
