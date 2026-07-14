@@ -4,6 +4,8 @@ import path from 'node:path';
 import { freshHome, cleanupHome } from '../testUtils.js';
 import { samples, profiles, cache, audit, wipeAll, getDb } from './index.js';
 import { makeProfile } from '../engine/fixtures.js';
+import { getProviderApiKey, setProviderApiKey } from '../config/secrets.js';
+import { updateConfig } from '../config/index.js';
 
 let home: string;
 beforeEach(() => {
@@ -125,10 +127,15 @@ describe('wipeAll', () => {
   it('deletes everything, re-inits, preserves consent, logs one audit entry', async () => {
     const consent = await import('../mcp/consent.js');
     consent.acceptConsent();
+    setProviderApiKey('anthropic', 'wipe-me');
+    updateConfig((config) => {
+      config.providers.anthropic = { credentialStored: true };
+    });
     samples.add({ text: 'y'.repeat(150), labels: ['email'], source: 'paste' });
     wipeAll();
     expect(samples.list()).toHaveLength(0);
     expect(consent.consentStatus()).toBeTruthy();
+    expect(getProviderApiKey('anthropic')).toBeNull();
     const entries = audit.list();
     expect(entries).toHaveLength(1);
     expect(entries[0]!.route).toBe('WIPE_ALL');

@@ -1,9 +1,10 @@
 # Data Model
 
-All storage is local in MVP. Two stores:
+All storage is local in MVP. Three stores:
 
-1. **`~/.humanifyme/config.json`**, small structured config: provider, API keys, settings, consent timestamp.
+1. **`~/.humanifyme/config.json`**, small structured config: provider metadata, settings, consent timestamp. API keys are not stored here.
 2. **`~/.humanifyme/data.db`**, SQLite database: samples, profile, rewrite cache, audit log.
+3. **OS credential store**, cloud provider API keys only.
 
 `HUMANIFYME_HOME` overrides `~/.humanifyme/`.
 
@@ -13,13 +14,13 @@ Schema (zod-validated on read and write):
 
 ```ts
 interface Config {
-  version: 1;
+  version: 2;
   consentAcceptedAt?: string;     // ISO timestamp; required before any LLM call
   defaultProvider: 'anthropic' | 'openai' | 'gemini' | 'ollama';
   providers: {
-    anthropic?: { apiKey: string; model?: string };
-    openai?:    { apiKey: string; model?: string };
-    gemini?:    { apiKey: string; model?: string };
+    anthropic?: { credentialStored: true; model?: string };
+    openai?:    { credentialStored: true; model?: string };
+    gemini?:    { credentialStored: true; model?: string };
     ollama?:    { baseUrl: string; model: string };
   };
   redactionPatterns: string[];     // user-extensible, defaults from privacy spec
@@ -31,7 +32,12 @@ interface Config {
 }
 ```
 
-File perms: 0600 on POSIX. On macOS the MCP attempts to store the API keys in the OS keychain via `keytar` and writes a placeholder reference in `config.json`; on failure, falls back to inline storage with a logged warning.
+File perms: 0600 on POSIX. Cloud API keys live in the current user's OS credential
+store through `@napi-rs/keyring`: Windows Credential Manager, macOS Keychain, or
+Linux Secret Service. The config contains only `credentialStored: true`. There is
+no plaintext fallback. Version 1 configs are migrated transactionally on first
+read; the file is rewritten as version 2 without inline keys only after every
+keychain write and schema validation succeeds.
 
 ## SQLite schema (v1)
 

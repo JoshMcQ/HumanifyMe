@@ -73,7 +73,8 @@ Long-running. Streams progress notifications via the MCP SDK's progress channel.
 - Out: `{ deleted: true }`.
 
 ### `humanify_set_provider`
-- In: `{ provider: 'anthropic'|'openai'|'gemini'|'ollama'; apiKey?: string; baseUrl?: string; model?: string }`.
+- Configures local Ollama only. Cloud keys are rejected in MCP arguments because the host model can see them; use the interactive `humanifyme setup` CLI.
+- In: `{ provider: 'ollama'; baseUrl?: string; model?: string }`.
 - Out: `{ provider: string; valid: boolean }`.
 
 ### `humanify_test_key`

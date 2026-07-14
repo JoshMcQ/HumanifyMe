@@ -263,6 +263,7 @@ When you have a question, this table maps it to the file that answers it:
 | What can I build right now?                | `tasks/task-breakdown.md`                     |
 | How is data stored?                        | `docs/data-model.md`                          |
 | What's the MCP tool contract?              | `docs/api-contract.md`                        |
+| How are releases published?                | `docs/releasing.md`                           |
 | What can the LLM be prompted to do?        | `prompts/`                                    |
 | What must I never do?                      | `specs/privacy-security-spec.md`              |
 | What are we explicitly not building yet?   | `specs/mvp-spec.md` -> "Out of scope for MVP" |

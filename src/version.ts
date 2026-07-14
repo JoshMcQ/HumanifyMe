@@ -1,2 +1,4 @@
-export const VERSION = '0.1.0';
+import packageJson from '../package.json' with { type: 'json' };
+
+export const VERSION = packageJson.version;
 export const BUILD_TIME = new Date().toISOString();

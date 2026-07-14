@@ -15,6 +15,11 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { readConfig, writeConfig, updateConfig } from '../../src/config/index.js';
+import {
+  deleteProviderApiKey,
+  getProviderApiKey,
+  setProviderApiKey,
+} from '../../src/config/secrets.js';
 import { DEFAULT_CONFIG } from '../../src/config/schema.js';
 import { samples, profiles, closeDb } from '../../src/storage/index.js';
 import { getProvider } from '../../src/providers/index.js';
@@ -99,10 +104,26 @@ async function runWriter(
   const home = fs.mkdtempSync(path.join(os.tmpdir(), 'humanifyme-eval-'));
   process.env.HUMANIFYME_HOME = home;
   closeDb();
+  let credentialStored = false;
+  try {
+    setProviderApiKey('anthropic', realKey);
+    credentialStored = true;
+    return await runWriterInCurrentHome(writer);
+  } finally {
+    closeDb();
+    try {
+      if (credentialStored) deleteProviderApiKey('anthropic');
+    } finally {
+      fs.rmSync(home, { recursive: true, force: true });
+    }
+  }
+}
+
+async function runWriterInCurrentHome(writer: (typeof WRITERS)[number]): Promise<WriterResult> {
   writeConfig({
     ...DEFAULT_CONFIG,
     defaultProvider: 'anthropic',
-    providers: { anthropic: { apiKey: realKey } },
+    providers: { anthropic: { credentialStored: true } },
     consentAcceptedAt: new Date().toISOString(),
   });
 
@@ -139,9 +160,6 @@ async function runWriter(
     }
   }
 
-  closeDb();
-  fs.rmSync(home, { recursive: true, force: true });
-
   const n = rows.length || 1;
   const avg = (f: (r: Row) => number) => rows.reduce((s, r) => s + f(r), 0) / n;
   const judged = rows.filter((r) => r.judgePrefersOn !== null);
@@ -165,9 +183,10 @@ async function runWriter(
 
 async function main(): Promise<void> {
   // Read the real Anthropic key from the default home BEFORE isolating.
-  const realKey = readConfig().providers.anthropic?.apiKey;
+  const config = readConfig();
+  const realKey = config.providers.anthropic ? getProviderApiKey('anthropic') : null;
   if (!realKey) {
-    throw new Error('No Anthropic key configured. Run: humanifyme provider set anthropic --api-key <key>');
+    throw new Error('No Anthropic key configured. Run in an interactive terminal: humanifyme provider set anthropic');
   }
 
   const results: WriterResult[] = [];

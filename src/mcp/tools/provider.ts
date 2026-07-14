@@ -1,48 +1,41 @@
 import { z } from 'zod';
 import { ToolDef } from '../registerTool.js';
-import { updateConfig, readConfig } from '../../config/index.js';
+import { updateConfig, readConfig, writeConfig } from '../../config/index.js';
 import { getProvider } from '../../providers/index.js';
 import { ProviderNameSchema } from '../../types.js';
-import { HumanifyError } from '../errors.js';
 
 export const setProviderTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
   name: 'humanify_set_provider',
   description:
-    'Configure an LLM provider (anthropic | openai | gemini | ollama) and make it the default. Stores the API key locally in ~/.humanifyme/config.json. Validates the key with a 1-token ping.',
-  inputSchema: z.object({
-    provider: ProviderNameSchema,
-    apiKey: z.string().optional(),
-    baseUrl: z.string().url().optional(),
-    model: z.string().optional(),
-  }).strict(),
+    'Configure local Ollama and make it the default. Cloud API keys are intentionally rejected in MCP tool arguments because the host model can see them; configure cloud providers with the interactive `humanifyme setup` CLI instead.',
+  inputSchema: z
+    .object({
+      provider: z.literal('ollama'),
+      baseUrl: z.string().url().optional(),
+      model: z.string().optional(),
+    })
+    .strict(),
   outputSchema: z.object({ provider: z.string(), valid: z.boolean() }),
   handler: async (input: {
-    provider: z.infer<typeof ProviderNameSchema>;
-    apiKey?: string;
+    provider: 'ollama';
     baseUrl?: string;
     model?: string;
   }) => {
-    if (input.provider === 'ollama') {
-      const baseUrl = input.baseUrl ?? 'http://localhost:11434';
-      const model = input.model ?? 'llama3.2:3b';
-      updateConfig((c) => {
-        c.providers.ollama = { baseUrl, model };
-        c.defaultProvider = 'ollama';
-      });
-    } else {
-      if (!input.apiKey) {
-        throw new HumanifyError('BAD_INPUT', `apiKey is required for provider ${input.provider}`);
-      }
-      const name = input.provider as 'anthropic' | 'openai' | 'gemini';
-      updateConfig((c) => {
-        c.providers[name] = {
-          apiKey: input.apiKey!,
-          ...(input.model ? { model: input.model } : {}),
-        };
-        c.defaultProvider = name;
-      });
+    const previousConfig = readConfig();
+    const baseUrl = input.baseUrl ?? 'http://localhost:11434';
+    const model = input.model ?? 'llama3.2:3b';
+    updateConfig((c) => {
+      c.providers.ollama = { baseUrl, model };
+      c.defaultProvider = 'ollama';
+    });
+    let valid = false;
+    try {
+      valid = await getProvider(input.provider).testKey();
+    } catch (error) {
+      writeConfig(previousConfig);
+      throw error;
     }
-    const valid = await getProvider(input.provider).testKey();
+    if (!valid) writeConfig(previousConfig);
     return { provider: input.provider, valid };
   },
 };

@@ -36,7 +36,7 @@ This is a load-bearing document. HumanifyMe's wedge is built on user trust. A si
 | Sample embedding (vector)           | Sensitive   | `~/.humanifyme/data.db` (`sample_embeddings` table)          | No. Computed on-device; never sent. Derived from raw samples, so treated as Sensitive. Cleared by `humanify_wipe_all`. |
 | Imported chat / mail / message source archive | Sensitive | Not stored. Parsed in memory; only extracted samples persist. | No |
 | Style profile (JSON)                | Sensitive\* | `~/.humanifyme/data.db`                                       | Yes, on every rewrite. |
-| API key                             | Secret      | `~/.humanifyme/config.json` (0600), OS keychain when available | No (used to auth requests). |
+| API key                             | Secret      | OS credential store only (Windows Credential Manager, macOS Keychain, or Linux Secret Service) | No (used to auth requests). |
 | OAuth tokens (Phase 2 importers)    | Secret      | `~/.humanifyme/config.json` (0600), OS keychain when available | No (used to auth import fetches). |
 | Draft to rewrite                    | Sensitive   | Memory only, not persisted                                    | Yes, redacted.     |
 | Rewrite output                      | Sensitive   | Memory only, optional 24h cache in SQLite                     | N/A                |

@@ -1,6 +1,21 @@
 # Changelog
 
-## Unreleased
+## 0.2.0 - 2026-07-13
+
+- Guided, resumable setup now records consent, validates the selected provider,
+  collects the minimum writing samples, builds a profile, and offers a first
+  rewrite with optional anonymous quality counts disabled by default.
+- New local `humanifyme analyze` command applies the public 90-sign AI-writing
+  checklist without setup or network access, including sign 72 for em-dash
+  overuse. Subjective signs remain explicitly marked for human review.
+- Cloud credentials now live in Windows Credential Manager, macOS Keychain, or
+  Linux Secret Service. Version 1 plaintext configs migrate transactionally to
+  config schema version 2, and keychain failures never fall back to plaintext.
+- Cloud keys were removed from command-line flags and model-visible MCP tool
+  arguments. Local Ollama remains configurable through MCP.
+- Release metadata is synchronized across npm and plugin manifests, CI installs
+  and executes the packed tarball, and tagged releases reject mismatched or
+  already-published versions.
 
 - M8 retrieval-augmented voice / persistent local voice memory. At rewrite
   time the engine retrieves the user's most-similar past samples and injects

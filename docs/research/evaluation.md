@@ -4,7 +4,15 @@ This document is for contributors and skeptics. It describes how we decide wheth
 
 The starting position is that no single metric is trustworthy for personalized writing-style evaluation. Style is high dimensional and partly subjective, so any one score can be gamed or can mislead. We run an ensemble instead, report every sub-score, and treat the headline aggregate as a summary, not as truth. This ensemble framing follows the empirical case made by Jangra et al. (arXiv 2508.06374) and the in-practice instantiation in Wang et al., "Catch Me If You Can? Not Yet" (EMNLP 2025 Findings).
 
-The four measurement families below are stylometric distance, model-based distance from style embeddings, casing and register fidelity, AI-smell tells, and blind LLM-judge preference. Each section ends with what it cannot tell you.
+The five measurement families below are stylometric distance, model-based distance from style embeddings, casing and register fidelity, AI-smell tells, and blind LLM-judge preference. Each section ends with what it cannot tell you.
+
+## Public blind classification test
+
+The website's "Human or AI?" test uses the five generic drafts and the five Writer A retrieval-on outputs recorded in [`evals/results/ablation-2026-06-24T21-07-04-624Z.md`](../../evals/results/ablation-2026-06-24T21-07-04-624Z.md). Each participant sees exactly one side of each pair and classifies how it reads: like generic AI or like a person. Assignment is randomized to either two or three HumanifyMe outputs per completed five-round test, presentation order is randomized, and source feedback is withheld until all five guesses are complete.
+
+The browser submits only a four-cell confusion matrix: generic AI read as AI or human, and HumanifyMe read as AI or human. It does not submit sample text, sample identifiers, answer order, comments, fingerprints, or account data. Public reporting keeps this metric separate from opt-in rewrite feedback.
+
+This is a product-feedback instrument, not a scientific study. It uses one synthetic lowercase writer, five shared prompts, self-selected website visitors, no rater screening, and no control for repeat participation. Its results can expose obvious regressions and help prioritize better experiments; they cannot establish authorship fidelity, detector evasion, or performance across real writers.
 
 ---
 

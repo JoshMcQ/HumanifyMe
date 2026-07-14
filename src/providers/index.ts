@@ -1,4 +1,5 @@
 import { readConfig } from '../config/index.js';
+import { getProviderApiKey } from '../config/secrets.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { ProviderName } from '../types.js';
 import { AnthropicProvider } from './anthropic.js';
@@ -27,18 +28,24 @@ export function getProvider(name?: ProviderName): LLMProvider {
   switch (provider) {
     case 'anthropic': {
       const c = config.providers.anthropic;
-      if (!c?.apiKey) throw missingKey('anthropic');
-      return new AnthropicProvider(c.apiKey, c.model);
+      if (!c) throw missingKey('anthropic');
+      const apiKey = getProviderApiKey('anthropic');
+      if (!apiKey) throw missingKey('anthropic');
+      return new AnthropicProvider(apiKey, c.model);
     }
     case 'openai': {
       const c = config.providers.openai;
-      if (!c?.apiKey) throw missingKey('openai');
-      return new OpenAIProvider(c.apiKey, c.model);
+      if (!c) throw missingKey('openai');
+      const apiKey = getProviderApiKey('openai');
+      if (!apiKey) throw missingKey('openai');
+      return new OpenAIProvider(apiKey, c.model);
     }
     case 'gemini': {
       const c = config.providers.gemini;
-      if (!c?.apiKey) throw missingKey('gemini');
-      return new GeminiProvider(c.apiKey, c.model);
+      if (!c) throw missingKey('gemini');
+      const apiKey = getProviderApiKey('gemini');
+      if (!apiKey) throw missingKey('gemini');
+      return new GeminiProvider(apiKey, c.model);
     }
     case 'ollama': {
       const c = config.providers.ollama;
@@ -92,6 +99,6 @@ export function getEmbeddingProvider(): EmbeddingProvider {
 function missingKey(provider: string): HumanifyError {
   return new HumanifyError(
     'MISSING_API_KEY',
-    `no API key configured for ${provider}. Run "humanifyme provider set ${provider} --api-key <key>" or call humanify_set_provider.`,
+    `no API key configured for ${provider}. Run "humanifyme setup" or "humanifyme provider set ${provider}" in an interactive terminal; never paste a provider key into chat.`,
   );
 }

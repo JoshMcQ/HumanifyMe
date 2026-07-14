@@ -12,7 +12,7 @@
       "name": "humanifyme",
       "source": "./humanifyme.plugin",
       "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
-      "version": "0.1.0"
+      "version": "0.2.0"
     }
   ]
 }

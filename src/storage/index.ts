@@ -2,6 +2,7 @@
 
 import { deleteAndReinitDb } from './db.js';
 import { resetConfig } from '../config/index.js';
+import { deleteAllProviderApiKeys } from '../config/secrets.js';
 import { audit } from './repositories/audit.js';
 
 export { samples } from './repositories/samples.js';
@@ -20,6 +21,7 @@ export { getDb, closeDb } from './db.js';
  * re-init schema, append a single WIPE_ALL audit entry.
  */
 export function wipeAll(opts: { full?: boolean } = {}): void {
+  deleteAllProviderApiKeys();
   deleteAndReinitDb();
   resetConfig({ preserveConsent: !opts.full });
   audit.append({
