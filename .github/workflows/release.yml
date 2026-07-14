@@ -13,23 +13,23 @@ jobs:
     name: build, test, publish
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
         with:
           fetch-depth: 0
-      - uses: actions/setup-node@v6
+          persist-credentials: false
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6
         with:
           node-version: '24.x'
           registry-url: 'https://registry.npmjs.org'
-      - run: npm ci
       - name: Require a tagged commit from main
-        run: |
-          git fetch origin main
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+        run: git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       - name: Verify tag and unpublished package version
         run: npm run check:release-version -- --tag "$GITHUB_REF_NAME" --ensure-unpublished
+      - name: Install locked dependencies without lifecycle scripts
+        run: npm ci --ignore-scripts
       - name: Publish to npm
         run: npm publish --access public --provenance
       - name: Create GitHub release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           generate_release_notes: true
