@@ -9,7 +9,7 @@ description: Set up HumanifyMe by teaching it how the user writes. Use when the 
 
 1. **Consent + provider check.** Call `humanify_test_key`. If it errors with
    `MISSING_API_KEY` or any later call returns `MISSING_CONSENT`, ask the user to
-   run `npx -y humanifyme@0.2.0 setup` in a terminal, then return here. That
+   run `npx -y humanifyme@0.2.1 setup` in a terminal, then return here. That
    wizard records consent, accepts the API key without echo, validates it, and
    can build the initial profile. **Never ask the user to paste an API key into
    chat and never put a cloud key in an MCP tool argument.** The host model can

@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.1 - 2026-08-03
+
+- Patch release to work around an npm staging conflict that prevented `0.2.0`
+  from completing publication after the GitHub Actions trusted publisher was
+  configured. No code changes from `0.2.0`.
+
 ## 0.2.0 - 2026-07-13
 
 - Guided, resumable setup now records consent, validates the selected provider,
