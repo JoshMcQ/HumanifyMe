@@ -40,7 +40,7 @@ future releases resume provenance.
    marketplace metadata, install documentation, and `CHANGELOG.md`:
 
    ```bash
-   npm run check:release-version -- --tag v0.2.0 --ensure-unpublished
+   npm run check:release-version -- --tag v0.2.1 --ensure-unpublished
    ```
 
 3. Reproduce the artifact locally from a clean install:
@@ -56,8 +56,8 @@ future releases resume provenance.
    ```bash
    git switch main
    git pull --ff-only
-   git tag v0.2.0
-   git push origin v0.2.0
+   git tag v0.2.1
+   git push origin v0.2.1
    ```
 
 5. Watch the `Release` workflow. It rejects tags that are not reachable from
@@ -66,9 +66,9 @@ future releases resume provenance.
 6. Verify the public artifact rather than relying on the workflow result alone:
 
    ```bash
-   npm view humanifyme@0.2.0 version dist.integrity dist.tarball
-   npx -y humanifyme@0.2.0 --version
-   echo "At its core, this robust approach paves the way." | npx -y humanifyme@0.2.0 analyze
+   npm view humanifyme@0.2.1 version dist.integrity dist.tarball
+   npx -y humanifyme@0.2.1 --version
+   echo "At its core, this robust approach paves the way." | npx -y humanifyme@0.2.1 analyze
    ```
 
 7. Install the released plugin in a clean Claude Code profile and complete one
