@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HumanifyMe — Make AI sound like you</title>
+  <meta name="description" content="HumanifyMe learns your writing voice and rewrites AI drafts in it. Local-first, private, open source.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1117;
+      --bg-elevated: #161b22;
+      --bg-card: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --text-secondary: #8b949e;
+      --text-tertiary: #6e7681;
+      --accent: #c96342;
+      --accent-hover: #b35536;
+      --accent-soft: rgba(201, 99, 66, 0.12);
+      --green: #3fb950;
+      --yellow: #d29922;
+      --blue: #58a6ff;
+      --radius: 12px;
+      --radius-sm: 8px;
+      --max-width: 1100px;
+      --space-xs: 0.5rem;
+      --space-sm: 0.875rem;
+      --space-md: 1.25rem;
+      --space-lg: 2rem;
+      --space-xl: 3rem;
+      --space-xxl: 4.5rem;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    code, pre {
+      font-family: "JetBrains Mono", Consolas, Monaco, monospace;
+    }
+
+    .container {
+      width: 100%;
+      max-width: var(--max-width);
+      margin: 0 auto;
+      padding: 0 var(--space-md);
+    }
+
+    /* Header */
+    header {
+      border-bottom: 1px solid var(--border);
+      background: rgba(13, 17, 23, 0.85);
+      backdrop-filter: blur(10px);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .logo:hover {
+      text-decoration: none;
+    }
+
+    .logo-mark {
+      width: 28px;
+      height: 28px;
+      background: var(--accent);
+      border-radius: 7px;
+      display: grid;
+      place-items: center;
+      font-size: 0.85rem;
+      color: white;
+    }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .nav-links a {
+      color: var(--text-secondary);
+    }
+
+    .nav-links a:hover {
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    .nav-cta {
+      display: none;
+    }
+
+    @media (min-width: 640px) {
+      .nav-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--accent);
+        color: white;
+        padding: 0.5rem 0.9rem;
+        border-radius: var(--radius-sm);
+        font-weight: 600;
+        font-size: 0.85rem;
+      }
+
+      .nav-cta:hover {
+        background: var(--accent-hover);
+        text-decoration: none;
+      }
+    }
+
+    /* Hero */
+    .hero {
+      padding: var(--space-xl) 0;
+      text-align: center;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent-soft);
+      color: var(--accent);
+      border: 1px solid rgba(201, 99, 66, 0.25);
+      padding: 0.35rem 0.75rem;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-bottom: var(--space-md);
+    }
+
+    .hero h1 {
+      font-size: clamp(2rem, 7vw, 3.4rem);
+      line-height: 1.1;
+      font-weight: 700;
+      margin: 0 0 var(--space-md);
+      letter-spacing: -0.03em;
+    }
+
+    .hero h1 em {
+      color: var(--accent);
+      font-style: normal;
+    }
+
+    .hero p {
+      font-size: clamp(1.05rem, 2.5vw, 1.25rem);
+      color: var(--text-secondary);
+      max-width: 640px;
+      margin: 0 auto var(--space-lg);
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      align-items: stretch;
+      max-width: 420px;
+      margin: 0 auto var(--space-lg);
+    }
+
+    @media (min-width: 520px) {
+      .hero-actions {
+        flex-direction: row;
+        justify-content: center;
+        max-width: none;
+      }
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.85rem 1.5rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.95rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: transform 0.1s ease, background 0.15s ease, border-color 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .btn:hover {
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: translateY(1px);
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text);
+      border-color: var(--border);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--text-tertiary);
+      background: var(--bg-card);
+    }
+
+    .hero-meta {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: var(--space-sm) var(--space-lg);
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
+      font-weight: 500;
+    }
+
+    /* Demo terminal */
+    .demo {
+      padding: var(--space-xl) 0;
+    }
+
+    .demo-header {
+      text-align: center;
+      margin-bottom: var(--space-lg);
+    }
+
+    .demo-header h2 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin: 0 0 var(--space-xs);
+    }
+
+    .demo-header p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .terminal {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    }
+
+    .terminal-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: var(--space-sm) var(--space-md);
+      background: rgba(255, 255, 255, 0.03);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .terminal-dot.red { background: #ff5f56; }
+    .terminal-dot.yellow { background: #ffbd2e; }
+    .terminal-dot.green { background: #27c93f; }
+
+    .terminal-title {
+      margin-left: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-tertiary);
+    }
+
+    .terminal-body {
+      padding: var(--space-md);
+      font-size: 0.9rem;
+      line-height: 1.7;
+      min-height: 320px;
+    }
+
+    .terminal-line {
+      margin: 0;
+      padding: 0.1rem 0;
+      opacity: 0;
+      animation: fadeIn 0.2s forwards;
+    }
+
+    .terminal-line.prompt {
+      color: var(--text-secondary);
+    }
+
+    .terminal-line.command {
+      color: var(--text);
+    }
+
+    .terminal-line.output {
+      color: var(--text-secondary);
+    }
+
+    .terminal-line.success {
+      color: var(--green);
+    }
+
+    .terminal-line.accent {
+      color: var(--accent);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 1.1em;
+      background: var(--accent);
+      animation: blink 1s step-end infinite;
+      vertical-align: text-bottom;
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    /* Sections */
+    section {
+      padding: var(--space-xxl) 0;
+    }
+
+    section.alt {
+      background: var(--bg-elevated);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .section-header {
+      text-align: center;
+      max-width: 640px;
+      margin: 0 auto var(--space-xl);
+    }
+
+    .section-header h2 {
+      font-size: clamp(1.5rem, 4vw, 2rem);
+      margin: 0 0 var(--space-xs);
+    }
+
+    .section-header p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    .features {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+
+    @media (min-width: 640px) {
+      .features {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 900px) {
+      .features {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .feature {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-lg);
+    }
+
+    .feature-number {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--accent-soft);
+      color: var(--accent);
+      font-weight: 700;
+      font-size: 0.85rem;
+      margin-bottom: var(--space-sm);
+    }
+
+    .feature h3 {
+      font-size: 1.05rem;
+      margin: 0 0 var(--space-xs);
+    }
+
+    .feature p {
+      color: var(--text-secondary);
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    /* Install */
+    .install-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-md);
+    }
+
+    @media (min-width: 720px) {
+      .install-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .install-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: var(--space-md);
+    }
+
+    .install-card h3 {
+      font-size: 1rem;
+      margin: 0 0 var(--space-xs);
+    }
+
+    .install-card p {
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      margin: 0 0 var(--space-sm);
+    }
+
+    .code-block {
+      background: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: var(--space-sm);
+      font-size: 0.82rem;
+      overflow-x: auto;
+      color: var(--text);
+    }
+
+    .code-block .comment {
+      color: var(--text-tertiary);
+    }
+
+    /* Stars / contribute */
+    .community {
+      text-align: center;
+    }
+
+    .community-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      align-items: stretch;
+      max-width: 420px;
+      margin: var(--space-lg) auto 0;
+    }
+
+    @media (min-width: 520px) {
+      .community-actions {
+        flex-direction: row;
+        justify-content: center;
+        max-width: none;
+      }
+    }
+
+    .github-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.5rem 0.9rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .github-badge:hover {
+      border-color: var(--text-tertiary);
+      text-decoration: none;
+    }
+
+    /* FAQ */
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: var(--space-md) 0;
+    }
+
+    .faq-item h3 {
+      font-size: 1.05rem;
+      margin: 0 0 var(--space-xs);
+    }
+
+    .faq-item p {
+      color: var(--text-secondary);
+      margin: 0;
+    }
+
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--border);
+      padding: var(--space-lg) 0;
+      color: var(--text-tertiary);
+      font-size: 0.85rem;
+    }
+
+    .footer-inner {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-sm);
+      align-items: center;
+      text-align: center;
+    }
+
+    @media (min-width: 640px) {
+      .footer-inner {
+        flex-direction: row;
+        justify-content: space-between;
+        text-align: left;
+      }
+    }
+
+    .footer-links {
+      display: flex;
+      gap: var(--space-md);
+    }
+
+    .footer-links a {
+      color: var(--text-secondary);
+    }
+
+    .footer-links a:hover {
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container header-inner">
+      <a class="logo" href="/">
+        <span class="logo-mark">H</span>
+        HumanifyMe
+      </a>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#install">Install</a>
+        <a href="#faq">FAQ</a>
+        <a class="nav-cta" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <span class="hero-badge">Open source · Local-first · MCP server</span>
+        <h1>Make AI sound <em>like you.</em></h1>
+        <p>Your agent drafts the email, the PR, the Slack reply. HumanifyMe rewrites it in your actual voice, learned from your real writing, stored only on your machine.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#install">Install HumanifyMe</a>
+          <a class="btn btn-secondary" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">View on GitHub</a>
+        </div>
+        <div class="hero-meta">
+          <span>Free during beta</span>
+          <span>·</span>
+          <span>Bring your own API key</span>
+          <span>·</span>
+          <span>No account, no telemetry</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="demo">
+      <div class="container">
+        <div class="demo-header">
+          <h2>See it in action</h2>
+          <p>One command sets up your profile. Then rewrite any draft in your voice.</p>
+        </div>
+        <div class="terminal" aria-label="Terminal demo">
+          <div class="terminal-header">
+            <span class="terminal-dot red"></span>
+            <span class="terminal-dot yellow"></span>
+            <span class="terminal-dot green"></span>
+            <span class="terminal-title">humanifyme-demo</span>
+          </div>
+          <div class="terminal-body" id="terminal-body">
+            <p class="terminal-line prompt" style="animation-delay: 0.2s;">$ <span class="cursor"></span></p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt" id="how">
+      <div class="container">
+        <div class="section-header">
+          <h2>A voice fingerprint, not a filter</h2>
+          <p>“AI humanizers” rewrite toward a generic professional register. HumanifyMe builds a structured profile of how <strong>one specific person</strong> writes.</p>
+        </div>
+        <div class="features">
+          <div class="feature">
+            <span class="feature-number">01</span>
+            <h3>Give it your writing</h3>
+            <p>Paste 3–10 real emails or messages, point it at a folder, or import your ChatGPT / Claude history. Everything is redacted before any model sees it.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-number">02</span>
+            <h3>It learns your fingerprint</h3>
+            <p>Not an opaque embedding — a readable, editable profile: sentence rhythm, formality, your actual phrases, words you avoid, how you disagree.</p>
+          </div>
+          <div class="feature">
+            <span class="feature-number">03</span>
+            <h3>Your agent uses it</h3>
+            <p>Every MCP agent gets a <code>humanify_text</code> tool. It reaches for your voice automatically on PR descriptions, emails, anything you send as yourself.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="install">
+      <div class="container">
+        <div class="section-header">
+          <h2>Two minutes, one snippet</h2>
+          <p>Requires Node 22.5+. Install once, then every MCP agent on your machine speaks your voice.</p>
+        </div>
+        <div class="install-grid">
+          <div class="install-card">
+            <h3>Claude Code</h3>
+            <p>One-line MCP registration.</p>
+            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@0.2.0 humanifyme-mcp</div>
+          </div>
+          <div class="install-card">
+            <h3>Cursor, Claude Desktop, etc.</h3>
+            <p>Add this server to your <code>mcp.json</code>.</p>
+            <div class="code-block">{
+  "mcpServers": {
+    "humanifyme": {
+      "command": "npx",
+      "args": ["-y", "--package", "humanifyme@0.2.0", "humanifyme-mcp"]
+    }
+  }
+}</div>
+          </div>
+          <div class="install-card">
+            <h3>Command line</h3>
+            <p>Full pipeline without an agent.</p>
+            <div class="code-block">npx -y humanifyme@0.2.0 setup
+npx -y humanifyme@0.2.0 rewrite draft.txt</div>
+          </div>
+          <div class="install-card">
+            <h3>No API key? Analyze first.</h3>
+            <p>Local, deterministic AI-writing checklist.</p>
+            <div class="code-block">echo "At its core, this robust approach paves the way." | npx -y humanifyme@0.2.0 analyze</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="alt community">
+      <div class="container">
+        <div class="section-header">
+          <h2>Help us grow</h2>
+          <p>HumanifyMe is Apache 2.0 and built in the open. Stars and contributors make the project visible and keep it honest.</p>
+        </div>
+        <div class="community-actions">
+          <a class="btn btn-primary" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">⭐ Star on GitHub</a>
+          <a class="btn btn-secondary" href="https://github.com/JoshMcQ/HumanifyMe/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">🤝 Become a contributor</a>
+        </div>
+        <div style="margin-top: var(--space-lg); display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm);">
+          <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/stargazers" target="_blank" rel="noopener">⭐ Stars</a>
+          <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/issues" target="_blank" rel="noopener">🐛 Issues</a>
+          <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/discussions" target="_blank" rel="noopener">💬 Discussions</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="faq">
+      <div class="container">
+        <div class="section-header">
+          <h2>Fair questions</h2>
+        </div>
+        <div class="faq-item">
+          <h3>Is this an “AI detector bypass”?</h3>
+          <p>No. HumanifyMe makes text sound like you because it is built from how you write, not from tricks aimed at fooling a classifier.</p>
+        </div>
+        <div class="faq-item">
+          <h3>What do you collect about me?</h3>
+          <p>Nothing. There is no account, no telemetry, and no HumanifyMe backend. Your samples and profile stay in <code>~/.humanifyme/</code> on your machine.</p>
+        </div>
+        <div class="faq-item">
+          <h3>Does it work with local models?</h3>
+          <p>Yes. Point it at Ollama and nothing ever leaves your machine, not even redacted text.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div>© 2026 Joshua McQueary. <a href="LICENSE">Apache 2.0</a>.</div>
+      <div class="footer-links">
+        <a href="https://github.com/JoshMcQ/HumanifyMe">GitHub</a>
+        <a href="https://www.npmjs.com/package/humanifyme">npm</a>
+        <a href="https://github.com/JoshMcQ/HumanifyMe/blob/main/SECURITY.md">Security</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    const terminalLines = [
+      { type: 'command', text: 'npx -y humanifyme@0.2.0 setup', delay: 800 },
+      { type: 'output', text: '✓ Privacy consent recorded', delay: 1400 },
+      { type: 'output', text: '✓ Provider validated (anthropic)', delay: 600 },
+      { type: 'output', text: '✓ 3 writing samples added', delay: 600 },
+      { type: 'output', text: '✓ Voice profile built', delay: 600 },
+      { type: 'prompt', text: '$', delay: 800 },
+      { type: 'command', text: 'echo "Hey John — I finished testing the flash script changes..." | humanifyme rewrite --context professional', delay: 1200 },
+      { type: 'output', text: '---', delay: 800 },
+      { type: 'output', text: 'Hey John — just letting you know the lab box boots clean and the logs look good. PR is ready whenever you get a chance. I\'ll be out tomorrow morning but back by noon.', delay: 1000 },
+      { type: 'output', text: '---', delay: 400 },
+      { type: 'success', text: '✓ Verify gate passed · 2 AI-tells removed · length +3%', delay: 800 },
+      { type: 'prompt', text: '$', delay: 600 },
+    ];
+
+    const terminalBody = document.getElementById('terminal-body');
+    let lineIndex = 0;
+
+    function addLine(line) {
+      const p = document.createElement('p');
+      p.className = `terminal-line ${line.type}`;
+      p.style.animationDelay = '0.05s';
+      if (line.type === 'prompt') {
+        p.textContent = '$ ';
+        const cursor = document.createElement('span');
+        cursor.className = 'cursor';
+        p.appendChild(cursor);
+      } else {
+        p.textContent = line.text;
+      }
+      terminalBody.appendChild(p);
+      p.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    }
+
+    function scheduleNext() {
+      if (lineIndex >= terminalLines.length) {
+        const cursor = terminalBody.querySelector('.cursor');
+        if (cursor) cursor.style.display = 'none';
+        return;
+      }
+      const line = terminalLines[lineIndex++];
+      setTimeout(() => {
+        addLine(line);
+        scheduleNext();
+      }, line.delay);
+    }
+
+    // Remove the initial prompt cursor before starting the typed sequence
+    terminalBody.innerHTML = '';
+    scheduleNext();
+  </script>
+</body>
+</html>

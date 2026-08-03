@@ -3,6 +3,7 @@
 **Make AI sound like you.** · [humanifyme.com](https://humanifyme.com)
 
 [![npm](https://img.shields.io/npm/v/humanifyme.svg)](https://www.npmjs.com/package/humanifyme)
+[![GitHub stars](https://img.shields.io/github/stars/JoshMcQ/HumanifyMe?style=social)](https://github.com/JoshMcQ/HumanifyMe/stargazers)
 [![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
 [![CI](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/JoshMcQ/HumanifyMe.svg)](LICENSE)
@@ -22,6 +23,8 @@ samples, builds your profile, and offers a first rewrite:
 ```bash
 npx -y humanifyme@0.2.0 setup
 ```
+
+Want to see it work before installing? A live demo of the setup and rewrite flow is at [humanifyme.com](https://humanifyme.com).
 
 Never paste a provider key into an AI chat or pass it as a command-line flag. Then
 install the plugin from the bundled marketplace — no clone or build:
@@ -175,6 +178,8 @@ Most of the code was written with Claude Code, Anthropic's agentic coding tool, 
 ## Contributing
 
 We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md), then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/` — that trio is the heart of the methodology. The rules you cannot break live in [`specs/privacy-security-spec.md`](specs/privacy-security-spec.md); when you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue`.
+
+If HumanifyMe saves you from sounding like a robot, give us a ⭐ on [GitHub](https://github.com/JoshMcQ/HumanifyMe/stargazers) and help spread the word. Stars and contributors are how an open-source project like this gets found.
 
 ## License
 
