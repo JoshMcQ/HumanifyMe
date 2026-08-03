@@ -1,6 +1,6 @@
 # HumanifyMe plugin
 
-Make AI sound like you.
+Make AI sound like you. · [⭐ Star us on GitHub](https://github.com/JoshMcQ/HumanifyMe/stargazers)
 
 This plugin drops the HumanifyMe MCP server into your agent (Cowork, Claude
 Code, and anything else that loads plugins) and bundles three skills so the

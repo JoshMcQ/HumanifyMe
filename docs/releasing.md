@@ -23,6 +23,16 @@ authentication and disallow token-based publishing. npm documents the setup and
 minimum CLI requirements in its
 [trusted publishing guide](https://docs.npmjs.com/trusted-publishers/).
 
+### Fallback: publish with an npm access token
+
+If trusted publishing is not yet configured on npm, the workflow can fall back to
+a classic access token. Create an npm access token with **Publish** permission
+for the `humanifyme` package, then add it to this repository as a secret named
+`NPM_TOKEN` at `Settings > Secrets and variables > Actions`. When `NPM_TOKEN` is
+present, the workflow uses token auth; when it is absent, it uses OIDC
+provenance as usual. Remove the secret once trusted publishing is working so
+future releases resume provenance.
+
 ## Release checklist
 
 1. Merge the release PR into `main` only after required CI and review checks pass.
