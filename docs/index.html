@@ -676,7 +676,7 @@
           <div class="install-card">
             <h3>Claude Code</h3>
             <p>One-line MCP registration.</p>
-            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@0.2.0 humanifyme-mcp</div>
+            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp</div>
           </div>
           <div class="install-card">
             <h3>Cursor, Claude Desktop, etc.</h3>
@@ -685,7 +685,7 @@
   "mcpServers": {
     "humanifyme": {
       "command": "npx",
-      "args": ["-y", "--package", "humanifyme@0.2.0", "humanifyme-mcp"]
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
     }
   }
 }</div>
@@ -693,13 +693,13 @@
           <div class="install-card">
             <h3>Command line</h3>
             <p>Full pipeline without an agent.</p>
-            <div class="code-block">npx -y humanifyme@0.2.0 setup
-npx -y humanifyme@0.2.0 rewrite draft.txt</div>
+            <div class="code-block">npx -y humanifyme@latest setup
+npx -y humanifyme@latest rewrite draft.txt</div>
           </div>
           <div class="install-card">
             <h3>No API key? Analyze first.</h3>
             <p>Local, deterministic AI-writing checklist.</p>
-            <div class="code-block">echo "At its core, this robust approach paves the way." | npx -y humanifyme@0.2.0 analyze</div>
+            <div class="code-block">echo "At its core, this robust approach paves the way." | npx -y humanifyme@latest analyze</div>
           </div>
         </div>
       </div>
@@ -757,7 +757,7 @@ npx -y humanifyme@0.2.0 rewrite draft.txt</div>
 
   <script>
     const terminalLines = [
-      { type: 'command', text: 'npx -y humanifyme@0.2.0 setup', delay: 800 },
+      { type: 'command', text: 'npx -y humanifyme@latest setup', delay: 800 },
       { type: 'output', text: '✓ Privacy consent recorded', delay: 1400 },
       { type: 'output', text: '✓ Provider validated (anthropic)', delay: 600 },
       { type: 'output', text: '✓ 3 writing samples added', delay: 600 },
