@@ -85,6 +85,9 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
+      /* space-between alone lets the logo and nav touch once the row fills up;
+         an explicit gap guarantees separation at every width. */
+      gap: var(--space-md);
       height: 64px;
     }
 
@@ -121,17 +124,56 @@
       font-weight: 500;
     }
 
-    .nav-links a {
+    /* :not(.nav-cta) so this never outranks the CTA's own colors on specificity */
+    .nav-links a:not(.nav-cta) {
       color: var(--text-secondary);
     }
 
-    .nav-links a:hover {
+    .nav-links a:not(.nav-cta):hover {
       color: var(--text);
       text-decoration: none;
     }
 
     .nav-cta {
       display: none;
+    }
+
+    /* The desktop 32px nav gap overflows a phone row: at 360px the header
+       content box is ~305px but logo (147) + nav (172) wanted 319, which
+       wrapped "How it works" onto two lines flush against the logo.
+       Shrink the logo and tighten the gaps to fit. */
+    @media (max-width: 639px) {
+      .header-inner {
+        gap: var(--space-xs);
+      }
+
+      .logo {
+        font-size: 1rem;
+      }
+
+      .logo-mark {
+        width: 24px;
+        height: 24px;
+        font-size: 0.78rem;
+      }
+
+      .nav-links {
+        gap: var(--space-xs);
+        font-size: 0.82rem;
+      }
+
+      .nav-links a {
+        white-space: nowrap;
+      }
+    }
+
+    /* Under 360px the wordmark plus three links cannot fit (they need ~301px of
+       a 265px box), which clipped "FAQ" and scrolled the page sideways.
+       Fall back to the logo mark alone; the nav stays fully readable. */
+    @media (max-width: 359px) {
+      .logo-text {
+        display: none;
+      }
     }
 
     @media (min-width: 640px) {
@@ -321,7 +363,11 @@
       padding: var(--space-md);
       font-size: 0.9rem;
       line-height: 1.7;
-      min-height: 320px;
+      /* Fixed height, not min-height: the box must not grow as lines append,
+         or every section below it shifts down 12 times. Overflow makes this
+         its own scroll container so the demo never scrolls the page. */
+      height: 400px;
+      overflow-y: auto;
     }
 
     .terminal-line {
@@ -366,6 +412,14 @@
 
     @keyframes blink {
       50% { opacity: 0; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      /* .terminal-line starts at opacity 0, so killing the animation
+         requires restoring opacity or the text never appears. */
+      .terminal-line { animation: none; opacity: 1; }
+      .cursor { animation: none; }
     }
 
     /* Sections */
@@ -589,7 +643,7 @@
     <div class="container header-inner">
       <a class="logo" href="/">
         <span class="logo-mark">H</span>
-        HumanifyMe
+        <span class="logo-text">HumanifyMe</span>
       </a>
       <nav class="nav-links">
         <a href="#how">How it works</a>
@@ -676,7 +730,7 @@
           <div class="install-card">
             <h3>Claude Code</h3>
             <p>One-line MCP registration.</p>
-            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@0.2.0 humanifyme-mcp</div>
+            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp</div>
           </div>
           <div class="install-card">
             <h3>Cursor, Claude Desktop, etc.</h3>
@@ -685,7 +739,7 @@
   "mcpServers": {
     "humanifyme": {
       "command": "npx",
-      "args": ["-y", "--package", "humanifyme@0.2.0", "humanifyme-mcp"]
+      "args": ["-y", "--package", "humanifyme@latest", "humanifyme-mcp"]
     }
   }
 }</div>
@@ -693,13 +747,13 @@
           <div class="install-card">
             <h3>Command line</h3>
             <p>Full pipeline without an agent.</p>
-            <div class="code-block">npx -y humanifyme@0.2.0 setup
-npx -y humanifyme@0.2.0 rewrite draft.txt</div>
+            <div class="code-block">npx -y humanifyme@latest setup
+npx -y humanifyme@latest rewrite draft.txt</div>
           </div>
           <div class="install-card">
             <h3>No API key? Analyze first.</h3>
             <p>Local, deterministic AI-writing checklist.</p>
-            <div class="code-block">echo "At its core, this robust approach paves the way." | npx -y humanifyme@0.2.0 analyze</div>
+            <div class="code-block">echo "At its core, this robust approach paves the way." | npx -y humanifyme@latest analyze</div>
           </div>
         </div>
       </div>
@@ -757,7 +811,7 @@ npx -y humanifyme@0.2.0 rewrite draft.txt</div>
 
   <script>
     const terminalLines = [
-      { type: 'command', text: 'npx -y humanifyme@0.2.0 setup', delay: 800 },
+      { type: 'command', text: 'npx -y humanifyme@latest setup', delay: 800 },
       { type: 'output', text: '✓ Privacy consent recorded', delay: 1400 },
       { type: 'output', text: '✓ Provider validated (anthropic)', delay: 600 },
       { type: 'output', text: '✓ 3 writing samples added', delay: 600 },
@@ -787,7 +841,9 @@ npx -y humanifyme@0.2.0 rewrite draft.txt</div>
         p.textContent = line.text;
       }
       terminalBody.appendChild(p);
-      p.scrollIntoView({ behavior: 'smooth', block: 'end' });
+      // Scroll the terminal box itself. scrollIntoView() walks every scrollable
+      // ancestor up to the document, which dragged the whole page back here.
+      terminalBody.scrollTop = terminalBody.scrollHeight;
     }
 
     function scheduleNext() {
@@ -805,7 +861,11 @@ npx -y humanifyme@0.2.0 rewrite draft.txt</div>
 
     // Remove the initial prompt cursor before starting the typed sequence
     terminalBody.innerHTML = '';
-    scheduleNext();
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      terminalLines.forEach(addLine); // show the finished transcript, no timers
+    } else {
+      scheduleNext();
+    }
   </script>
 </body>
 </html>
