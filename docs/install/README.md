@@ -4,7 +4,7 @@ HumanifyMe is an MCP server. Any agent that speaks MCP can use it. All
 snippets assume Node ≥ 22.5 is installed. The `humanifyme` package is published
 on npm, so the `npx` snippets below work as-is with nothing checked out.
 
-Before installing in an agent, run `npx -y humanifyme@0.2.1 setup` in a terminal.
+Before installing in an agent, run `npx -y humanifyme@0.2.2 setup` in a terminal.
 It uses hidden input for the provider key, validates the provider, collects writing
 samples, and builds the profile every agent will share. Never paste a provider API
 key into an AI chat or MCP tool argument.

@@ -99,6 +99,6 @@ export function getEmbeddingProvider(): EmbeddingProvider {
 function missingKey(provider: string): HumanifyError {
   return new HumanifyError(
     'MISSING_API_KEY',
-    `no API key configured for ${provider}. Run "humanifyme setup" or "humanifyme provider set ${provider}" in an interactive terminal; never paste a provider key into chat.`,
+    `no API key configured for ${provider}. Run "npx -y humanifyme setup" or "npx -y humanifyme provider set ${provider}" in an interactive terminal; never paste a provider key into chat.`,
   );
 }

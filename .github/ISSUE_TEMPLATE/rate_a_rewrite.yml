@@ -1,0 +1,57 @@
+name: Rate a rewrite
+description: Tried HumanifyMe? Tell us whether the rewrite actually sounded like you.
+title: "Rate a rewrite: "
+labels: ["voice-review"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        This is the most useful feedback the project gets. Two minutes, and only the ratings are required.
+        The tracker is public: only paste text you're fine sharing. Swap real names, emails and numbers for fake ones first.
+  - type: dropdown
+    id: sounds-like-me
+    attributes:
+      label: Does the rewrite sound like you?
+      options:
+        - "5 - I could have typed that"
+        - "4 - Close, small tells"
+        - "3 - Halfway there"
+        - "2 - Mostly generic"
+        - "1 - Not me at all"
+    validations:
+      required: true
+  - type: dropdown
+    id: would-send
+    attributes:
+      label: Would you send it?
+      options:
+        - As is
+        - With small edits
+        - "No"
+    validations:
+      required: true
+  - type: dropdown
+    id: context
+    attributes:
+      label: What was it?
+      options:
+        - Email
+        - Slack / chat message
+        - Text message
+        - PR description or commit
+        - Other
+  - type: input
+    id: samples
+    attributes:
+      label: Roughly how many of your own samples did you give it?
+      placeholder: "e.g. 3, 10, a ChatGPT export"
+  - type: textarea
+    id: whats-off
+    attributes:
+      label: What's off? (optional)
+      placeholder: "e.g. I never say 'hey' to my manager; it dropped my sign-off"
+  - type: textarea
+    id: example
+    attributes:
+      label: Draft and rewrite (optional, redact first)
+      render: text

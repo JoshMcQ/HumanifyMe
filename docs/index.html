@@ -4,6 +4,16 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HumanifyMe — Make AI sound like you</title>
+  <link rel="canonical" href="https://humanifyme.com/">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23c96342'/><text x='16' y='22' font-size='17' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'>H</text></svg>">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://humanifyme.com/">
+  <meta property="og:title" content="HumanifyMe — Make AI sound like you">
+  <meta property="og:description" content="Open-source MCP server that learns how you write and rewrites your AI agent's drafts in your voice. Local-first, bring your own key.">
+  <meta property="og:image" content="https://humanifyme.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
   <meta name="description" content="HumanifyMe learns your writing voice and rewrites AI drafts in it. Local-first, private, open source.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -513,6 +523,7 @@
     }
 
     .install-card {
+      min-width: 0;
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: var(--radius);
@@ -538,6 +549,8 @@
       font-size: 0.82rem;
       overflow-x: auto;
       color: var(--text);
+      white-space: pre;
+      font-family: 'JetBrains Mono', ui-monospace, Consolas, monospace;
     }
 
     .code-block .comment {
@@ -661,15 +674,16 @@
         <h1>Make AI sound <em>like you.</em></h1>
         <p>Your agent drafts the email, the PR, the Slack reply. HumanifyMe rewrites it in your actual voice, learned from your real writing, stored only on your machine.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#install">Install HumanifyMe</a>
+          <a class="btn btn-primary" href="/try">Try it in your browser</a>
+          <a class="btn btn-secondary" href="#install">Install</a>
           <a class="btn btn-secondary" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">View on GitHub</a>
         </div>
         <div class="hero-meta">
-          <span>Free during beta</span>
+          <span>Free &amp; open source</span>
           <span>·</span>
           <span>Bring your own API key</span>
           <span>·</span>
-          <span>No account, no telemetry</span>
+          <span>No account</span>
         </div>
       </div>
     </section>
@@ -704,7 +718,7 @@
           <div class="feature">
             <span class="feature-number">01</span>
             <h3>Give it your writing</h3>
-            <p>Paste 3–10 real emails or messages, point it at a folder, or import your ChatGPT / Claude history. Everything is redacted before any model sees it.</p>
+            <p>Paste 3–10 real emails or messages, point it at a folder, or import your ChatGPT / Claude history. Emails, phone numbers and keys are masked before any model sees them.</p>
           </div>
           <div class="feature">
             <span class="feature-number">02</span>
@@ -714,7 +728,7 @@
           <div class="feature">
             <span class="feature-number">03</span>
             <h3>Your agent uses it</h3>
-            <p>Every MCP agent gets a <code>humanify_text</code> tool. It reaches for your voice automatically on PR descriptions, emails, anything you send as yourself.</p>
+            <p>Every MCP agent gets a <code>humanify_text</code> tool. Ask it to humanify a draft, or let the bundled skills do it after your agent writes an email or PR.</p>
           </div>
         </div>
       </div>
@@ -723,14 +737,15 @@
     <section id="install">
       <div class="container">
         <div class="section-header">
-          <h2>Two minutes, one snippet</h2>
-          <p>Requires Node 22.5+. Install once, then every MCP agent on your machine speaks your voice.</p>
+          <h2>Install in one command</h2>
+          <p>Requires Node 22.5+. Register it with each agent you use; they all share one voice profile.</p>
         </div>
         <div class="install-grid">
           <div class="install-card">
             <h3>Claude Code</h3>
-            <p>One-line MCP registration.</p>
-            <div class="code-block">claude mcp add humanifyme -- npx -y --package humanifyme@latest humanifyme-mcp</div>
+            <p>Plugin: MCP server plus three skills.</p>
+            <div class="code-block">claude plugin marketplace add JoshMcQ/HumanifyMe
+claude plugin install humanifyme@humanifyme</div>
           </div>
           <div class="install-card">
             <h3>Cursor, Claude Desktop, etc.</h3>
@@ -770,7 +785,6 @@ npx -y humanifyme@latest rewrite draft.txt</div>
           <a class="btn btn-secondary" href="https://github.com/JoshMcQ/HumanifyMe/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">🤝 Become a contributor</a>
         </div>
         <div style="margin-top: var(--space-lg); display: flex; flex-wrap: wrap; justify-content: center; gap: var(--space-sm);">
-          <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/stargazers" target="_blank" rel="noopener">⭐ Stars</a>
           <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/issues" target="_blank" rel="noopener">🐛 Issues</a>
           <a class="github-badge" href="https://github.com/JoshMcQ/HumanifyMe/discussions" target="_blank" rel="noopener">💬 Discussions</a>
         </div>
@@ -788,7 +802,7 @@ npx -y humanifyme@latest rewrite draft.txt</div>
         </div>
         <div class="faq-item">
           <h3>What do you collect about me?</h3>
-          <p>Nothing. There is no account, no telemetry, and no HumanifyMe backend. Your samples and profile stay in <code>~/.humanifyme/</code> on your machine.</p>
+          <p>No account, and your samples and profile stay in <code>~/.humanifyme/</code> on your machine. What leaves is redacted text sent to the LLM provider you choose: your samples once, to build the profile, then each draft you rewrite. (The <a href="/try">browser trial</a> is different: it sends text to Claude from our server and stores nothing unless you tick "share".) Setup offers to share anonymous quality counts (never text); it is off unless you opt in.</p>
         </div>
         <div class="faq-item">
           <h3>Does it work with local models?</h3>
@@ -800,7 +814,7 @@ npx -y humanifyme@latest rewrite draft.txt</div>
 
   <footer>
     <div class="container footer-inner">
-      <div>© 2026 Joshua McQueary. <a href="LICENSE">Apache 2.0</a>.</div>
+      <div>© 2026 Joshua McQueary. <a href="https://github.com/JoshMcQ/HumanifyMe/blob/main/LICENSE">Apache 2.0</a>.</div>
       <div class="footer-links">
         <a href="https://github.com/JoshMcQ/HumanifyMe">GitHub</a>
         <a href="https://www.npmjs.com/package/humanifyme">npm</a>
@@ -810,18 +824,19 @@ npx -y humanifyme@latest rewrite draft.txt</div>
   </footer>
 
   <script>
+    // Real CLI output, copied from actual runs (the rewrite uses the author's own profile).
     const terminalLines = [
-      { type: 'command', text: 'npx -y humanifyme@latest setup', delay: 800 },
-      { type: 'output', text: '✓ Privacy consent recorded', delay: 1400 },
-      { type: 'output', text: '✓ Provider validated (anthropic)', delay: 600 },
-      { type: 'output', text: '✓ 3 writing samples added', delay: 600 },
-      { type: 'output', text: '✓ Voice profile built', delay: 600 },
-      { type: 'prompt', text: '$', delay: 800 },
-      { type: 'command', text: 'echo "Hey John — I finished testing the flash script changes..." | humanifyme rewrite --context professional', delay: 1200 },
-      { type: 'output', text: '---', delay: 800 },
-      { type: 'output', text: 'Hey John — just letting you know the lab box boots clean and the logs look good. PR is ready whenever you get a chance. I\'ll be out tomorrow morning but back by noon.', delay: 1000 },
-      { type: 'output', text: '---', delay: 400 },
-      { type: 'success', text: '✓ Verify gate passed · 2 AI-tells removed · length +3%', delay: 800 },
+      { type: 'command', text: 'echo "At its core, this robust approach paves the way." | npx -y humanifyme analyze', delay: 800 },
+      { type: 'output', text: 'AI-writing review: 3 mechanical signs found in 9 words.', delay: 1200 },
+      { type: 'output', text: '2. "At its core, X is about Y" (1 match: at its core)', delay: 300 },
+      { type: 'output', text: '6. Overused AI vocabulary (1 match: robust)', delay: 300 },
+      { type: 'output', text: '34. "Paves the way" (1 match: paves the way)', delay: 300 },
+      { type: 'prompt', text: '$', delay: 900 },
+      { type: 'command', text: 'cat ai-draft.txt', delay: 1000 },
+      { type: 'output', text: "I hope this message finds you well. I wanted to circle back regarding the Q3 roadmap. It's worth noting that the team has made significant progress, and I'd love to leverage this momentum to delve deeper into our priorities. Please let me know if you have any questions!", delay: 900 },
+      { type: 'prompt', text: '$', delay: 700 },
+      { type: 'command', text: 'npx -y humanifyme rewrite ai-draft.txt', delay: 1000 },
+      { type: 'success', text: "Hey, just wanted to check in on the Q3 roadmap. The team has made a lot of progress and I think we should use that momentum to dig into our priorities a bit more. Let me know if you have any questions!", delay: 1600 },
       { type: 'prompt', text: '$', delay: 600 },
     ];
 

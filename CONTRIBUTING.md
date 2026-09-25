@@ -78,7 +78,7 @@ You need **Node.js >= 22.5** (the server uses the built-in `node:sqlite` module,
 older Node will not work). No native build tools or external database required.
 
 ```bash
-git clone https://github.com/joshmcqueary/humanifyme.git
+git clone https://github.com/JoshMcQ/HumanifyMe.git
 cd humanifyme
 npm install
 ```

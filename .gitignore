@@ -5,3 +5,6 @@ my-writing/
 .env
 .humanifyme-test/
 coverage/
+.playwright-mcp/
+.wrangler/
+.dev.vars

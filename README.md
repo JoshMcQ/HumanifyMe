@@ -3,7 +3,7 @@
 **Make AI sound like you.** · [humanifyme.com](https://humanifyme.com)
 
 [![npm](https://img.shields.io/npm/v/humanifyme.svg)](https://www.npmjs.com/package/humanifyme)
-[![GitHub stars](https://img.shields.io/github/stars/JoshMcQ/HumanifyMe?style=social)](https://github.com/JoshMcQ/HumanifyMe/stargazers)
+[![GitHub stars](https://img.shields.io/github/stars/JoshMcQ/HumanifyMe?style=social)](https://github.com/JoshMcQ/HumanifyMe)
 [![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
 [![CI](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml/badge.svg)](https://github.com/JoshMcQ/HumanifyMe/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/JoshMcQ/HumanifyMe.svg)](LICENSE)
@@ -21,7 +21,7 @@ provider key while you type it, validates the provider, collects three writing
 samples, builds your profile, and offers a first rewrite:
 
 ```bash
-npx -y humanifyme@0.2.1 setup
+npx -y humanifyme@0.2.2 setup
 ```
 
 Want to see it work before installing? A live demo of the setup and rewrite flow is at [humanifyme.com](https://humanifyme.com).
@@ -38,6 +38,8 @@ Then use **`/humanifyme:humanify`** on any draft, or let the bundled skills trig
 it after an agent drafts an email, PR, or message. The CLI and every installed
 agent share the profile stored in `~/.humanifyme/`. Use
 **`/humanifyme:build-voice-profile`** later to add samples or rebuild it.
+
+**Tried it?** [Rate a rewrite](https://github.com/JoshMcQ/HumanifyMe/issues/new?template=rate_a_rewrite.yml): two dropdowns, and it is the feedback that improves voice matching most.
 
 Run `/reload-plugins` if you installed mid-session. Using a different agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) or the CLI? See [Install](#install).
 
@@ -90,7 +92,7 @@ Deep dives: [architecture & rewrite pipeline](docs/architecture.md) · [voice me
 
 HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The two-line install is in [Quickstart](#quickstart).
 
-The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.2.1 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
+The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.2.2 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
 
 ### Command line
 
@@ -179,7 +181,7 @@ Most of the code was written with Claude Code, Anthropic's agentic coding tool, 
 
 We want maintainers. Read [`CONTRIBUTING.md`](CONTRIBUTING.md), then read `src/engine/rewrite.ts`, `src/engine/verify.ts`, and `src/privacy/` — that trio is the heart of the methodology. The rules you cannot break live in [`specs/privacy-security-spec.md`](specs/privacy-security-spec.md); when you change behavior, `src/network/outbound-scan.test.ts` and `src/engine/verify.test.ts` must stay green. Good first issues are labeled `good first issue`.
 
-If HumanifyMe saves you from sounding like a robot, give us a ⭐ on [GitHub](https://github.com/JoshMcQ/HumanifyMe/stargazers) and help spread the word. Stars and contributors are how an open-source project like this gets found.
+If HumanifyMe saves you from sounding like a robot, give us a ⭐ on [GitHub](https://github.com/JoshMcQ/HumanifyMe) and help spread the word. Stars and contributors are how an open-source project like this gets found.
 
 ## License
 

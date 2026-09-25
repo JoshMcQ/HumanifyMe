@@ -2,6 +2,7 @@
 // layers as the MCP — no transport in between.
 
 import './suppressExperimentalWarnings.js';
+import { ZodError } from 'zod';
 import fs from 'node:fs';
 import { Command } from 'commander';
 import { VERSION } from './version.js';
@@ -105,7 +106,7 @@ profile
   .action(async () => {
     const current = profiles.get();
     if (!current) {
-      console.error('no profile yet. run: humanifyme profile rebuild');
+      console.error('no profile yet. run: npx -y humanifyme setup');
       process.exitCode = 1;
       return;
     }
@@ -192,6 +193,16 @@ provider
     if (!valid) process.exitCode = 1;
   });
 
+// --- mcp ---
+// Same server as the humanifyme-mcp binary, so `npx -y humanifyme mcp` works
+// in agent configs and MCP registries that launch a package's default bin.
+program
+  .command('mcp')
+  .description('Run the MCP server over stdio (what agents launch)')
+  .action(async () => {
+    await import('./mcp-main.js');
+  });
+
 // --- analyze ---
 program
   .command('analyze [file]')
@@ -211,7 +222,7 @@ program
     const draft = file ? fs.readFileSync(file, 'utf8') : fs.readFileSync(0, 'utf8');
     const profile = profiles.get();
     if (!profile) {
-      console.error('no profile yet. run: humanifyme profile rebuild');
+      console.error('no profile yet. run: npx -y humanifyme setup');
       process.exitCode = 1;
       return;
     }
@@ -267,6 +278,9 @@ importCmd
     if (r.skippedTooShort.length) {
       console.log(`skipped (too short): ${r.skippedTooShort.join(', ')}`);
     }
+    if (r.skippedNotText.length) {
+      console.log(`skipped (not plain text): ${r.skippedNotText.join(', ')}`);
+    }
   });
 
 // --- audit / wipe / setup ---
@@ -319,7 +333,7 @@ program
 
 program
   .command('wipe')
-  .description('Delete ALL HumanifyMe data (samples, profile, cache, audit)')
+  .description('Delete ALL HumanifyMe data (samples, profile, cache, audit, stored API keys)')
   .option('--confirm', 'required: confirm deletion', false)
   .option('--full', 'also clear consent', false)
   .action((opts: { confirm: boolean; full: boolean }) => {
@@ -369,7 +383,7 @@ program
 
 function requireConsentCli(): void {
   if (!consentStatus()) {
-    console.error('consent required first. run: humanifyme setup');
+    console.error('consent required first. run: npx -y humanifyme setup');
     process.exit(1);
   }
 }
@@ -589,6 +603,15 @@ function restoreProviderApiKey(provider: CloudProviderName, apiKey: string | nul
 }
 
 program.parseAsync(process.argv).catch((err) => {
-  console.error(`error: ${err?.message ?? err}`);
+  console.error(`error: ${cliErrorMessage(err)}`);
   process.exit(1);
 });
+
+/** One readable line instead of a Zod issue dump or a raw ENOENT. */
+function cliErrorMessage(err: unknown): string {
+  if (err instanceof ZodError) return err.issues.map((i) => i.message).join('; ');
+  const e = err as NodeJS.ErrnoException | undefined;
+  if (e?.code === 'ENOENT' && e.path) return `file not found: ${e.path}`;
+  if (e?.code === 'EISDIR' && e.path) return `expected a file but got a directory: ${e.path}`;
+  return e?.message ?? String(err);
+}

@@ -5,7 +5,8 @@ import { redact } from '../privacy/redact.js';
 import { samples, profiles, audit } from '../storage/index.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { LLMProvider } from '../providers/types.js';
-import { StyleProfile, StyleProfileSchema } from './styleProfile.js';
+import { StyleProfile } from './styleProfile.js';
+import { parseProfile } from './core.js';
 import {
   STYLE_ANALYSIS_SYSTEM,
   buildStyleAnalysisUserPrompt,
@@ -56,25 +57,32 @@ export async function buildProfile(
 
   let lastError: HumanifyError | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const result = await provider.complete({
-      system,
-      user,
-      maxTokens: 4000,
-      temperature: 0.2,
-      responseFormat: 'json',
-    });
-    audit.append({
+    const entry = {
       provider: provider.name,
       route: provider.route,
       payloadBytes: Buffer.byteLength(system + user, 'utf8'),
       draftLength: 0,
       profileIncluded: false,
-      success: true,
-      errorCode: null,
-    });
+    };
+    let result;
+    try {
+      result = await provider.complete({
+        system,
+        user,
+        maxTokens: 4000,
+        temperature: 0.2,
+        responseFormat: 'json',
+      });
+    } catch (err) {
+      // The samples were sent even if the call failed; the audit must say so.
+      const he = err instanceof HumanifyError ? err : new HumanifyError('PROVIDER_ERROR', String(err));
+      audit.append({ ...entry, success: false, errorCode: he.code });
+      throw he;
+    }
+    audit.append({ ...entry, success: true, errorCode: null });
 
     opts.onProgress?.({ stage: 'validating' });
-    const parsed = tryParseProfile(result.text, all.length);
+    const parsed = parseProfile(result.text, all.length);
     if (parsed.ok) {
       opts.onProgress?.({ stage: 'persisting' });
       return profiles.set(parsed.profile);
@@ -82,35 +90,4 @@ export async function buildProfile(
     lastError = new HumanifyError('OUTPUT_INVALID', parsed.error, attempt === 0);
   }
   throw lastError ?? new HumanifyError('OUTPUT_INVALID', 'profile validation failed');
-}
-
-function tryParseProfile(
-  text: string,
-  sampleCount: number,
-): { ok: true; profile: StyleProfile } | { ok: false; error: string } {
-  // Tolerate accidental code fences.
-  const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
-  let json: unknown;
-  try {
-    json = JSON.parse(cleaned);
-  } catch {
-    return { ok: false, error: 'LLM output was not valid JSON' };
-  }
-  // Normalize: ensure generatedAt + sampleCount are trustworthy regardless of LLM.
-  if (json && typeof json === 'object') {
-    const obj = json as Record<string, unknown>;
-    obj.generatedAt = new Date().toISOString();
-    if (obj.metadata && typeof obj.metadata === 'object') {
-      (obj.metadata as Record<string, unknown>).sampleCount = sampleCount;
-    }
-  }
-  const result = StyleProfileSchema.safeParse(json);
-  if (!result.success) {
-    const issues = result.error.issues
-      .slice(0, 5)
-      .map((i) => `${i.path.join('.')}: ${i.message}`)
-      .join('; ');
-    return { ok: false, error: `profile failed schema validation: ${issues}` };
-  }
-  return { ok: true, profile: result.data };
 }

@@ -4,7 +4,7 @@
 
 import { samples } from '../../storage/index.js';
 import { redact } from '../../privacy/redact.js';
-import { ContextLabelSchema } from '../../types.js';
+import { ContextLabelSchema, looksLikeText } from '../../types.js';
 import { detectAndParse, ExportFormat } from './parser.js';
 
 export interface ImportPreview {
@@ -35,7 +35,7 @@ export function commitChatExport(inputPath: string): {
   let skipped = 0;
   for (const turn of turns) {
     const { redactedText } = redact(turn.text);
-    if (redactedText.length < 100) {
+    if (redactedText.length < 100 || !looksLikeText(redactedText)) {
       skipped++;
       continue;
     }

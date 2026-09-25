@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { samples } from '../../storage/index.js';
 import { redact } from '../../privacy/redact.js';
-import { ContextLabel } from '../../types.js';
+import { ContextLabel, looksLikeText } from '../../types.js';
 import { HumanifyError } from '../../mcp/errors.js';
 
 const MIN_CHARS = 100;
@@ -14,6 +14,7 @@ const EXTENSIONS = new Set(['.txt', '.md', '.docx']);
 export interface TextImportResult {
   imported: number;
   skippedTooShort: string[];
+  skippedNotText: string[];
   filesProcessed: number;
 }
 
@@ -29,17 +30,21 @@ export async function importTextFiles(
     throw new HumanifyError('BAD_INPUT', `no .txt, .md, or .docx files found at ${dirOrFile}`);
   }
 
-  const result: TextImportResult = { imported: 0, skippedTooShort: [], filesProcessed: 0 };
+  const result: TextImportResult = { imported: 0, skippedTooShort: [], skippedNotText: [], filesProcessed: 0 };
   for (const file of files) {
     const text = (await readFileText(file)).trim();
     result.filesProcessed++;
+    if (!looksLikeText(text)) {
+      result.skippedNotText.push(path.basename(file));
+      continue;
+    }
     if (text.length < MIN_CHARS) {
       result.skippedTooShort.push(path.basename(file));
       continue;
     }
     for (const chunk of splitAtParagraphs(text, MAX_CHARS)) {
       const { redactedText } = redact(chunk);
-      if (redactedText.length < MIN_CHARS) continue;
+      if (redactedText.length < MIN_CHARS || !looksLikeText(redactedText)) continue;
       samples.add({ text: redactedText, labels: [label], source: 'text-file' });
       result.imported++;
     }

@@ -7,7 +7,7 @@ export function requireConsent(): void {
   if (!config.consentAcceptedAt) {
     throw new HumanifyError(
       'MISSING_CONSENT',
-      'HumanifyMe needs one-time consent before sending anything to an LLM provider. Run "humanifyme setup" or ask the agent to confirm: redacted samples/drafts go only to your configured provider, nothing else leaves this machine.',
+      'HumanifyMe needs one-time consent before sending anything to an LLM provider. Ask the user to run "npx -y humanifyme setup" once in a terminal: it records consent, stores the provider key securely, and collects writing samples. Redacted samples/drafts go only to the configured provider.',
     );
   }
 }
