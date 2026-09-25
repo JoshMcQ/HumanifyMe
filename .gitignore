@@ -5,3 +5,5 @@ my-writing/
 .env
 .humanifyme-test/
 coverage/
+.playwright-mcp/
+web/dist/

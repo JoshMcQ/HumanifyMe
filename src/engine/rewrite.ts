@@ -16,27 +16,9 @@ import { getEmbeddingProvider } from '../providers/index.js';
 import { readConfig } from '../config/index.js';
 import { LLMProvider } from '../providers/types.js';
 import { StyleProfile, mergeFingerprint } from './styleProfile.js';
-import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
 import { retrieveExemplars } from './retrieve.js';
 import { computeDiff } from './diff.js';
-import { sanitizeRewrite, stripAiDashes, verifyRewrite, issuesToFeedback } from './verify.js';
-
-/** Budget for retrieved exemplars in the system prompt: cap per-exemplar and
- *  total length, trimming lowest-ranked first so the fingerprint is never cut. */
-const EXEMPLAR_MAX_CHARS = 500;
-const EXEMPLAR_TOTAL_CHARS = 2000;
-
-function budgetExemplars(redactedExemplars: string[]): string[] {
-  const out: string[] = [];
-  let total = 0;
-  for (const ex of redactedExemplars) {
-    const trimmed = ex.length > EXEMPLAR_MAX_CHARS ? ex.slice(0, EXEMPLAR_MAX_CHARS) + '…' : ex;
-    if (total + trimmed.length > EXEMPLAR_TOTAL_CHARS) break;
-    out.push(trimmed);
-    total += trimmed.length;
-  }
-  return out;
-}
+import { budgetExemplars, runRewriteLoop } from './core.js';
 
 export interface RewriteArgs {
   draft: string;
@@ -115,115 +97,29 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
     }
   }
 
-  const user = buildRewriteUserPrompt(redactedText);
-  const shorter = directives.includes('shorter');
-
-  let result: { text: string; inputTokens: number; outputTokens: number; latencyMs: number } | null =
-    null;
-  let lengthReminder: string | undefined;
   let lastAuditId: number | null = null;
-
-  for (let attempt = 0; attempt < 2; attempt++) {
-    const system = buildRewriteSystemPrompt({
-      fingerprintJson: JSON.stringify(fingerprint, null, 2),
-      contextNotes: variant?.notes ?? '',
-      contextExemplars: variant?.exemplars ?? [],
-      retrievedExemplars,
-      directives,
-      lengthReminder,
-    });
-
-    let completion;
-    try {
-      completion = await args.provider.complete({
-        system,
-        user,
-        maxTokens: 2500,
-        temperature: 0.6,
-      });
-      lastAuditId = audit.append({
+  const { completion: result, notes: loopNotes } = await runRewriteLoop({
+    draftLength: args.draft.length,
+    redactedDraft: redactedText,
+    fingerprint,
+    variant,
+    retrievedExemplars,
+    directives,
+    provider: args.provider,
+    onCall: ({ payloadBytes, success, errorCode }) => {
+      const id = audit.append({
         provider: args.provider.name,
         route: args.provider.route,
-        payloadBytes: Buffer.byteLength(system + user, 'utf8'),
+        payloadBytes,
         draftLength: args.draft.length,
         profileIncluded: true,
-        success: true,
-        errorCode: null,
+        success,
+        errorCode,
       });
-    } catch (err) {
-      const he = err instanceof HumanifyError ? err : new HumanifyError('PROVIDER_ERROR', String(err));
-      audit.append({
-        provider: args.provider.name,
-        route: args.provider.route,
-        payloadBytes: Buffer.byteLength(system + user, 'utf8'),
-        draftLength: args.draft.length,
-        profileIncluded: true,
-        success: false,
-        errorCode: he.code,
-      });
-      throw he;
-    }
-
-    let text = sanitizeRewrite(completion.text, redactedText);
-    // Em-dashes are the loudest AI tell. If this writer's own style is dash-free,
-    // strip them deterministically instead of trusting the model to have behaved.
-    if (fingerprint.punctuationHabits.emDash === 'rare') {
-      text = stripAiDashes(text);
-    }
-    if (text.length === 0) {
-      lengthReminder = 'Your previous attempt returned empty output. You must return the rewritten draft.';
-      continue;
-    }
-
-    const ratio = text.length / args.draft.length;
-    const outOfBand = shorter ? ratio > 0.95 : ratio < 0.7 || ratio > 1.3;
-    // Deterministic quality gate: introduced banned words, dropped numbers,
-    // lost URLs, mangled redaction placeholders, and casing that drifts from the
-    // writer's learned register (lowercase vs. sentence case).
-    const issues = verifyRewrite({
-      redactedDraft: redactedText,
-      rewrite: text,
-      wordsToAvoid: fingerprint.wordsToAvoid,
-      capitalization: {
-        sentenceCase: fingerprint.capitalization.sentenceCase,
-        allLowercase: fingerprint.capitalization.allLowercase,
-      },
-    });
-
-    if ((outOfBand || issues.length > 0) && attempt === 0) {
-      // Retry once with targeted feedback, per the spec's failure policy.
-      const feedback: string[] = [];
-      if (outOfBand) {
-        feedback.push(
-          shorter
-            ? `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. It must be 60-80%.`
-            : `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. Stay between 70% and 130%.`,
-        );
-      }
-      if (issues.length > 0) feedback.push(issuesToFeedback(issues));
-      lengthReminder = feedback.join(' ');
-      result = completion;
-      result.text = text;
-      continue;
-    }
-    if (outOfBand) {
-      notes.push(`Rewrite length is ${Math.round(ratio * 100)}% of the draft, outside the target band.`);
-    }
-    if (issues.length > 0) {
-      notes.push(
-        `Could not fully enforce after retry — review before sending: ${issues
-          .map((i) => `${i.kind.replace(/_/g, ' ')} (${i.detail})`)
-          .join('; ')}.`,
-      );
-    }
-    result = completion;
-    result.text = text;
-    break;
-  }
-
-  if (!result || result.text.trim().length === 0) {
-    throw new HumanifyError('OUTPUT_INVALID', 'the model returned empty output twice', false);
-  }
+      if (success) lastAuditId = id;
+    },
+  });
+  notes.push(...loopNotes);
 
   const restored = restore(result.text.trim(), map);
   const response: RewriteResponse = {
