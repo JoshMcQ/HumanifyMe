@@ -76,13 +76,14 @@ pre{background:var(--inset);border:1px solid var(--border);border-radius:8px;pad
   <p class="lede">Paste a few things you wrote and one AI draft. You'll get the draft back in your voice. Free, no signup, about 30 seconds.</p>
 
   <section class="step" id="step1">
-    <h2><span class="num">1</span>Paste 3–5 messages you actually wrote</h2>
-    <p class="hint">Texts, Slack messages, emails. Real ones, not polished. The messier and more "you", the better. <button class="link" id="demoBtn" type="button">No samples handy? Use an example writer</button></p>
-    <div id="samples"></div>
-    <div class="row">
-      <button type="button" id="addSample">+ Add another</button>
-      <span class="status" id="s1status"></span>
-    </div>
+    <h2><span class="num">1</span>Paste 3 or more messages you actually wrote</h2>
+    <p class="hint">Copy a few real texts, Slack messages or emails you sent and paste them here, with a blank line between each. The messier and more "you", the better. <button class="link" id="demoBtn" type="button">No samples handy? Use an example writer</button></p>
+    <textarea id="samplesBox" rows="8" aria-label="Messages you wrote, separated by blank lines" placeholder="yeah i can do thursday but not before 10, dentist thing. can we push to 10:30?
+
+honestly the new build is way better. still some jank on settings but ship it
+
+lol no worries, send it over when you get a sec"></textarea>
+    <p class="status" id="s1status"></p>
   </section>
 
   <section class="step" id="step2">
@@ -164,29 +165,24 @@ pre{background:var(--inset);border:1px solid var(--border);border-radius:8px;pad
   let demo = false;
   let last = null; // { id, draft, rewrite }
 
-  const samplesEl = $('samples');
-  function addSample(value = '') {
-    if (samplesEl.children.length >= 10) return;
-    const t = document.createElement('textarea');
-    t.rows = 3;
-    t.placeholder = `Something you wrote (#${samplesEl.children.length + 1})`;
-    t.setAttribute('aria-label', `Writing sample ${samplesEl.children.length + 1}`);
-    t.value = value;
-    samplesEl.appendChild(t);
-  }
-  const saved = store.get('hm.samples') || [];
-  for (let i = 0; i < Math.max(3, saved.length); i++) addSample(saved[i] || '');
-  $('addSample').onclick = () => addSample();
+  const samplesEl = $('samplesBox');
+  samplesEl.value = (store.get('hm.samples') || []).join('\n\n');
   $('demoBtn').onclick = () => {
-    samplesEl.innerHTML = '';
-    DEMO.forEach((d) => addSample(d));
+    samplesEl.value = DEMO.join('\n\n');
     demo = true;
     $('s1status').textContent = 'Example writer loaded. Try your own later, it\'s way more fun.';
   };
   $('exampleDraft').onclick = () => { $('draft').value = EXAMPLE_DRAFT; };
-  samplesEl.addEventListener('input', () => { demo = false; });
+  samplesEl.addEventListener('input', () => { demo = false; $('s1status').textContent = ''; });
 
-  const readSamples = () => [...samplesEl.querySelectorAll('textarea')].map((t) => t.value.trim()).filter(Boolean);
+  // One message per blank-line-separated block; if someone pasted one message
+  // per line instead, fall back to lines. Very short fragments ("ok") are dropped.
+  const readSamples = () => {
+    const text = samplesEl.value.trim();
+    let parts = text.split(/\n\s*\n/);
+    if (parts.length < 3) parts = text.split(/\n/);
+    return parts.map((p) => p.trim()).filter((p) => p.length >= 20).slice(0, 10);
+  };
 
   async function api(path, body) {
     const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
@@ -205,8 +201,11 @@ pre{background:var(--inset);border:1px solid var(--border);border-radius:8px;pad
   $('go').onclick = async () => {
     const samples = readSamples();
     const draft = $('draft').value.trim();
-    if (samples.length < 3) { setStatus('Paste at least 3 messages you wrote in step 1.', true); samplesEl.querySelector('textarea:placeholder-shown')?.focus(); return; }
-    if (samples.some((s) => s.length < 20)) { setStatus('Each sample needs at least a sentence or two (20+ characters).', true); return; }
+    if (samples.length < 3) {
+      setStatus(`Step 1 needs at least 3 messages you wrote, each a sentence or longer, with a blank line between them. Found ${samples.length}.`, true);
+      samplesEl.focus();
+      return;
+    }
     if (!draft) { setStatus('Paste an AI draft in step 2.', true); $('draft').focus(); return; }
     $('go').disabled = true;
     try {
