@@ -192,6 +192,16 @@ provider
     if (!valid) process.exitCode = 1;
   });
 
+// --- mcp ---
+// Same server as the humanifyme-mcp binary, so `npx -y humanifyme mcp` works
+// in agent configs and MCP registries that launch a package's default bin.
+program
+  .command('mcp')
+  .description('Run the MCP server over stdio (what agents launch)')
+  .action(async () => {
+    await import('./mcp-main.js');
+  });
+
 // --- analyze ---
 program
   .command('analyze [file]')

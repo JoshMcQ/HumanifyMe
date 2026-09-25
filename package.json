@@ -2,6 +2,7 @@
   "name": "humanifyme",
   "version": "0.2.1",
   "description": "Make AI sound like you. A local-first MCP server that learns your writing voice and rewrites AI-generated drafts in it.",
+  "mcpName": "io.github.JoshMcQ/humanifyme",
   "license": "Apache-2.0",
   "author": "Joshua McQueary",
   "homepage": "https://humanifyme.com",

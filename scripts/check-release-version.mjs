@@ -14,6 +14,7 @@ const packageLock = readJson('package-lock.json');
 const plugin = readJson('humanifyme.plugin/.claude-plugin/plugin.json');
 const marketplace = readJson('.claude-plugin/marketplace.json');
 const mcp = readJson('humanifyme.plugin/.mcp.json');
+const registry = readJson('server.json');
 const version = packageJson.version;
 const expectedPackage = `${packageJson.name}@${version}`;
 const escapedVersion = version.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -30,6 +31,10 @@ equal(
   marketplace.plugins?.find((entry) => entry.name === packageJson.name)?.version,
   version,
 );
+
+equal('server.json version', registry.version, version);
+equal('server.json npm package version', registry.packages?.[0]?.version, version);
+equal('server.json name', registry.name, packageJson.mcpName);
 
 const mcpArgs = mcp.mcpServers?.humanifyme?.args;
 if (!Array.isArray(mcpArgs) || !mcpArgs.includes(expectedPackage)) {
