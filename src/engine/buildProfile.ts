@@ -57,22 +57,29 @@ export async function buildProfile(
 
   let lastError: HumanifyError | null = null;
   for (let attempt = 0; attempt < 2; attempt++) {
-    const result = await provider.complete({
-      system,
-      user,
-      maxTokens: 4000,
-      temperature: 0.2,
-      responseFormat: 'json',
-    });
-    audit.append({
+    const entry = {
       provider: provider.name,
       route: provider.route,
       payloadBytes: Buffer.byteLength(system + user, 'utf8'),
       draftLength: 0,
       profileIncluded: false,
-      success: true,
-      errorCode: null,
-    });
+    };
+    let result;
+    try {
+      result = await provider.complete({
+        system,
+        user,
+        maxTokens: 4000,
+        temperature: 0.2,
+        responseFormat: 'json',
+      });
+    } catch (err) {
+      // The samples were sent even if the call failed; the audit must say so.
+      const he = err instanceof HumanifyError ? err : new HumanifyError('PROVIDER_ERROR', String(err));
+      audit.append({ ...entry, success: false, errorCode: he.code });
+      throw he;
+    }
+    audit.append({ ...entry, success: true, errorCode: null });
 
     opts.onProgress?.({ stage: 'validating' });
     const parsed = parseProfile(result.text, all.length);

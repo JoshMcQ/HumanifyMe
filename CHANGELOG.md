@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.2.2 - 2026-09-25
+
+- Rewrites no longer touch code: inline `code` and fenced blocks are masked
+  like private data before the model sees them and restored exactly (a
+  lowercase voice was turning `TokenService` into `tokenservice`).
+- Rewrites keep the draft's structure (subject lines, markdown headings, list
+  items) and no longer add asks or conditions from the writer's stock phrases
+  that the draft never made.
+- The length band is 40-130% of the draft instead of 70-130%. Voice rewrites of
+  padded AI drafts are often much shorter, so almost every rewrite was paying
+  for a second model call.
+- New `humanifyme mcp` command runs the MCP server, so `npx -y humanifyme mcp`
+  works in agent configs and the MCP Registry.
+- Failed profile builds are now recorded in `humanifyme audit`.
+- Binary or mis-decoded files are rejected as samples and skipped by
+  `import files`.
+- CLI errors are one readable line instead of a validation dump; `wipe` help
+  says it also deletes stored API keys; the MCP consent error gives a real next
+  step.
+- Setup ends with a link to rate the rewrite. All production dependency audit
+  advisories are cleared.
+
 ## 0.2.1 - 2026-08-03
 
 - Patch release to work around an npm staging conflict that prevented `0.2.0`

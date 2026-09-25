@@ -3,11 +3,29 @@
 // and the hosted web trial (web/) both run exactly this code.
 
 import { Directive } from '../types.js';
+import { redact, RedactionMap } from '../privacy/redact.js';
+import { RedactionPattern } from '../privacy/patterns.js';
 import { HumanifyError } from '../mcp/errors.js';
 import { CompletionResult, LLMProvider } from '../providers/types.js';
 import { StyleProfile, StyleProfileSchema, VoiceFingerprint, ContextVariant } from './styleProfile.js';
 import { buildRewriteSystemPrompt, buildRewriteUserPrompt } from './prompts/rewrite.js';
 import { sanitizeRewrite, stripAiDashes, verifyRewrite, issuesToFeedback } from './verify.js';
+
+// Code is masked like private data so the model cannot restyle it: lowercase
+// voices were turning `TokenService` into `tokenservice`. Fenced blocks first.
+const CODE_PATTERNS: RedactionPattern[] = [
+  { name: 'code_block', placeholder: 'CODE', regex: /```[\s\S]*?```/g },
+  { name: 'inline_code', placeholder: 'CODE', regex: /`[^`\n]+`/g },
+];
+
+/** Redacts private data, then masks code. `applied` reports privacy redaction
+ *  only. Code entries come first in the map so restore() puts code back before
+ *  any private placeholders it contains. */
+export function maskDraft(draft: string): { redactedText: string; map: RedactionMap; applied: boolean } {
+  const privacy = redact(draft);
+  const code = redact(privacy.redactedText, CODE_PATTERNS);
+  return { redactedText: code.redactedText, map: { ...code.map, ...privacy.map }, applied: privacy.applied };
+}
 
 /** Budget for retrieved exemplars in the system prompt: cap per-exemplar and
  *  total length, trimming lowest-ranked first so the fingerprint is never cut. */
@@ -85,7 +103,7 @@ export async function runRewriteLoop(
     }
 
     const ratio = text.length / args.draftLength;
-    const outOfBand = shorter ? ratio > 0.95 : ratio < 0.7 || ratio > 1.3;
+    const outOfBand = shorter ? ratio > 0.95 : ratio < 0.4 || ratio > 1.3;
     // Deterministic quality gate: introduced banned words, dropped numbers,
     // lost URLs, mangled redaction placeholders, and casing that drifts from the
     // writer's learned register (lowercase vs. sentence case).
@@ -106,7 +124,7 @@ export async function runRewriteLoop(
         feedback.push(
           shorter
             ? `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. It must be 60-80%.`
-            : `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. Stay between 70% and 130%.`,
+            : `Your previous attempt was ${Math.round(ratio * 100)}% of the input length. Stay between 40% and 130%.`,
         );
       }
       if (issues.length > 0) feedback.push(issuesToFeedback(issues));

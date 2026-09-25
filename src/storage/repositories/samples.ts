@@ -4,12 +4,16 @@ import { getDb } from '../db.js';
 import {
   ContextLabelSchema,
   MIN_SAMPLE_CHARS,
+  looksLikeText,
   SampleRecord,
   SampleSourceSchema,
 } from '../../types.js';
 
 const AddSampleSchema = z.object({
-  text: z.string().min(MIN_SAMPLE_CHARS, `text must be at least ${MIN_SAMPLE_CHARS} characters`),
+  text: z
+    .string()
+    .min(MIN_SAMPLE_CHARS, `text must be at least ${MIN_SAMPLE_CHARS} characters`)
+    .refine(looksLikeText, 'that does not look like plain text (binary file or wrong encoding?)'),
   labels: z.array(ContextLabelSchema).min(1, 'at least one label is required'),
   source: SampleSourceSchema.default('paste'),
 }).strict();

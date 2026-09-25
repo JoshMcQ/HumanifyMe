@@ -38,7 +38,7 @@ Only `plugin.json` lives inside `.claude-plugin/`; every other directory (`skill
 {
   "name": "humanifyme",
   "displayName": "HumanifyMe",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Make AI sound like you. Rewrites AI-generated drafts in your authentic voice.",
   "author": { "name": "Joshua McQueary", "url": "https://humanifyme.com" },
   "homepage": "https://humanifyme.com",
@@ -57,7 +57,7 @@ The version is pinned (not `@latest`) so a plugin install always resolves to a k
   "mcpServers": {
     "humanifyme": {
       "command": "npx",
-      "args": ["-y", "--package", "humanifyme@0.2.1", "humanifyme-mcp"]
+      "args": ["-y", "--package", "humanifyme@0.2.2", "humanifyme-mcp"]
     }
   }
 }
@@ -89,7 +89,7 @@ These skills are the secret sauce of the plugin, without them, the user has to r
 
 - Distributed via the Cowork plugin marketplace.
 - One-click install from the marketplace UI.
-- The user first runs `npx -y humanifyme@0.2.1 setup` so cloud credentials enter through a hidden terminal prompt, never through model-visible chat or tool arguments.
+- The user first runs `npx -y humanifyme@0.2.2 setup` so cloud credentials enter through a hidden terminal prompt, never through model-visible chat or tool arguments.
 - Plugin appears under "Installed plugins" and reuses the local profile created by the CLI.
 
 ### Claude Code

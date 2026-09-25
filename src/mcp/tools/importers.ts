@@ -51,6 +51,7 @@ export const importTextFilesTool: ToolDef<z.ZodTypeAny, z.ZodTypeAny> = {
     imported: z.number(),
     filesProcessed: z.number(),
     skippedTooShort: z.array(z.string()),
+    skippedNotText: z.array(z.string()),
   }),
   handler: async (input: { path: string; label: z.infer<typeof ContextLabelSchema> }) => {
     const r = await importTextFiles(input.path, input.label);

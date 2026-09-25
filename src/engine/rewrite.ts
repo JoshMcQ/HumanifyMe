@@ -18,7 +18,7 @@ import { LLMProvider } from '../providers/types.js';
 import { StyleProfile, mergeFingerprint } from './styleProfile.js';
 import { retrieveExemplars } from './retrieve.js';
 import { computeDiff } from './diff.js';
-import { budgetExemplars, runRewriteLoop } from './core.js';
+import { budgetExemplars, maskDraft, runRewriteLoop } from './core.js';
 
 export interface RewriteArgs {
   draft: string;
@@ -53,7 +53,7 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
   if (hit) return attachFeedback(hit, args, null);
 
   // Redact.
-  const { redactedText, map, applied } = redact(args.draft);
+  const { redactedText, map, applied } = maskDraft(args.draft);
   if (redactedText.replace(/\[[A-Z_0-9]+\]/g, '').trim().length === 0) {
     throw new HumanifyError(
       'EMPTY_AFTER_REDACTION',

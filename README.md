@@ -21,7 +21,7 @@ provider key while you type it, validates the provider, collects three writing
 samples, builds your profile, and offers a first rewrite:
 
 ```bash
-npx -y humanifyme@0.2.1 setup
+npx -y humanifyme@0.2.2 setup
 ```
 
 Want to see it work before installing? A live demo of the setup and rewrite flow is at [humanifyme.com](https://humanifyme.com).
@@ -92,7 +92,7 @@ Deep dives: [architecture & rewrite pipeline](docs/architecture.md) · [voice me
 
 HumanifyMe is bundled as a plugin in [`humanifyme.plugin/`](humanifyme.plugin/): a `.claude-plugin/plugin.json` manifest, an `.mcp.json` that registers the MCP server, and three skills (`humanify`, `build-voice-profile`, `humanify-pr`). The repo root ships a marketplace catalog at [`.claude-plugin/marketplace.json`](.claude-plugin/marketplace.json). The two-line install is in [Quickstart](#quickstart).
 
-The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.2.1 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
+The bundled `.mcp.json` launches the server from the published npm package via `npx -y --package humanifyme@0.2.2 humanifyme-mcp`, pinned to a known build, so the plugin works on a fresh machine with nothing checked out. Copy-paste setup for other agents is in [`docs/install/`](docs/install/).
 
 ### Command line
 

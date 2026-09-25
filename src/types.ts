@@ -85,6 +85,14 @@ export interface RewriteResponse {
 
 export const MAX_DRAFT_CHARS = 8000;
 export const MIN_SAMPLE_CHARS = 100;
+
+/** False for binary or mis-decoded input: NULs, U+FFFD, or >1% control characters. */
+export function looksLikeText(text: string): boolean {
+  if (text.includes('\u0000') || text.includes(String.fromCharCode(0xfffd))) return false;
+  const control = text.match(/[\u0001-\u0008\u000B\u000C\u000E-\u001F\u007F]/g)?.length ?? 0;
+  return control <= text.length * 0.01;
+}
+
 export const AUDIT_CAP = 20;
 export const CACHE_CAP = 50;
 export const CACHE_TTL_MS = 24 * 60 * 60 * 1000;
