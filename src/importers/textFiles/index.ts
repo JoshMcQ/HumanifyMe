@@ -44,7 +44,7 @@ export async function importTextFiles(
     }
     for (const chunk of splitAtParagraphs(text, MAX_CHARS)) {
       const { redactedText } = redact(chunk);
-      if (redactedText.length < MIN_CHARS) continue;
+      if (redactedText.length < MIN_CHARS || !looksLikeText(redactedText)) continue;
       samples.add({ text: redactedText, labels: [label], source: 'text-file' });
       result.imported++;
     }

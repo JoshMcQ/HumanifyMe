@@ -6,4 +6,5 @@ my-writing/
 .humanifyme-test/
 coverage/
 .playwright-mcp/
-web/dist/
+.wrangler/
+.dev.vars

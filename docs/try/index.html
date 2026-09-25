@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Try HumanifyMe</title>
+<meta name="description" content="Paste a few messages you wrote and an AI draft. HumanifyMe rewrites the draft in your voice. Free, no signup.">
+<meta property="og:title" content="Try HumanifyMe: make AI sound like you">
+<meta property="og:description" content="Paste a few messages you wrote and an AI draft. Get it back in your voice. Free, no signup, open source.">
+<meta property="og:image" content="https://humanifyme.com/assets/og-image.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://humanifyme.com/try">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%23c96342'/><text x='16' y='22' font-size='17' text-anchor='middle' fill='white' font-family='sans-serif' font-weight='700'>H</text></svg>">
+<style>
+:root{--bg:#0d1117;--card:#161b22;--inset:#0f141a;--border:#30363d;--text:#e6edf3;--muted:#8b949e;--accent:#c96342;--accent-hover:#b35536;--soft:rgba(201,99,66,.12);--ok:#3fb950;--warn:#d29922;--r:12px}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--bg:#f6f8fa;--card:#fff;--inset:#f6f8fa;--border:#d0d7de;--text:#1f2328;--muted:#59636e;--accent:#b4532f;--accent-hover:#9a4526;--soft:rgba(180,83,47,.1);--ok:#1a7f37;--warn:#9a6700}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif}
+a{color:var(--accent)}
+.wrap{max-width:760px;margin:0 auto;padding:24px 16px 64px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:28px}
+.brand{font-weight:700;font-size:18px;color:var(--text);text-decoration:none}
+.brand span{color:var(--accent)}
+.gh{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:8px;padding:6px 12px;color:var(--text);text-decoration:none;font-size:14px;background:var(--card)}
+.gh:hover{border-color:var(--accent)}
+h1{font-size:clamp(28px,6vw,40px);line-height:1.15;margin:0 0 10px;letter-spacing:-.02em}
+.lede{color:var(--muted);margin:0 0 28px;font-size:17px}
+.step{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.step h2{font-size:17px;margin:0 0 4px;display:flex;gap:10px;align-items:center}
+.num{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:50%;background:var(--soft);color:var(--accent);font-size:13px;font-weight:700;flex:none}
+.hint{color:var(--muted);font-size:14px;margin:0 0 14px}
+textarea{width:100%;min-height:84px;resize:vertical;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px 12px;font:inherit;font-size:15px;margin-bottom:10px}
+textarea:focus,button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+button{font:inherit;font-size:15px;border-radius:8px;padding:9px 16px;cursor:pointer;border:1px solid var(--border);background:var(--inset);color:var(--text)}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+button.primary:hover{background:var(--accent-hover)}
+button:disabled{opacity:.55;cursor:default}
+.link{background:none;border:none;color:var(--accent);padding:4px 0;text-decoration:underline;font-size:14px}
+select{font:inherit;font-size:15px;background:var(--inset);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px}
+.status{font-size:14px;color:var(--muted);min-height:20px}
+.err{color:#f85149}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:640px){.cols{grid-template-columns:1fr}}
+.box{background:var(--inset);border:1px solid var(--border);border-radius:8px;padding:12px;white-space:pre-wrap;word-wrap:break-word;font-size:15px}
+.box.after{border-color:var(--accent)}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;display:flex;justify-content:space-between}
+.note{font-size:13px;color:var(--warn);margin-top:8px}
+.rating{display:flex;gap:6px;flex-wrap:wrap}
+.rating button{min-width:44px}
+.rating button[aria-pressed="true"],.choice button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+.choice{display:flex;gap:6px;flex-wrap:wrap}
+.q{margin:16px 0 8px;font-weight:600;font-size:15px}
+label.check{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--muted);margin:12px 0}
+.thanks{text-align:center;padding:10px 0}
+.star{display:inline-flex;gap:8px;align-items:center;background:var(--accent);color:#fff;text-decoration:none;font-weight:600;padding:12px 20px;border-radius:10px;font-size:16px;margin:10px 0 18px}
+.star:hover{background:var(--accent-hover)}
+code{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:13px;background:var(--inset);border:1px solid var(--border);padding:2px 6px;border-radius:6px}
+pre{background:var(--inset);border:1px solid var(--border);border-radius:8px;padding:12px;overflow-x:auto;font-size:13px;text-align:left}
+.privacy{font-size:13px;color:var(--muted);margin-top:28px;border-top:1px solid var(--border);padding-top:16px}
+.hidden{display:none}
+.spin{display:inline-block;width:14px;height:14px;border:2px solid var(--muted);border-top-color:transparent;border-radius:50%;animation:s .8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes s{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="https://humanifyme.com">Humanify<span>Me</span></a>
+    <a class="gh" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">★ Star on GitHub</a>
+  </header>
+
+  <h1>Make AI sound like you.</h1>
+  <p class="lede">Paste a few things you wrote and one AI draft. You'll get the draft back in your voice. Free, no signup, about 30 seconds.</p>
+
+  <section class="step" id="step1">
+    <h2><span class="num">1</span>Paste 3–5 messages you actually wrote</h2>
+    <p class="hint">Texts, Slack messages, emails. Real ones, not polished. The messier and more "you", the better. <button class="link" id="demoBtn" type="button">No samples handy? Use an example writer</button></p>
+    <div id="samples"></div>
+    <div class="row">
+      <button type="button" id="addSample">+ Add another</button>
+      <span class="status" id="s1status"></span>
+    </div>
+  </section>
+
+  <section class="step" id="step2">
+    <h2><span class="num">2</span>Paste an AI-written draft</h2>
+    <p class="hint">Something ChatGPT, Claude or Copilot wrote for you. <button class="link" id="exampleDraft" type="button">Use an example draft</button></p>
+    <textarea id="draft" rows="6" placeholder="I hope this message finds you well! I wanted to circle back on…" aria-label="AI draft"></textarea>
+    <div class="row">
+      <label for="context" class="hint" style="margin:0">It's a</label>
+      <select id="context">
+        <option value="casual">casual message</option>
+        <option value="email">email</option>
+        <option value="casual">Slack message</option>
+        <option value="professional">work message</option>
+        <option value="text">text</option>
+      </select>
+      <button class="primary" id="go" type="button">Rewrite in my voice</button>
+    </div>
+    <p class="status" id="status" role="status" aria-live="polite"></p>
+  </section>
+
+  <section class="step hidden" id="result" aria-live="polite">
+    <h2><span class="num">3</span>Your draft, in your voice</h2>
+    <div class="cols" style="margin-top:12px">
+      <div><div class="label">AI draft</div><div class="box" id="before"></div></div>
+      <div><div class="label"><span>Rewritten</span><button class="link" id="copy" type="button" style="padding:0">Copy</button></div><div class="box after" id="after"></div></div>
+    </div>
+    <div class="note" id="notes"></div>
+
+    <div id="reviewForm">
+      <p class="q" id="q1">Does it sound like you?</p>
+      <div class="rating" id="rating" role="group" aria-labelledby="q1">
+        <button type="button" data-v="1">1</button><button type="button" data-v="2">2</button><button type="button" data-v="3">3</button><button type="button" data-v="4">4</button><button type="button" data-v="5">5</button>
+      </div>
+      <p class="hint" style="margin-top:6px">1 = not at all · 5 = I could have typed that</p>
+      <p class="q" id="q2">Would you send it?</p>
+      <div class="choice" id="send" role="group" aria-labelledby="q2">
+        <button type="button" data-v="yes">As is</button><button type="button" data-v="with_edits">With small edits</button><button type="button" data-v="no">No</button>
+      </div>
+      <p class="q"><label for="comment">What's off? (optional)</label></p>
+      <textarea id="comment" rows="2" placeholder="e.g. I'd never say 'hey' to my boss"></textarea>
+      <label class="check"><input type="checkbox" id="share"> Share this draft and rewrite with the maintainer to improve HumanifyMe. (Off by default; your samples are never stored.)</label>
+      <div class="row">
+        <button class="primary" id="submitReview" type="button">Send feedback</button>
+        <button type="button" id="again">Try another draft</button>
+        <span class="status" id="rstatus"></span>
+      </div>
+    </div>
+
+    <div class="thanks hidden" id="thanks">
+      <p class="q">Thanks, that genuinely helps.</p>
+      <p class="hint">HumanifyMe is free and open source, built by one person. A star is how other people find it.</p>
+      <a class="star" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">★ Star HumanifyMe on GitHub</a>
+      <p class="hint">Want it inside Claude Code, Cursor, or your terminal, running locally with your own key?</p>
+      <pre>npx -y humanifyme setup</pre>
+      <button type="button" id="again2">Try another draft</button>
+    </div>
+  </section>
+
+  <p class="privacy">What happens to your text: your samples and draft are sent once to Anthropic's Claude API to build a voice profile and write the rewrite, after emails, phone numbers and keys are masked. Nothing is stored unless you tick "share" on the feedback form. Your profile stays in this browser. The <a href="https://github.com/JoshMcQ/HumanifyMe">open-source CLI</a> keeps everything on your machine. Made by <a href="https://github.com/JoshMcQ">Josh McQueary</a>.</p>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const store = {
+    get(k){ try { return JSON.parse(localStorage.getItem(k)); } catch { return null; } },
+    set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch {} },
+  };
+  const DEMO = [
+    "yeah i can do thursday but not before 10, got a dentist thing. can we push it to like 10:30?",
+    "honestly the new build is way better. still some jank on the settings page but nothing blocking. ship it imo",
+    "lol no worries, happens to everyone. just send it over when you get a sec and i'll take a look tonight",
+    "hey quick q, are we still doing the offsite in march or did that get killed? trying to plan around it",
+  ];
+  const EXAMPLE_DRAFT = "I hope this message finds you well! I wanted to circle back regarding the Q3 planning document. It's worth noting that the team has made significant progress, and I'd love to leverage this momentum to delve deeper into our priorities. Would you be available for a brief sync on Thursday at 2pm? Please let me know if you have any questions!";
+
+  let profile = store.get('hm.profile');
+  let profileKey = store.get('hm.profileKey');
+  let demo = false;
+  let last = null; // { id, draft, rewrite }
+
+  const samplesEl = $('samples');
+  function addSample(value = '') {
+    if (samplesEl.children.length >= 10) return;
+    const t = document.createElement('textarea');
+    t.rows = 3;
+    t.placeholder = `Something you wrote (#${samplesEl.children.length + 1})`;
+    t.setAttribute('aria-label', `Writing sample ${samplesEl.children.length + 1}`);
+    t.value = value;
+    samplesEl.appendChild(t);
+  }
+  const saved = store.get('hm.samples') || [];
+  for (let i = 0; i < Math.max(3, saved.length); i++) addSample(saved[i] || '');
+  $('addSample').onclick = () => addSample();
+  $('demoBtn').onclick = () => {
+    samplesEl.innerHTML = '';
+    DEMO.forEach((d) => addSample(d));
+    demo = true;
+    $('s1status').textContent = 'Example writer loaded. Try your own later, it\'s way more fun.';
+  };
+  $('exampleDraft').onclick = () => { $('draft').value = EXAMPLE_DRAFT; };
+  samplesEl.addEventListener('input', () => { demo = false; });
+
+  const readSamples = () => [...samplesEl.querySelectorAll('textarea')].map((t) => t.value.trim()).filter(Boolean);
+
+  async function api(path, body) {
+    const res = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) });
+    let data = {};
+    try { data = await res.json(); } catch {}
+    if (!res.ok) throw new Error(data.error || `Something went wrong (${res.status}).`);
+    return data;
+  }
+  const setStatus = (msg, isErr, busy) => {
+    const s = $('status');
+    s.className = 'status' + (isErr ? ' err' : '');
+    s.innerHTML = busy ? '<span class="spin" aria-hidden="true"></span>' : '';
+    s.appendChild(document.createTextNode(msg));
+  };
+
+  $('go').onclick = async () => {
+    const samples = readSamples();
+    const draft = $('draft').value.trim();
+    if (samples.length < 3) { setStatus('Paste at least 3 messages you wrote in step 1.', true); samplesEl.querySelector('textarea:placeholder-shown')?.focus(); return; }
+    if (samples.some((s) => s.length < 20)) { setStatus('Each sample needs at least a sentence or two (20+ characters).', true); return; }
+    if (!draft) { setStatus('Paste an AI draft in step 2.', true); $('draft').focus(); return; }
+    $('go').disabled = true;
+    try {
+      const key = JSON.stringify(samples);
+      if (!profile || profileKey !== key) {
+        setStatus('Learning your voice from your samples… (about 15 seconds, once)', false, true);
+        profile = (await api('/try/api/profile', { samples })).profile;
+        profileKey = key;
+        store.set('hm.profile', profile); store.set('hm.profileKey', key);
+        if (!demo) store.set('hm.samples', samples);
+      }
+      setStatus('Rewriting in your voice…', false, true);
+      const r = await api('/try/api/rewrite', { profile, samples, draft, context: $('context').value });
+      last = { id: r.id, draft, rewrite: r.rewrite };
+      $('before').textContent = draft;
+      $('after').textContent = r.rewrite;
+      $('notes').textContent = (r.notes || []).join(' ');
+      resetReview();
+      $('result').classList.remove('hidden');
+      setStatus('');
+      $('result').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+    } catch (e) {
+      setStatus(e.message, true);
+    } finally {
+      $('go').disabled = false;
+    }
+  };
+
+  $('copy').onclick = async () => {
+    try { await navigator.clipboard.writeText($('after').textContent); $('copy').textContent = 'Copied'; setTimeout(() => ($('copy').textContent = 'Copy'), 1500); } catch {}
+  };
+
+  let rating = 0, send = '';
+  function pick(group, v) {
+    group.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.v === v)));
+  }
+  $('rating').onclick = (e) => { const v = e.target.dataset?.v; if (v) { rating = Number(v); pick($('rating'), v); } };
+  $('send').onclick = (e) => { const v = e.target.dataset?.v; if (v) { send = v; pick($('send'), v); } };
+  function resetReview() {
+    rating = 0; send = ''; pick($('rating'), ''); pick($('send'), '');
+    $('comment').value = ''; $('share').checked = false; $('rstatus').textContent = '';
+    $('q1').textContent = demo ? 'Does it sound like the example writer?' : 'Does it sound like you?';
+    $('reviewForm').classList.remove('hidden'); $('thanks').classList.add('hidden');
+  }
+
+  $('submitReview').onclick = async () => {
+    if (!rating) { $('rstatus').textContent = 'Pick a 1–5 rating first.'; $('rstatus').className = 'status err'; return; }
+    $('submitReview').disabled = true;
+    try {
+      const comment = (demo ? '[demo writer] ' : '') + $('comment').value;
+      await api('/try/api/review', { id: last.id, soundsLikeMe: rating, wouldSend: send, comment, shareText: $('share').checked, draft: last.draft, rewrite: last.rewrite });
+      $('reviewForm').classList.add('hidden'); $('thanks').classList.remove('hidden');
+    } catch (e) {
+      $('rstatus').textContent = e.message; $('rstatus').className = 'status err';
+    } finally {
+      $('submitReview').disabled = false;
+    }
+  };
+  const again = () => { $('draft').value = ''; $('result').classList.add('hidden'); $('draft').focus(); $('step2').scrollIntoView({ block: 'start' }); };
+  $('again').onclick = again; $('again2').onclick = again;
+})();
+</script>
+</body>
+</html>

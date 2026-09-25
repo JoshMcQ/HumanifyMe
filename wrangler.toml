@@ -1,0 +1,17 @@
+# Cloudflare Pages project behind humanifyme.com. Deploy with:
+#   npx wrangler pages deploy
+# The site is docs/; functions/ serves the /try trial backend. /api/* is the
+# separate humanifyme-feedback Worker (route-bound), not this project.
+name = "humanifyme"
+pages_build_output_dir = "docs"
+compatibility_date = "2026-06-01"
+
+# Shared with the feedback Worker; the trial only touches try_* tables, which it
+# creates on first request.
+[[d1_databases]]
+binding = "DB"
+database_name = "humanifyme-feedback"
+database_id = "527aacfb-d034-435b-bbcf-5fc848a5d93c"
+
+# Secret, set once by the maintainer (never committed):
+#   npx wrangler pages secret put ANTHROPIC_API_KEY --project-name humanifyme

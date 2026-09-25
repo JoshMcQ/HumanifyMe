@@ -674,7 +674,8 @@
         <h1>Make AI sound <em>like you.</em></h1>
         <p>Your agent drafts the email, the PR, the Slack reply. HumanifyMe rewrites it in your actual voice, learned from your real writing, stored only on your machine.</p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#install">Install HumanifyMe</a>
+          <a class="btn btn-primary" href="/try">Try it in your browser</a>
+          <a class="btn btn-secondary" href="#install">Install</a>
           <a class="btn btn-secondary" href="https://github.com/JoshMcQ/HumanifyMe" target="_blank" rel="noopener">View on GitHub</a>
         </div>
         <div class="hero-meta">
@@ -801,7 +802,7 @@ npx -y humanifyme@latest rewrite draft.txt</div>
         </div>
         <div class="faq-item">
           <h3>What do you collect about me?</h3>
-          <p>No account, and your samples and profile stay in <code>~/.humanifyme/</code> on your machine. The only thing that leaves is a redacted draft sent to the LLM provider you choose. Setup offers to share anonymous quality counts (never text); it is off unless you opt in.</p>
+          <p>No account, and your samples and profile stay in <code>~/.humanifyme/</code> on your machine. What leaves is redacted text sent to the LLM provider you choose: your samples once, to build the profile, then each draft you rewrite. (The <a href="/try">browser trial</a> is different: it sends text to Claude from our server and stores nothing unless you tick "share".) Setup offers to share anonymous quality counts (never text); it is off unless you opt in.</p>
         </div>
         <div class="faq-item">
           <h3>Does it work with local models?</h3>

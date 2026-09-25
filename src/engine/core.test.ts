@@ -30,3 +30,11 @@ describe('looksLikeText', () => {
     expect(looksLikeText('\u0001\u0002\u0003' + 'x'.repeat(50))).toBe(false);
   });
 });
+
+describe('restore after maskDraft', () => {
+  it('restores private data inside code even when the model drops the placeholder number', () => {
+    const { redactedText, map } = maskDraft('send it\n\n```\nto = "ops@example.com"\n```');
+    const modelOutput = redactedText.replace('[CODE_1]', '[CODE]');
+    expect(restore(modelOutput, map)).toBe('send it\n\n```\nto = "ops@example.com"\n```');
+  });
+});

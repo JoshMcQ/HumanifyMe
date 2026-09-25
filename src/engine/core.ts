@@ -45,8 +45,6 @@ export function budgetExemplars(redactedExemplars: string[]): string[] {
 }
 
 export interface RewriteLoopArgs {
-  /** Original (unredacted) draft length drives the length band. */
-  draftLength: number;
   redactedDraft: string;
   fingerprint: VoiceFingerprint;
   variant?: ContextVariant;
@@ -79,7 +77,7 @@ export async function runRewriteLoop(
       directives,
       lengthReminder,
     });
-    const payloadBytes = Buffer.byteLength(system + user, 'utf8');
+    const payloadBytes = new TextEncoder().encode(system + user).length;
 
     let completion: CompletionResult;
     try {
@@ -102,7 +100,9 @@ export async function runRewriteLoop(
       continue;
     }
 
-    const ratio = text.length / args.draftLength;
+    // Measured against the masked draft: that is what the model saw, and a long
+    // code block would otherwise make every faithful rewrite look too short.
+    const ratio = text.length / args.redactedDraft.length;
     const outOfBand = shorter ? ratio > 0.95 : ratio < 0.4 || ratio > 1.3;
     // Deterministic quality gate: introduced banned words, dropped numbers,
     // lost URLs, mangled redaction placeholders, and casing that drifts from the

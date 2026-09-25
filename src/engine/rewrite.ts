@@ -99,7 +99,6 @@ export async function rewrite(args: RewriteArgs): Promise<RewriteResponse> {
 
   let lastAuditId: number | null = null;
   const { completion: result, notes: loopNotes } = await runRewriteLoop({
-    draftLength: args.draft.length,
     redactedDraft: redactedText,
     fingerprint,
     variant,
