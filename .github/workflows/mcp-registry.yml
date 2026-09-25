@@ -1,0 +1,34 @@
+name: MCP Registry
+
+# Publishes server.json to registry.modelcontextprotocol.io. Called by the
+# Release workflow after npm publish (the registry checks the published
+# package's mcpName), or run by hand. GitHub OIDC proves ownership of
+# io.github.JoshMcQ/*, so no secrets are involved.
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6
+      - name: Install mcp-publisher
+        run: |
+          curl -fsSL "https://github.com/modelcontextprotocol/registry/releases/download/v1.8.1/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+      - name: Wait for the npm version
+        run: |
+          v=$(jq -r .version server.json)
+          for i in $(seq 1 30); do
+            [ "$(npm view "humanifyme@$v" version 2>/dev/null)" = "$v" ] && exit 0
+            sleep 20
+          done
+          echo "humanifyme@$v never appeared on npm" >&2; exit 1
+      - name: Publish
+        run: |
+          ./mcp-publisher login github-oidc
+          ./mcp-publisher publish
