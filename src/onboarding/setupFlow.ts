@@ -146,7 +146,10 @@ export async function runSetupFlow(io: SetupIo, services: SetupServices): Promis
     services.setSharing(await askYesNo(io, 'Share anonymous counts? [y/N] '));
   }
 
-  io.write('\nSetup complete. Ask your agent to "humanify this," or run: humanifyme rewrite draft.txt');
+  io.write(
+    '\nSetup complete. Ask your agent to "humanify this," or run: humanifyme rewrite draft.txt' +
+      '\nHow did it do? Rate a rewrite (2 min): https://github.com/JoshMcQ/HumanifyMe/issues/new?template=rate_a_rewrite.yml',
+  );
   return { completed: true };
 }
 

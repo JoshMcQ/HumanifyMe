@@ -39,6 +39,8 @@ it after an agent drafts an email, PR, or message. The CLI and every installed
 agent share the profile stored in `~/.humanifyme/`. Use
 **`/humanifyme:build-voice-profile`** later to add samples or rebuild it.
 
+**Tried it?** [Rate a rewrite](https://github.com/JoshMcQ/HumanifyMe/issues/new?template=rate_a_rewrite.yml): two dropdowns, and it is the feedback that improves voice matching most.
+
 Run `/reload-plugins` if you installed mid-session. Using a different agent (Cursor, Continue, Cline, Windsurf, Zed, ChatGPT desktop) or the CLI? See [Install](#install).
 
 Want to inspect a draft before setting up a profile? The analyzer is local, deterministic, and needs no API key:
