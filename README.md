@@ -2,6 +2,8 @@
 
 **Make AI sound like you.** · [humanifyme.com](https://humanifyme.com)
 
+**[Try it in your browser →](https://humanifyme.com/try)** No install and no key: paste a few of your own messages and an AI draft, and get the draft back in your voice.
+
 [![npm](https://img.shields.io/npm/v/humanifyme.svg)](https://www.npmjs.com/package/humanifyme)
 [![GitHub stars](https://img.shields.io/github/stars/JoshMcQ/HumanifyMe?style=social)](https://github.com/JoshMcQ/HumanifyMe)
 [![Website](https://img.shields.io/badge/website-humanifyme.com-c96342.svg)](https://humanifyme.com)
